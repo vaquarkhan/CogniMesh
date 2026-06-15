@@ -42,9 +42,11 @@ flowchart TB
 
 ## Pipeline Types
 
-### Structured Pipeline
+### Structured Pipeline (Vaquar PVDM)
 
 `RDS/MySQL (CDC)` → `S3 Bronze` → `Glue Silver` → `Iceberg Gold`
+
+Proof-gated writes follow **[The Vaquar Pattern](vaquar-pattern.md)** (Physical → Verify → Durable → Metadata).
 
 ### Cognitive Pipeline
 
@@ -66,6 +68,12 @@ Implementation: `services/cognitive-runtime/`
 2. CI runs `aiv-integrity-gate` (quality, security, compliance)
 3. On approval → Glue Data Catalog + Lake Formation policies
 
-## Repository Layout
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| [vaquar-pattern.md](vaquar-pattern.md) | The Vaquar Pattern (PVDM) |
+| [drag-drop-pipeline-flow.md](drag-drop-pipeline-flow.md) | Portal E2E |
+| [data-contract-spec.md](data-contract-spec.md) | DataContract spec |
 
 See [README](../README.md) for service and infrastructure paths.

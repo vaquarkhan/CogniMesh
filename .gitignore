@@ -6,6 +6,7 @@ target/
 dist/
 build/
 generated/
+logs/
 *.jar
 !.mvn/wrapper/maven-wrapper.jar
 

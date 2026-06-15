@@ -1,0 +1,46 @@
+# CogniMesh full-stack local development
+# Usage: docker compose up --build
+# Portal: http://localhost:3000  API: http://localhost:4000  Catalog: http://localhost:8080
+
+services:
+  catalog:
+    build:
+      context: ./services/catalog
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_APPLICATION_NAME: cognimesh-catalog
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/api/v1/products"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
+    ports:
+      - "4000:4000"
+    environment:
+      AUTH_DISABLED: "true"
+      PORT: "4000"
+      CATALOG_URL: http://catalog:8080
+      CATALOG_FALLBACK: embedded
+      CORS_ORIGINS: http://localhost:3000
+    depends_on:
+      catalog:
+        condition: service_healthy
+
+  portal:
+    build:
+      context: ./portal
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      VITE_API_URL: http://localhost:4000
+    depends_on:
+      - api

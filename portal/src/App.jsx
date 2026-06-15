@@ -14,6 +14,9 @@ import PipelineNode from "./components/PipelineNode";
 import PropertiesPanel from "./components/PropertiesPanel";
 import DeployPanel from "./components/DeployPanel";
 import MarketplacePanel from "./components/MarketplacePanel";
+import ToastStack, { useToast } from "./components/Toast";
+import MobileWarning from "./components/MobileWarning";
+import LoadingOverlay from "./components/LoadingOverlay";
 import { deployPipeline, previewPipeline } from "./lib/api";
 import { useAuth } from "./auth/AuthContext";
 
@@ -73,11 +76,21 @@ const initialEdges = [
   { id: "e2", source: "transform-1", target: "sink-1", animated: true },
 ];
 
+function snapshot(nodes, edges) {
+  return {
+    nodes: JSON.parse(JSON.stringify(nodes)),
+    edges: JSON.parse(JSON.stringify(edges)),
+  };
+}
+
 export default function App() {
   const { token, userEmail, logout, authDisabled } = useAuth();
+  const { toasts, success, error: toastError } = useToast();
   const reactFlowWrapper = useRef(null);
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const [history, setHistory] = useState([snapshot(initialNodes, initialEdges)]);
+  const [historyIndex, setHistoryIndex] = useState(0);
   const [selectedId, setSelectedId] = useState(null);
   const [pipelineMeta, setPipelineMeta] = useState({
     name: "customer-orders-cdc",
@@ -87,15 +100,52 @@ export default function App() {
   const [deployResult, setDeployResult] = useState(null);
   const [deployError, setDeployError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState("Working…");
   const [showDeploy, setShowDeploy] = useState(false);
   const [showMarketplace, setShowMarketplace] = useState(true);
   const [catalogRefresh, setCatalogRefresh] = useState(0);
 
   const selectedNode = nodes.find((n) => n.id === selectedId) || null;
 
+  const pushHistory = useCallback(
+    (nextNodes, nextEdges) => {
+      const snap = snapshot(nextNodes, nextEdges);
+      setHistory((h) => {
+        const trimmed = h.slice(0, historyIndex + 1);
+        return [...trimmed, snap].slice(-30);
+      });
+      setHistoryIndex((i) => Math.min(i + 1, 29));
+    },
+    [historyIndex]
+  );
+
+  const undo = () => {
+    if (historyIndex <= 0) return;
+    const next = historyIndex - 1;
+    setHistoryIndex(next);
+    setNodes(history[next].nodes);
+    setEdges(history[next].edges);
+    success("Undo");
+  };
+
+  const redo = () => {
+    if (historyIndex >= history.length - 1) return;
+    const next = historyIndex + 1;
+    setHistoryIndex(next);
+    setNodes(history[next].nodes);
+    setEdges(history[next].edges);
+    success("Redo");
+  };
+
   const onConnect = useCallback(
-    (params) => setEdges((eds) => addEdge({ ...params, animated: true }, eds)),
-    [setEdges]
+    (params) => {
+      setEdges((eds) => {
+        const next = addEdge({ ...params, animated: true }, eds);
+        pushHistory(nodes, next);
+        return next;
+      });
+    },
+    [nodes, setEdges, pushHistory]
   );
 
   const onDragOver = useCallback((event) => {
@@ -119,7 +169,9 @@ export default function App() {
       const blockType = block.defaults.blockType;
       const existing = nodes.find((n) => n.data.blockType === blockType);
       if (existing && blockType !== "transform") {
-        setDeployError([`Only one ${blockType} block is allowed. Select and edit the existing block.`]);
+        const msg = `Only one ${blockType} block is allowed.`;
+        setDeployError([msg]);
+        toastError(msg);
         return;
       }
 
@@ -131,45 +183,52 @@ export default function App() {
       };
 
       setNodes((nds) => {
+        let next;
         if (blockType === "transform" && existing) {
-          return nds.map((n) => (n.id === existing.id ? newNode : n));
+          next = nds.map((n) => (n.id === existing.id ? newNode : n));
+        } else {
+          next = nds.concat(newNode);
         }
-        return nds.concat(newNode);
+        pushHistory(next, edges);
+        return next;
       });
       setDeployError(null);
     },
-    [nodes, setNodes]
+    [nodes, edges, setNodes, pushHistory, toastError]
   );
 
   const updateNode = useCallback(
     (id, patch) => {
-      setNodes((nds) =>
-        nds.map((n) =>
+      setNodes((nds) => {
+        const next = nds.map((n) =>
           n.id === id ? { ...n, data: { ...n.data, ...patch } } : n
-        )
-      );
+        );
+        pushHistory(next, edges);
+        return next;
+      });
     },
-    [setNodes]
+    [edges, setNodes, pushHistory]
   );
 
   const handlePreview = async () => {
     setLoading(true);
+    setLoadingMessage("Generating contract preview…");
     setDeployError(null);
     setShowDeploy(true);
     try {
-      const meta = {
-        ...pipelineMeta,
-        ownerEmail: userEmail,
-      };
+      const meta = { ...pipelineMeta, ownerEmail: userEmail };
       const result = await previewPipeline({ nodes, edges, pipelineMeta: meta, token });
       if (result.status === "success") {
-        setDeployResult({ ...result, status: "success", catalog: null, integrityGate: null });
+        setDeployResult({ ...result, status: "success", catalog: null });
+        success("Preview ready — review YAML before deploy");
       } else {
-        setDeployError(result.errors || result.validation?.errors || ["Preview failed"]);
-        setDeployResult(null);
+        const errs = result.errors || result.validation?.errors || ["Preview failed"];
+        setDeployError(errs);
+        toastError("Preview failed — check integrity gate");
       }
     } catch (err) {
       setDeployError([err.message]);
+      toastError(err.message || "API unavailable");
     } finally {
       setLoading(false);
     }
@@ -177,24 +236,26 @@ export default function App() {
 
   const handleDeploy = async () => {
     setLoading(true);
+    setLoadingMessage("Deploying pipeline…");
     setDeployError(null);
     setShowDeploy(true);
     try {
-      const meta = {
-        ...pipelineMeta,
-        ownerEmail: userEmail,
-      };
+      const meta = { ...pipelineMeta, ownerEmail: userEmail };
       const { ok, data } = await deployPipeline({ nodes, edges, pipelineMeta: meta, token });
       if (ok) {
         setDeployResult(data);
         setDeployError(null);
         setCatalogRefresh((k) => k + 1);
+        success("Pipeline deployed successfully");
       } else {
-        setDeployError(data.errors || data.validation?.errors || ["Deploy failed"]);
+        const errs = data.errors || data.validation?.errors || data.integrityGate?.errors || ["Deploy failed"];
+        setDeployError(errs);
         setDeployResult(data.contract ? data : null);
+        toastError("Deploy blocked — see panel for details");
       }
     } catch (err) {
       setDeployError([err.message]);
+      toastError(err.message || "Cannot reach API");
     } finally {
       setLoading(false);
     }
@@ -202,26 +263,39 @@ export default function App() {
 
   return (
     <div className="app">
+      <MobileWarning />
+      <ToastStack toasts={toasts} />
+      {loading && <LoadingOverlay message={loadingMessage} />}
+
       <header className="header">
         <div>
           <h1>CogniMesh</h1>
           <p className="subtitle">Zero-code pipeline designer</p>
         </div>
         <div className="header-actions">
-          {!authDisabled && userEmail && (
-            <span className="user-badge">{userEmail}</span>
-          )}
-          <button className="btn-secondary" onClick={() => setShowMarketplace((v) => !v)}>
+          {!authDisabled && userEmail && <span className="user-badge">{userEmail}</span>}
+          <button className="btn-secondary" type="button" onClick={undo} disabled={historyIndex <= 0}>
+            Undo
+          </button>
+          <button
+            className="btn-secondary"
+            type="button"
+            onClick={redo}
+            disabled={historyIndex >= history.length - 1}
+          >
+            Redo
+          </button>
+          <button className="btn-secondary" type="button" onClick={() => setShowMarketplace((v) => !v)}>
             Marketplace
           </button>
-          <button className="btn-secondary" onClick={handlePreview} disabled={loading}>
+          <button className="btn-secondary" type="button" onClick={handlePreview} disabled={loading}>
             Preview YAML
           </button>
-          <button className="deploy-btn" onClick={handleDeploy} disabled={loading}>
+          <button className="deploy-btn" type="button" onClick={handleDeploy} disabled={loading}>
             Deploy Pipeline
           </button>
           {!authDisabled && (
-            <button className="btn-secondary" onClick={logout}>
+            <button className="btn-secondary" type="button" onClick={logout}>
               Sign out
             </button>
           )}
@@ -248,10 +322,12 @@ export default function App() {
           >
             <Background gap={20} color="#243044" />
             <Controls />
-            <MiniMap nodeColor={(n) => {
-              const c = { source: "#059669", transform: "#2563eb", sink: "#ea580c" };
-              return c[n.data?.blockType] || "#6b7280";
-            }} />
+            <MiniMap
+              nodeColor={(n) => {
+                const c = { source: "#059669", transform: "#2563eb", sink: "#ea580c" };
+                return c[n.data?.blockType] || "#6b7280";
+              }}
+            />
           </ReactFlow>
         </div>
 
@@ -262,9 +338,7 @@ export default function App() {
           onMetaChange={setPipelineMeta}
         />
 
-        {showMarketplace && (
-          <MarketplacePanel token={token} refreshKey={catalogRefresh} />
-        )}
+        {showMarketplace && <MarketplacePanel token={token} refreshKey={catalogRefresh} />}
 
         {showDeploy && (
           <DeployPanel result={deployResult} loading={loading} error={deployError} />

@@ -4,6 +4,7 @@
   "private": true,
   "description": "CogniMesh - Multimodal Cognitive Data Mesh & Marketplace",
   "scripts": {
+    "postinstall": "node scripts/postinstall.js",
     "validate:contract": "node scripts/validate-contract.js",
     "test:e2e": "node scripts/test-e2e-pipeline.js",
     "test:api": "node scripts/test-api-e2e.js",
@@ -12,13 +13,21 @@
     "test:pvdm": "node scripts/test-pvdm-runtime.js",
     "vaquar:apply": "node scripts/vaquar-apply.js",
     "test": "npm run test:e2e && npm run test:vaquar && npm run test:pvdm && npm run test:integrity-gate -- contracts/examples/structured-cdc-pipeline.yaml",
+    "test:unit": "node --test lib/contract-builder/__tests__/contract-builder.test.js lib/integrity-gate/__tests__/integrity-gate.test.js lib/__tests__/safe-yaml-catalog.test.js",
+    "lint": "eslint lib services scripts portal/src services/api-gateway --ext .js,.jsx",
+    "lint:fix": "eslint lib services scripts portal/src services/api-gateway --ext .js,.jsx --fix",
+    "format": "prettier --write \"**/*.{js,jsx,json,md,yml,yaml}\"",
+    "format:check": "prettier --check \"**/*.{js,jsx,json,md,yml,yaml}\"",
     "package:lambda": "powershell -ExecutionPolicy Bypass -File infra/terraform/scripts/package-integrity-gate.ps1",
     "package:domain-writer": "powershell -ExecutionPolicy Bypass -File infra/terraform/scripts/package-domain-writer.ps1",
     "dev:agent-mcp": "node services/agent-mcp/server.js",
-    "dev:api": "node services/api-gateway/server.js",
+    "dev:api": "cross-env AUTH_DISABLED=true node services/api-gateway/server.js",
     "dev:portal": "npm run dev --prefix portal",
     "dev:catalog": "mvn -q -f services/catalog spring-boot:run",
     "dev": "concurrently -n api,portal,catalog -c cyan,green,yellow \"npm run dev:api\" \"npm run dev:portal\" \"npm run dev:catalog\"",
+    "dev:minimal": "concurrently -n api,portal -c cyan,green \"npm run dev:api\" \"npm run dev:portal\"",
+    "docker:up": "docker compose up --build",
+    "docker:down": "docker compose down",
     "start": "npm run dev"
   },
   "dependencies": {
@@ -33,6 +42,10 @@
     "js-yaml": "^4.1.0"
   },
   "devDependencies": {
-    "concurrently": "^9.0.1"
+    "concurrently": "^9.0.1",
+    "cross-env": "^7.0.3",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.3.3"
   }
 }

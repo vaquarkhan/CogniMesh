@@ -3,7 +3,7 @@
 
 const fs = require("fs");
 const path = require("path");
-const yaml = require("js-yaml");
+const { safeYamlLoad } = require("../lib/safe-yaml");
 const Ajv2020 = require("ajv/dist/2020");
 const addFormats = require("ajv-formats");
 
@@ -16,7 +16,7 @@ if (!contractPath) {
 const schemaPath = path.join(__dirname, "..", "schemas", "data-contract-v1.schema.json");
 const schema = JSON.parse(fs.readFileSync(schemaPath, "utf8"));
 const raw = fs.readFileSync(path.resolve(contractPath), "utf8");
-const doc = yaml.load(raw);
+const doc = safeYamlLoad(raw);
 
 const ajv = new Ajv2020({ allErrors: true, strict: false });
 addFormats(ajv);
