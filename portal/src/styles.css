@@ -1173,3 +1173,48 @@ body {
   margin-top: 0.2rem;
   font-size: 0.75rem;
 }
+
+.ai-builder-intro { font-size: 0.82rem; color: #94a3b8; margin-bottom: 0.75rem; }
+.ai-builder-input { width: 100%; background: #0f1419; border: 1px solid #243044; color: #e7ecf3; border-radius: 8px; padding: 0.6rem; font-size: 0.85rem; resize: vertical; }
+.ai-builder-submit { width: 100%; margin: 0.5rem 0; }
+.ai-builder-result { background: #064e3b; border: 1px solid #059669; border-radius: 8px; padding: 0.6rem; margin: 0.5rem 0; font-size: 0.82rem; }
+.ai-example-chip { display: block; width: 100%; text-align: left; background: #1e293b; border: 1px solid #334155; color: #cbd5e1; border-radius: 6px; padding: 0.4rem 0.5rem; margin: 0.25rem 0; font-size: 0.72rem; cursor: pointer; }
+.ai-example-chip:hover { border-color: #6ee7b7; }
+.pattern-search { width: 100%; margin-bottom: 0.5rem; padding: 0.4rem 0.6rem; background: #0f1419; border: 1px solid #243044; border-radius: 6px; color: #e7ecf3; font-size: 0.82rem; }
+.pattern-arch, .pattern-layers, .pattern-example, .pattern-flow { font-size: 0.78rem; color: #94a3b8; margin: 0.35rem 0; }
+.pattern-diagram { font-size: 0.65rem; background: #0f1419; border: 1px solid #243044; border-radius: 6px; padding: 0.5rem; color: #6ee7b7; overflow-x: auto; }
+.layer-badge { display: inline-block; padding: 0.1rem 0.35rem; border-radius: 4px; margin-right: 0.25rem; font-size: 0.65rem; text-transform: uppercase; }
+.layer-bronze { background: #78350f; color: #fde68a; }
+.layer-silver { background: #334155; color: #e2e8f0; }
+.layer-gold { background: #854d0e; color: #fef3c7; }
+.vrp-badge { font-size: 0.65rem; padding: 0.1rem 0.35rem; border-radius: 4px; font-weight: 700; }
+.vrp-pass { background: #064e3b; color: #6ee7b7; }
+.vrp-fail { background: #450a0a; color: #fca5a5; }
+.vrp-unknown { background: #334155; color: #94a3b8; }
+.vrp-pass-text { color: #6ee7b7; }
+.vrp-fail-text { color: #fca5a5; }
+.proof-gated-tag { color: #fbbf24; margin-left: 0.35rem; }
+.proof-gated-banner { background: #422006; border: 1px solid #b45309; color: #fde68a; padding: 0.35rem 0.5rem; border-radius: 6px; font-size: 0.8rem; }
+.execution-run-header-btn { width: 100%; text-align: left; background: transparent; border: none; color: inherit; cursor: pointer; padding: 0; }
+.execution-run-detail { margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid #243044; }
+.proof-dl { display: grid; grid-template-columns: auto 1fr; gap: 0.25rem 0.75rem; font-size: 0.75rem; }
+.proof-dl dt { color: #64748b; }
+.proof-dl dd { margin: 0; color: #cbd5e1; }
+.proof-link { font-size: 0.68rem; word-break: break-all; color: #93c5fd; }
+.rows-dropped { color: #fbbf24; }
+.aws-status { font-weight: 600; text-transform: uppercase; font-size: 0.7rem; }
+.aws-SUCCEEDED, .aws-deployed { color: #6ee7b7; }
+.aws-RUNNING { color: #93c5fd; }
+.aws-FAILED { color: #fca5a5; }
+.aws-console-link, .athena-link { display: inline-block; margin-top: 0.35rem; font-size: 0.78rem; }
+.product-card-main { width: 100%; text-align: left; background: transparent; border: none; color: inherit; cursor: pointer; padding: 0; }
+.product-detail-modal { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 0.75rem; margin-bottom: 0.75rem; }
+.product-detail-header { display: flex; justify-content: space-between; align-items: center; }
+.schema-table { width: 100%; font-size: 0.75rem; border-collapse: collapse; margin: 0.5rem 0; }
+.schema-table th, .schema-table td { border: 1px solid #334155; padding: 0.25rem 0.4rem; text-align: left; }
+.sample-rows { font-size: 0.68rem; max-height: 120px; overflow: auto; background: #0f1419; padding: 0.5rem; border-radius: 6px; }
+.steward-list { list-style: none; padding: 0; margin: 0; }
+.steward-card { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 0.6rem; margin-bottom: 0.5rem; }
+.steward-actions { display: flex; gap: 0.35rem; margin-top: 0.5rem; }
+.steward-reason { font-size: 0.78rem; color: #94a3b8; margin: 0.35rem 0; }
+.deploy-btn.compact, .btn-secondary.compact { padding: 0.25rem 0.5rem; font-size: 0.72rem; }

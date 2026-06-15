@@ -18,6 +18,7 @@ import LineageCatalogPanel from "./components/LineageCatalogPanel";
 import ExecutionHistoryPanel from "./components/ExecutionHistoryPanel";
 import DeployConfirmModal from "./components/DeployConfirmModal";
 import WelcomeModal from "./components/WelcomeModal";
+import StewardApprovalsPanel from "./components/StewardApprovalsPanel";
 import CanvasTipBar from "./components/CanvasTipBar";
 import ToastStack, { useToast } from "./components/Toast";
 import MobileWarning from "./components/MobileWarning";
@@ -91,7 +92,7 @@ export default function App() {
   const [showExecutionHistory, setShowExecutionHistory] = useState(false);
   const [catalogRefresh, setCatalogRefresh] = useState(0);
   const [showDeployConfirm, setShowDeployConfirm] = useState(false);
-  const [tipDismissed, setTipDismissed] = useState(false);
+  const [showStewardApprovals, setShowStewardApprovals] = useState(false);
 
   const blockValidation = useMemo(() => validateBlocks(nodes, edges), [nodes, edges]);
   const workflowStep = useMemo(
@@ -356,6 +357,9 @@ export default function App() {
           <button className="btn-secondary" type="button" onClick={redo} disabled={historyIndex >= history.length - 1}>
             Redo
           </button>
+          <button className="btn-secondary" type="button" onClick={() => setShowStewardApprovals((v) => !v)}>
+            Approvals
+          </button>
           <button className="btn-secondary" type="button" onClick={() => setShowExecutionHistory((v) => !v)}>
             Run History
           </button>
@@ -385,6 +389,7 @@ export default function App() {
           workflowStep={workflowStep}
           patternTips={patternTips}
           onApplyPattern={applyPattern}
+          token={token}
         />
 
         <div className="canvas-column">
@@ -453,6 +458,8 @@ export default function App() {
           pipelineMeta={pipelineMeta}
           onMetaChange={setPipelineMeta}
         />
+
+        {showStewardApprovals && <StewardApprovalsPanel token={token} refreshKey={catalogRefresh} />}
 
         {showMarketplace && <MarketplacePanel token={token} refreshKey={catalogRefresh} />}
 

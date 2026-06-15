@@ -2,9 +2,11 @@ import { useState } from "react";
 import PatternLibrary from "./PatternLibrary";
 import BlockPalette from "./BlockPalette";
 import WorkflowGuide from "./WorkflowGuide";
+import AiPipelineBuilder from "./AiPipelineBuilder";
 
 const TABS = [
-  { id: "patterns", label: "Patterns", hint: "Start here" },
+  { id: "ai", label: "AI Builder", hint: "Describe your pipeline in English" },
+  { id: "patterns", label: "Patterns", hint: "Rich pattern library" },
   { id: "blocks", label: "Blocks", hint: "Customize" },
   { id: "guide", label: "Guide", hint: "Help" },
 ];
@@ -14,8 +16,9 @@ export default function DesignerSidebar({
   workflowStep,
   patternTips,
   onApplyPattern,
+  token,
 }) {
-  const [tab, setTab] = useState("patterns");
+  const [tab, setTab] = useState("ai");
 
   return (
     <aside className="designer-sidebar">
@@ -34,6 +37,7 @@ export default function DesignerSidebar({
       </div>
 
       <div className="sidebar-panel">
+        {tab === "ai" && <AiPipelineBuilder token={token} onApplyPattern={onApplyPattern} />}
         {tab === "patterns" && (
           <PatternLibrary activePatternId={activePatternId} onApplyPattern={onApplyPattern} />
         )}

@@ -3,9 +3,11 @@ import { PIPELINE_PATTERNS, instantiatePattern, getPatternById } from "./pipelin
 
 describe("pipeline-patterns", () => {
   it("includes structured and cognitive patterns", () => {
-    expect(PIPELINE_PATTERNS.length).toBeGreaterThan(3);
+    expect(PIPELINE_PATTERNS.length).toBeGreaterThan(15);
     expect(getPatternById("vaquar-cdc-orders")).toBeTruthy();
     expect(getPatternById("cognitive-media")).toBeTruthy();
+    expect(getPatternById("medallion-full-stack")).toBeTruthy();
+    expect(getPatternById("healthcare-fhir")).toBeTruthy();
   });
 
   it("instantiatePattern remaps node ids and edges", () => {

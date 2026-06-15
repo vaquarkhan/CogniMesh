@@ -1,37 +1,43 @@
 import { useState } from "react";
-import { PIPELINE_PATTERNS, PATTERN_CATEGORIES, instantiatePattern } from "../lib/pipeline-patterns";
+import { PIPELINE_PATTERNS, PATTERN_CATEGORIES, instantiatePattern, ARCHITECTURE_LABELS } from "../lib/pipeline-patterns";
 
 export default function PatternLibrary({ activePatternId, onApplyPattern }) {
   const [category, setCategory] = useState("All");
   const [expandedId, setExpandedId] = useState(null);
+  const [search, setSearch] = useState("");
 
-  const filtered =
-    category === "All"
-      ? PIPELINE_PATTERNS.filter((p) => p.id !== "blank")
-      : PIPELINE_PATTERNS.filter((p) => p.category === category && p.id !== "blank");
+  const filtered = PIPELINE_PATTERNS.filter((p) => {
+    if (p.id === "blank") return false;
+    if (category !== "All" && p.category !== category) return false;
+    if (search) {
+      const q = search.toLowerCase();
+      const hay = `${p.name} ${p.description} ${p.whenToUse} ${p.exampleScenario || ""}`.toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
 
   return (
     <div className="pattern-library">
       <h2>Pattern library</h2>
       <p className="pattern-library-intro">
-        Start from a proven template, then customize blocks on the canvas. No need to build from scratch.
+        {PIPELINE_PATTERNS.filter((p) => p.id !== "blank").length} proven architectures — medallion, finance, healthcare, AI, and more.
       </p>
 
+      <input
+        className="pattern-search"
+        type="search"
+        placeholder="Search patterns…"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
+
       <div className="pattern-filters">
-        <button
-          type="button"
-          className={category === "All" ? "active" : ""}
-          onClick={() => setCategory("All")}
-        >
+        <button type="button" className={category === "All" ? "active" : ""} onClick={() => setCategory("All")}>
           All
         </button>
         {PATTERN_CATEGORIES.map((c) => (
-          <button
-            key={c}
-            type="button"
-            className={category === c ? "active" : ""}
-            onClick={() => setCategory(c)}
-          >
+          <button key={c} type="button" className={category === c ? "active" : ""} onClick={() => setCategory(c)}>
             {c}
           </button>
         ))}
@@ -61,10 +67,36 @@ export default function PatternLibrary({ activePatternId, onApplyPattern }) {
 
               {isExpanded && (
                 <div className="pattern-detail">
+                  {pattern.architecture && (
+                    <p className="pattern-arch">
+                      <strong>Architecture:</strong> {ARCHITECTURE_LABELS[pattern.architecture] || pattern.architecture}
+                    </p>
+                  )}
+                  {pattern.medallionLayers?.length > 0 && (
+                    <p className="pattern-layers">
+                      <strong>Medallion layers:</strong>{" "}
+                      {pattern.medallionLayers.map((l) => (
+                        <span key={l} className={`layer-badge layer-${l}`}>{l}</span>
+                      ))}
+                    </p>
+                  )}
                   <p>{pattern.description}</p>
                   <p className="pattern-when">
                     <strong>When to use:</strong> {pattern.whenToUse}
                   </p>
+                  {pattern.exampleScenario && (
+                    <p className="pattern-example">
+                      <strong>Example:</strong> {pattern.exampleScenario}
+                    </p>
+                  )}
+                  {pattern.exampleFlow && (
+                    <p className="pattern-flow">
+                      <strong>Flow:</strong> <code>{pattern.exampleFlow}</code>
+                    </p>
+                  )}
+                  {pattern.architectureDiagram && (
+                    <pre className="pattern-diagram">{pattern.architectureDiagram}</pre>
+                  )}
                   {pattern.awsServices?.length > 0 && (
                     <p className="pattern-aws">
                       <strong>AWS:</strong> {pattern.awsServices.join(" · ")}
@@ -75,22 +107,14 @@ export default function PatternLibrary({ activePatternId, onApplyPattern }) {
                       <li key={i}>{t}</li>
                     ))}
                   </ol>
-                  <button
-                    type="button"
-                    className="pattern-use-btn"
-                    onClick={() => onApplyPattern(instantiatePattern(pattern))}
-                  >
+                  <button type="button" className="pattern-use-btn" onClick={() => onApplyPattern(instantiatePattern(pattern))}>
                     Use this pattern
                   </button>
                 </div>
               )}
 
               {!isExpanded && (
-                <button
-                  type="button"
-                  className="pattern-use-btn compact"
-                  onClick={() => onApplyPattern(instantiatePattern(pattern))}
-                >
+                <button type="button" className="pattern-use-btn compact" onClick={() => onApplyPattern(instantiatePattern(pattern))}>
                   Use pattern
                 </button>
               )}
@@ -103,10 +127,7 @@ export default function PatternLibrary({ activePatternId, onApplyPattern }) {
         <button
           type="button"
           className="btn-secondary pattern-blank-btn"
-          onClick={() => {
-            const blank = PIPELINE_PATTERNS.find((p) => p.id === "blank");
-            onApplyPattern(instantiatePattern(blank));
-          }}
+          onClick={() => onApplyPattern(instantiatePattern(PIPELINE_PATTERNS.find((p) => p.id === "blank")))}
         >
           ✨ Start blank canvas
         </button>

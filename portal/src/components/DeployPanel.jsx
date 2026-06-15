@@ -53,6 +53,23 @@ export default function DeployPanel({ result, loading, error }) {
           {result.contract?.spec?.transform?.pvdm?.qualityPolicyId && (
             <p>✓ Data quality policy: {result.contract.spec.transform.pvdm.qualityPolicyId}</p>
           )}
+          {result.pvdmSummary && (
+            <>
+              <p>✓ VRP verdict: <strong className={result.pvdmSummary.vrpVerdict === "PASS" ? "vrp-pass-text" : "vrp-fail-text"}>{result.pvdmSummary.vrpVerdict}</strong></p>
+              <p>✓ Rows: {result.pvdmSummary.rowsWritten} written · {result.pvdmSummary.rowsDropped} dropped (DQ)</p>
+              {result.pvdmSummary.proofGated && <p>✓ Proof-gated Iceberg commit</p>}
+            </>
+          )}
+          {result.aws?.executionStatus && (
+            <p>✓ AWS Step Functions: <span className={`aws-status aws-${result.aws.executionStatus.status}`}>{result.aws.executionStatus.status}</span>
+              {result.aws.executionStatus.consoleUrl && (
+                <> · <a href={result.aws.executionStatus.consoleUrl} target="_blank" rel="noreferrer">AWS Console ↗</a></>
+              )}
+            </p>
+          )}
+          {result.aws?.stateMachineArn && !result.aws?.executionStatus && (
+            <p>○ State machine: <code>{result.aws.stateMachineName || "deployed"}</code></p>
+          )}
           <p>✓ Step Functions compiled{result.vaquar?.pattern ? ` (${result.vaquar.pattern})` : ""}</p>
           {result.vaquar?.outputDir && (
             <p>✓ Vaquar mesh artifacts → <code>{result.vaquar.outputDir}</code></p>

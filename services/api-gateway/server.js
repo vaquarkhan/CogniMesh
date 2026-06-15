@@ -152,6 +152,8 @@ app.post("/api/v1/products/:id/access-requests", requireAuth, (req, res) => {
     userId: req.auth?.sub,
     userEmail: req.auth?.email,
     reason: req.body?.reason,
+    productName: req.body?.productName,
+    domain: req.body?.domain,
   });
   auditRecord({
     action: "access_request",
@@ -159,6 +161,66 @@ app.post("/api/v1/products/:id/access-requests", requireAuth, (req, res) => {
     product_id: req.params.id,
   });
   res.status(201).json(record);
+});
+
+app.get("/api/v1/access-requests/pending", requireAuth, (_req, res) => {
+  const { listPending } = require("../../lib/access-requests");
+  res.json({ requests: listPending() });
+});
+
+app.post("/api/v1/access-requests/:id/approve", requireAuth, (req, res) => {
+  const { approveRequest } = require("../../lib/access-requests");
+  const result = approveRequest(req.params.id, req.auth?.sub);
+  if (!result.success) return res.status(404).json(result);
+  auditRecord({ action: "access_approve", user_id: req.auth?.sub, request_id: req.params.id });
+  res.json(result);
+});
+
+app.post("/api/v1/access-requests/:id/reject", requireAuth, (req, res) => {
+  const { rejectRequest } = require("../../lib/access-requests");
+  const result = rejectRequest(req.params.id, req.auth?.sub, req.body?.reason);
+  if (!result.success) return res.status(404).json(result);
+  auditRecord({ action: "access_reject", user_id: req.auth?.sub, request_id: req.params.id });
+  res.json(result);
+});
+
+app.get("/api/v1/products/:id/consumer-detail", requireAuth, async (req, res) => {
+  const { athenaConsoleUrl, parseSchemaFromManifest, sampleRowsFromSchema } = require("../../lib/athena-link");
+  let product = null;
+  try {
+    product = await getProduct(req.params.id, req.auth || {});
+  } catch {
+    product = null;
+  }
+  const manifestYaml = product?.manifestYaml || "";
+  const schema = parseSchemaFromManifest(manifestYaml);
+  const sampleRows = sampleRowsFromSchema(schema);
+  const dbMatch = manifestYaml.match(/catalogDatabase:\s*(\S+)/);
+  const tableMatch = manifestYaml.match(/catalogTable:\s*(\S+)/);
+  const database = dbMatch?.[1] || product?.domain || "default";
+  const table = tableMatch?.[1] || product?.name || "output";
+  res.json({
+    product: product || { id: req.params.id, name: req.params.id },
+    schema,
+    sampleRows,
+    athenaUrl: athenaConsoleUrl({ database, table }),
+    proofGated: /pattern:\s*vaquar/.test(manifestYaml) || /qualityPolicyId/.test(manifestYaml),
+  });
+});
+
+app.get("/api/v1/executions/status", requireAuth, async (req, res) => {
+  const { getExecutionStatus } = require("../../lib/aws/sfn-execution-status");
+  const arn = req.query.arn;
+  if (!arn) return res.status(400).json({ status: "error", errors: ["arn query param required"] });
+  const status = await getExecutionStatus(arn);
+  res.json(status);
+});
+
+app.post("/api/v1/pipelines/ai-design", requireAuth, (req, res) => {
+  const { designPipelineFromMessage } = require("../../lib/ai-pipeline-designer");
+  const { message } = req.body || {};
+  const result = designPipelineFromMessage(message);
+  res.status(result.success ? 200 : 400).json(result);
 });
 
 app.get("/api/v1/audit", requireAuth, (_req, res) => {

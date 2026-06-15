@@ -3,20 +3,38 @@
  * Each pattern includes nodes, edges, metadata, and guided tips.
  */
 
-export const PATTERN_CATEGORIES = ["Structured", "Cognitive", "Analytics", "Streaming"];
+import { EXTRA_PATTERNS } from "./patterns/extra-patterns";
+export { ARCHITECTURE_LABELS } from "./patterns/helpers";
 
-export const PIPELINE_PATTERNS = [
+export const PATTERN_CATEGORIES = [
+  "Medallion",
+  "Structured",
+  "Finance",
+  "Healthcare",
+  "Retail",
+  "Cognitive",
+  "Analytics",
+  "Streaming",
+  "Compliance",
+];
+
+const CORE_PATTERNS = [
   {
     id: "multi-source-mesh",
     name: "Multi-Source → Parallel → Choice",
     subtitle: "Step Functions workflow · many sources & sinks",
     category: "Structured",
+    architecture: "workflow",
+    medallionLayers: ["bronze", "silver", "gold"],
     difficulty: "Intermediate",
     badge: "Workflow",
     icon: "🔀",
     description:
       "Ingest from RDS and S3 in parallel, merge, then route to Iceberg gold or S3 archive based on a Choice state — like AWS Step Functions.",
     whenToUse: "Multiple upstream systems feeding one mesh product with conditional routing.",
+    exampleScenario: "RDS orders + S3 partner files run in parallel, merge, route high-value orders to gold Iceberg and others to archive.",
+    exampleFlow: "Start → Parallel(RDS, S3) → Merge → Integrity Gate → Choice → Gold | Archive",
+    architectureDiagram: "Parallel ingest → Merge → PVDM Gate → Choice routing",
     awsServices: ["RDS", "S3", "Glue", "Step Functions", "Lambda"],
     pipelineMeta: {
       name: "multi-source-mesh",
@@ -161,12 +179,17 @@ export const PIPELINE_PATTERNS = [
     name: "RDS CDC → Iceberg",
     subtitle: "Vaquar PVDM · proof-gated writes",
     category: "Structured",
+    architecture: "medallion",
+    medallionLayers: ["bronze", "silver", "gold"],
     difficulty: "Beginner",
     badge: "Recommended",
     icon: "📊",
     description:
       "Capture changes from Amazon RDS (MySQL) into a Bronze → Silver → Gold medallion, with Vaquar PVDM verification before Iceberg commit.",
     whenToUse: "Operational databases that need reliable CDC into the data mesh.",
+    exampleScenario: "Shopify-style orders table with order_id PK → hourly CDC → gold orders Iceberg table for analytics.",
+    exampleFlow: "RDS CDC → Spark SQL (silver cleanse) → PVDM VRP proof → Iceberg gold",
+    architectureDiagram: "RDS ──▶ Bronze ──▶ Silver SQL ──▶ Gold Iceberg (VRP gated)",
     awsServices: ["RDS", "Glue", "S3", "Step Functions", "Lambda"],
     pipelineMeta: {
       name: "customer-orders-cdc",
@@ -528,6 +551,8 @@ export const PIPELINE_PATTERNS = [
     ],
   },
 ];
+
+export const PIPELINE_PATTERNS = [...CORE_PATTERNS, ...EXTRA_PATTERNS];
 
 export const WORKFLOW_STEPS = [
   {
