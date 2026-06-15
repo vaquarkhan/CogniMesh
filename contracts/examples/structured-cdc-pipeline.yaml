@@ -48,6 +48,7 @@ spec:
     pvdm:
       identityFields: [order_id]
       contentFields: [order_id, customer_id, total_amount, created_at]
+      qualityPolicyId: strict-zero-drop
     sparkSql: |
       SELECT order_id, customer_id, total_amount, created_at
       FROM bronze.orders

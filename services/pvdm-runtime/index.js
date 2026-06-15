@@ -5,17 +5,47 @@ const fs = require("fs");
 const path = require("path");
 const yaml = require("js-yaml");
 
-/** SparkRules-style chunk filter from rules/default-policies.yaml patterns */
-function applySparkRules(records, rulesPath) {
+/** SparkRules-style chunk filter — enforces data quality before PVDM write */
+function applySparkRules(records, options = {}) {
+  const rulesPath = options.rulesPath;
   const file = rulesPath || path.join(__dirname, "..", "..", "rules", "default-policies.yaml");
-  if (!fs.existsSync(file)) return { records, audit: { rulesApplied: 0 } };
-  const policies = yaml.load(fs.readFileSync(file, "utf8"));
+  const policies = fs.existsSync(file) ? yaml.load(fs.readFileSync(file, "utf8")) : { rules: [] };
+
+  const policy = options.qualityPolicyId || "strict-zero-drop";
+  const identityFields = options.identityFields || [];
+  const contentFields = options.contentFields || identityFields;
+  const maxNullPct = options.maxNullPct != null ? Number(options.maxNullPct) : 100;
+
   let filtered = records;
-  const audit = { rulesApplied: 0, dropped: 0 };
+  const audit = { rulesApplied: 0, dropped: 0, policy, violations: 0 };
 
   for (const rule of policies.rules || []) {
     if (rule.id === "rules.spark_sql_non_empty") continue;
     audit.rulesApplied++;
+  }
+
+  if (policy !== "audit-only" && identityFields.length) {
+    const before = filtered.length;
+    filtered = filtered.filter((row) =>
+      identityFields.every((f) => row[f] != null && String(row[f]).trim() !== "")
+    );
+    audit.dropped += before - filtered.length;
+  }
+
+  if (policy !== "audit-only" && contentFields.length && maxNullPct < 100) {
+    const before = filtered.length;
+    filtered = filtered.filter((row) => {
+      const nullCount = contentFields.filter((f) => row[f] == null || String(row[f]).trim() === "").length;
+      const nullPct = (nullCount / contentFields.length) * 100;
+      return nullPct <= maxNullPct;
+    });
+    audit.dropped += before - filtered.length;
+  }
+
+  if (policy === "audit-only" && identityFields.length) {
+    audit.violations = records.filter((row) =>
+      identityFields.some((f) => row[f] == null || String(row[f]).trim() === "")
+    ).length;
   }
 
   return { records: filtered, audit };
@@ -119,7 +149,12 @@ async function runPvdmWorkload(workload) {
   try {
     let rows = [...source_rows];
     if (spec.transform?.sparkRules?.enabled) {
-      rows = applySparkRules(rows).records;
+      rows = applySparkRules(rows, {
+        qualityPolicyId: spec.transform?.pvdm?.qualityPolicyId,
+        identityFields,
+        contentFields,
+        maxNullPct: spec.transform?.pvdm?.maxNullPct,
+      }).records;
     }
 
     const chunks = [];

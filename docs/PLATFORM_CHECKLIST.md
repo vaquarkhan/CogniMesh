@@ -43,7 +43,8 @@ Vaquar evaluation tracker — all items addressed.
 | 18 | Inline validation on blocks | ✅ | `validate-blocks.js`, `PipelineNode.jsx` |
 | 19 | Deploy confirmation modal | ✅ | `DeployConfirmModal.jsx` |
 | 20 | Keyboard shortcuts | ✅ | Ctrl+Z/Y/S in `App.jsx` |
-| 21 | Schema evolution policy | ✅ | `spec.schemaEvolution`, `lib/schema-evolution.js` |
+| 21 | Schema evolution policy | ✅ | Portal pipeline settings + `spec.schemaEvolution` |
+| 31 | Data quality (PVDM / SparkRules) | ✅ | Transform **Data quality** panel, `qualityPolicyId`, runtime filters |
 | 22 | Consumer access request | ✅ | Marketplace + `/access-requests` |
 | 23 | Data freshness badge | ✅ | `MarketplacePanel.jsx` |
 | 24 | Backfill trigger | ✅ | `ExecutionHistoryPanel`, `/backfill` |

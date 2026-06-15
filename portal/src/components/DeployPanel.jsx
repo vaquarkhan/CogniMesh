@@ -15,10 +15,10 @@ export default function DeployPanel({ result, loading, error }) {
     );
   }
 
-  if (error) {
+  if (error && !result) {
     return (
       <aside className="deploy-panel">
-        <h2>Deploy failed</h2>
+        <h2>Preview failed</h2>
         <ul className="error-list">
           {(Array.isArray(error) ? error : [error]).map((e, i) => (
             <li key={i}>{typeof e === "string" ? e : `${e.path}: ${e.message}`}</li>
@@ -33,15 +33,26 @@ export default function DeployPanel({ result, loading, error }) {
   return (
     <aside className="deploy-panel">
       <div className="deploy-header">
-        <h2>Deploy result</h2>
+        <h2>{result.status === "success" ? "Preview result" : "Preview issues"}</h2>
         <span className={`badge badge-${result.status}`}>{result.status}</span>
       </div>
+
+      {error && (
+        <ul className="error-list preview-error-banner">
+          {(Array.isArray(error) ? error : [error]).map((e, i) => (
+            <li key={i}>{typeof e === "string" ? e : `${e.path}: ${e.message}`}</li>
+          ))}
+        </ul>
+      )}
 
       {result.status === "success" && (
         <div className="deploy-summary">
           <p>✓ Graph topology validated</p>
           <p>✓ DataContract schema passed</p>
           <p>✓ Integrity gate (Vaquar rules engine)</p>
+          {result.contract?.spec?.transform?.pvdm?.qualityPolicyId && (
+            <p>✓ Data quality policy: {result.contract.spec.transform.pvdm.qualityPolicyId}</p>
+          )}
           <p>✓ Step Functions compiled{result.vaquar?.pattern ? ` (${result.vaquar.pattern})` : ""}</p>
           {result.vaquar?.outputDir && (
             <p>✓ Vaquar mesh artifacts → <code>{result.vaquar.outputDir}</code></p>

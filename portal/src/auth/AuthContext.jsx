@@ -62,7 +62,7 @@ export function AuthProvider({ children }) {
       setError,
       login,
       logout,
-      userEmail: user?.signInDetails?.loginId || user?.username,
+      userEmail: user?.signInDetails?.loginId || (authDisabled ? "local-dev@cognimesh.local" : user?.username),
     }),
     [user, token, loading, authDisabled, error]
   );

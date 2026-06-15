@@ -9,7 +9,7 @@ import ReactFlow, {
 } from "reactflow";
 import "reactflow/dist/style.css";
 
-import BlockPalette from "./components/BlockPalette";
+import DesignerSidebar from "./components/DesignerSidebar";
 import PipelineNode from "./components/PipelineNode";
 import PropertiesPanel from "./components/PropertiesPanel";
 import DeployPanel from "./components/DeployPanel";
@@ -17,68 +17,21 @@ import MarketplacePanel from "./components/MarketplacePanel";
 import LineageCatalogPanel from "./components/LineageCatalogPanel";
 import ExecutionHistoryPanel from "./components/ExecutionHistoryPanel";
 import DeployConfirmModal from "./components/DeployConfirmModal";
+import WelcomeModal from "./components/WelcomeModal";
+import CanvasTipBar from "./components/CanvasTipBar";
 import ToastStack, { useToast } from "./components/Toast";
 import MobileWarning from "./components/MobileWarning";
 import LoadingOverlay from "./components/LoadingOverlay";
 import { deployPipeline, previewPipeline } from "./lib/api";
-import { validateBlocks } from "./lib/validate-blocks";
+import { validateBlocks, isWorkflowGraph } from "./lib/validate-blocks";
+import { formatApiErrors } from "./lib/format-api-errors";
 import { useAuth } from "./auth/AuthContext";
+import { instantiatePattern, getPatternById } from "./lib/pipeline-patterns";
 
 const nodeTypes = { pipeline: PipelineNode };
 
 let nodeId = 0;
 const nextId = () => `node-${++nodeId}`;
-
-const initialNodes = [
-  {
-    id: "source-1",
-    type: "pipeline",
-    position: { x: 100, y: 160 },
-    data: {
-      label: "Source",
-      blockType: "source",
-      sourceType: "rds",
-      database: "orders_db",
-      table: "orders",
-      cdcEnabled: true,
-      primaryKey: "order_id",
-      detail: "rds · CDC",
-    },
-  },
-  {
-    id: "transform-1",
-    type: "pipeline",
-    position: { x: 380, y: 160 },
-    data: {
-      label: "Transform",
-      blockType: "transform",
-      transformType: "spark_sql",
-      executionMode: "batch",
-      schedule: "0 */6 * * *",
-      sparkSql: "SELECT order_id, customer_id, total_amount FROM bronze.orders",
-      detail: "spark_sql",
-    },
-  },
-  {
-    id: "sink-1",
-    type: "pipeline",
-    position: { x: 660, y: 160 },
-    data: {
-      label: "Sink",
-      blockType: "sink",
-      targetType: "iceberg",
-      location: "s3://cognimesh-dev-gold/portal-output/",
-      catalogDatabase: "portal_gold",
-      catalogTable: "orders",
-      detail: "iceberg",
-    },
-  },
-];
-
-const initialEdges = [
-  { id: "e1", source: "source-1", target: "transform-1", animated: true },
-  { id: "e2", source: "transform-1", target: "sink-1", animated: true },
-];
 
 function snapshot(nodes, edges) {
   return {
@@ -87,32 +40,65 @@ function snapshot(nodes, edges) {
   };
 }
 
+function deriveWorkflowStep(nodes, blockValidation, selectedId, hasPreviewed) {
+  if (!nodes.length) return "pick";
+  if (!blockValidation.valid) return "connect";
+  if (selectedId) return "customize";
+  if (!hasPreviewed) return "preview";
+  return "deploy";
+}
+
+function deriveTipVariant(nodes, blockValidation) {
+  if (!nodes.length) return "empty";
+  if (!blockValidation.valid) return "invalid";
+  if (isWorkflowGraph(nodes)) return "workflow";
+  return "ready";
+}
+
 export default function App() {
   const { token, userEmail, logout, authDisabled } = useAuth();
   const { toasts, success, error: toastError } = useToast();
   const reactFlowWrapper = useRef(null);
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-  const [history, setHistory] = useState([snapshot(initialNodes, initialEdges)]);
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [history, setHistory] = useState([snapshot([], [])]);
   const [historyIndex, setHistoryIndex] = useState(0);
   const [selectedId, setSelectedId] = useState(null);
   const [pipelineMeta, setPipelineMeta] = useState({
-    name: "customer-orders-cdc",
-    domain: "commerce",
+    name: "my-pipeline",
+    domain: "my-domain",
     version: "1.0.0",
+    schemaEvolutionPolicy: "compatible",
+    piiClassification: "medium",
+  });
+  const [activePatternId, setActivePatternId] = useState(null);
+  const [patternTips, setPatternTips] = useState([]);
+  const [hasPreviewed, setHasPreviewed] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(() => {
+    try {
+      return !localStorage.getItem("cognimesh_welcome_seen");
+    } catch {
+      return true;
+    }
   });
   const [deployResult, setDeployResult] = useState(null);
   const [deployError, setDeployError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState("Working…");
   const [showDeploy, setShowDeploy] = useState(false);
-  const [showMarketplace, setShowMarketplace] = useState(true);
+  const [showMarketplace, setShowMarketplace] = useState(false);
   const [showLineageCatalog, setShowLineageCatalog] = useState(false);
-  const [showExecutionHistory, setShowExecutionHistory] = useState(true);
+  const [showExecutionHistory, setShowExecutionHistory] = useState(false);
   const [catalogRefresh, setCatalogRefresh] = useState(0);
   const [showDeployConfirm, setShowDeployConfirm] = useState(false);
+  const [tipDismissed, setTipDismissed] = useState(false);
 
   const blockValidation = useMemo(() => validateBlocks(nodes, edges), [nodes, edges]);
+  const workflowStep = useMemo(
+    () => deriveWorkflowStep(nodes, blockValidation, selectedId, hasPreviewed),
+    [nodes, blockValidation, selectedId, hasPreviewed]
+  );
+  const tipVariant = deriveTipVariant(nodes, blockValidation);
 
   const nodesWithValidation = useMemo(
     () =>
@@ -124,6 +110,26 @@ export default function App() {
         },
       })),
     [nodes, blockValidation.byNode]
+  );
+
+  const applyPattern = useCallback(
+    (instance) => {
+      nodeId = instance.nodes.length;
+      setNodes(instance.nodes);
+      setEdges(instance.edges);
+      setPipelineMeta(instance.pipelineMeta);
+      setActivePatternId(instance.patternId);
+      setPatternTips(instance.tips || []);
+      setHasPreviewed(false);
+      setSelectedId(null);
+      setDeployError(null);
+      const snap = snapshot(instance.nodes, instance.edges);
+      setHistory([snap]);
+      setHistoryIndex(0);
+      const pattern = getPatternById(instance.patternId);
+      success(`Loaded: ${pattern?.name || instance.pipelineMeta.name}`);
+    },
+    [setNodes, setEdges, success]
   );
 
   const pushHistory = useCallback(
@@ -186,9 +192,9 @@ export default function App() {
       };
 
       const blockType = block.defaults.blockType;
-      const existing = nodes.find((n) => n.data.blockType === blockType);
-      if (existing && blockType !== "transform") {
-        const msg = `Only one ${blockType} block is allowed.`;
+      const existingStart = nodes.find((n) => n.data.blockType === "start");
+      if (blockType === "start" && existingStart) {
+        const msg = "Only one Start block is allowed.";
         setDeployError([msg]);
         toastError(msg);
         return;
@@ -202,12 +208,7 @@ export default function App() {
       };
 
       setNodes((nds) => {
-        let next;
-        if (blockType === "transform" && existing) {
-          next = nds.map((n) => (n.id === existing.id ? newNode : n));
-        } else {
-          next = nds.concat(newNode);
-        }
+        const next = nds.concat(newNode);
         pushHistory(next, edges);
         return next;
       });
@@ -232,6 +233,10 @@ export default function App() {
   const selectedNode = nodesWithValidation.find((n) => n.id === selectedId) || null;
 
   const handlePreview = async () => {
+    if (!nodes.length) {
+      toastError("Load a pattern or add blocks first");
+      return;
+    }
     setLoading(true);
     setLoadingMessage("Generating contract preview…");
     setDeployError(null);
@@ -241,11 +246,14 @@ export default function App() {
       const result = await previewPipeline({ nodes, edges, pipelineMeta: meta, token });
       if (result.status === "success") {
         setDeployResult({ ...result, status: "success", catalog: null });
+        setDeployError(null);
+        setHasPreviewed(true);
         success("Preview ready — review YAML before deploy");
       } else {
-        const errs = result.errors || result.validation?.errors || ["Preview failed"];
+        const errs = formatApiErrors(result);
+        setDeployResult({ ...result, status: "error" });
         setDeployError(errs);
-        toastError("Preview failed — check integrity gate");
+        toastError(errs[0] || "Preview failed");
       }
     } catch (err) {
       setDeployError([err.message]);
@@ -256,6 +264,10 @@ export default function App() {
   };
 
   const handleDeploy = async () => {
+    if (!nodes.length) {
+      toastError("Load a pattern or add blocks first");
+      return;
+    }
     if (!blockValidation.valid) {
       setDeployError(blockValidation.errors);
       toastError("Fix block validation errors before deploy");
@@ -277,6 +289,8 @@ export default function App() {
         setDeployResult(data);
         setDeployError(null);
         setCatalogRefresh((k) => k + 1);
+        setShowExecutionHistory(true);
+        setShowMarketplace(true);
         success("Pipeline deployed successfully");
       } else {
         const errs = data.errors || data.validation?.errors || data.integrityGate?.errors || ["Deploy failed"];
@@ -316,6 +330,12 @@ export default function App() {
       <ToastStack toasts={toasts} />
       {loading && <LoadingOverlay message={loadingMessage} />}
 
+      <WelcomeModal
+        open={showWelcome}
+        onClose={() => setShowWelcome(false)}
+        onApplyPattern={applyPattern}
+      />
+
       <DeployConfirmModal
         open={showDeployConfirm}
         pipelineName={pipelineMeta.name}
@@ -326,26 +346,21 @@ export default function App() {
       <header className="header">
         <div>
           <h1>CogniMesh</h1>
-          <p className="subtitle">Zero-code pipeline designer</p>
+          <p className="subtitle">Step Functions–style workflow · many sources · parallel · choice</p>
         </div>
         <div className="header-actions">
           {!authDisabled && userEmail && <span className="user-badge">{userEmail}</span>}
           <button className="btn-secondary" type="button" onClick={undo} disabled={historyIndex <= 0}>
             Undo
           </button>
-          <button
-            className="btn-secondary"
-            type="button"
-            onClick={redo}
-            disabled={historyIndex >= history.length - 1}
-          >
+          <button className="btn-secondary" type="button" onClick={redo} disabled={historyIndex >= history.length - 1}>
             Redo
           </button>
           <button className="btn-secondary" type="button" onClick={() => setShowExecutionHistory((v) => !v)}>
             Run History
           </button>
           <button className="btn-secondary" type="button" onClick={() => setShowLineageCatalog((v) => !v)}>
-            Lineage Catalog
+            Lineage
           </button>
           <button className="btn-secondary" type="button" onClick={() => setShowMarketplace((v) => !v)}>
             Marketplace
@@ -365,32 +380,71 @@ export default function App() {
       </header>
 
       <div className="main">
-        <BlockPalette />
+        <DesignerSidebar
+          activePatternId={activePatternId}
+          workflowStep={workflowStep}
+          patternTips={patternTips}
+          onApplyPattern={applyPattern}
+        />
 
-        <div className="canvas" ref={reactFlowWrapper}>
-          <ReactFlow
-            nodes={nodesWithValidation}
-            edges={edges}
-            nodeTypes={nodeTypes}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            onDrop={onDrop}
-            onDragOver={onDragOver}
-            onNodeClick={(_, node) => setSelectedId(node.id)}
-            onPaneClick={() => setSelectedId(null)}
-            fitView
-            deleteKeyCode={["Backspace", "Delete"]}
-          >
-            <Background gap={20} color="#243044" />
-            <Controls />
-            <MiniMap
-              nodeColor={(n) => {
-                const c = { source: "#059669", transform: "#2563eb", sink: "#ea580c" };
-                return c[n.data?.blockType] || "#6b7280";
-              }}
+        <div className="canvas-column">
+          {!tipDismissed && (
+            <CanvasTipBar
+              variant={tipVariant}
+              onDismiss={tipVariant === "ready" ? () => setTipDismissed(true) : undefined}
             />
-          </ReactFlow>
+          )}
+
+          <div className="canvas" ref={reactFlowWrapper}>
+            {nodes.length === 0 && (
+              <div className="canvas-empty-overlay">
+                <p className="canvas-empty-title">No pipeline yet</p>
+                <p>Select a pattern from the left → <strong>Patterns</strong> tab → <strong>Use pattern</strong></p>
+                <button
+                  type="button"
+                  className="deploy-btn"
+                  onClick={() => applyPattern(instantiatePattern(getPatternById("multi-source-mesh")))}
+                >
+                  Load: Multi-Source workflow (Parallel → Choice)
+                </button>
+              </div>
+            )}
+
+            <ReactFlow
+              nodes={nodesWithValidation}
+              edges={edges}
+              nodeTypes={nodeTypes}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              onConnect={onConnect}
+              onDrop={onDrop}
+              onDragOver={onDragOver}
+              onNodeClick={(_, node) => setSelectedId(node.id)}
+              onPaneClick={() => setSelectedId(null)}
+              fitView
+              deleteKeyCode={["Backspace", "Delete"]}
+            >
+              <Background gap={20} color="#243044" />
+              <Controls />
+              <MiniMap
+                nodeColor={(n) => {
+                  const c = {
+                    start: "#10b981",
+                    parallel: "#fb923c",
+                    merge: "#fdba74",
+                    choice: "#22d3ee",
+                    map: "#a78bfa",
+                    pass: "#94a3b8",
+                    integrity_gate: "#f87171",
+                    source: "#059669",
+                    transform: "#2563eb",
+                    sink: "#ea580c",
+                  };
+                  return c[n.data?.blockType] || "#6b7280";
+                }}
+              />
+            </ReactFlow>
+          </div>
         </div>
 
         <PropertiesPanel
@@ -402,9 +456,7 @@ export default function App() {
 
         {showMarketplace && <MarketplacePanel token={token} refreshKey={catalogRefresh} />}
 
-        {showLineageCatalog && (
-          <LineageCatalogPanel token={token} refreshKey={catalogRefresh} />
-        )}
+        {showLineageCatalog && <LineageCatalogPanel token={token} refreshKey={catalogRefresh} />}
 
         {showExecutionHistory && (
           <ExecutionHistoryPanel
@@ -415,9 +467,7 @@ export default function App() {
           />
         )}
 
-        {showDeploy && (
-          <DeployPanel result={deployResult} loading={loading} error={deployError} />
-        )}
+        {showDeploy && <DeployPanel result={deployResult} loading={loading} error={deployError} />}
       </div>
     </div>
   );

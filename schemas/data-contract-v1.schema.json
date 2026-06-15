@@ -88,6 +88,23 @@
         "target": {
           "$ref": "#/$defs/targetStorage"
         },
+        "workflow": {
+          "type": "object",
+          "description": "Multi-node Step Functions workflow graph from portal",
+          "properties": {
+            "mode": { "type": "string", "enum": ["graph"] },
+            "graph": {
+              "type": "object",
+              "properties": {
+                "nodes": { "type": "array" },
+                "edges": { "type": "array" }
+              }
+            },
+            "sources": { "type": "array", "items": { "$ref": "#/$defs/sourceConfig" } },
+            "transforms": { "type": "array", "items": { "$ref": "#/$defs/transformLogic" } },
+            "targets": { "type": "array", "items": { "$ref": "#/$defs/targetStorage" } }
+          }
+        },
         "schemaEvolution": {
           "type": "object",
           "properties": {
