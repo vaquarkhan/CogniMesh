@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ReactFlow, {
   Background,
   Controls,
@@ -16,10 +16,12 @@ import DeployPanel from "./components/DeployPanel";
 import MarketplacePanel from "./components/MarketplacePanel";
 import LineageCatalogPanel from "./components/LineageCatalogPanel";
 import ExecutionHistoryPanel from "./components/ExecutionHistoryPanel";
+import DeployConfirmModal from "./components/DeployConfirmModal";
 import ToastStack, { useToast } from "./components/Toast";
 import MobileWarning from "./components/MobileWarning";
 import LoadingOverlay from "./components/LoadingOverlay";
 import { deployPipeline, previewPipeline } from "./lib/api";
+import { validateBlocks } from "./lib/validate-blocks";
 import { useAuth } from "./auth/AuthContext";
 
 const nodeTypes = { pipeline: PipelineNode };
@@ -108,8 +110,21 @@ export default function App() {
   const [showLineageCatalog, setShowLineageCatalog] = useState(false);
   const [showExecutionHistory, setShowExecutionHistory] = useState(true);
   const [catalogRefresh, setCatalogRefresh] = useState(0);
+  const [showDeployConfirm, setShowDeployConfirm] = useState(false);
 
-  const selectedNode = nodes.find((n) => n.id === selectedId) || null;
+  const blockValidation = useMemo(() => validateBlocks(nodes, edges), [nodes, edges]);
+
+  const nodesWithValidation = useMemo(
+    () =>
+      nodes.map((n) => ({
+        ...n,
+        data: {
+          ...n.data,
+          validationError: blockValidation.byNode[n.id] || null,
+        },
+      })),
+    [nodes, blockValidation.byNode]
+  );
 
   const pushHistory = useCallback(
     (nextNodes, nextEdges) => {
@@ -214,6 +229,8 @@ export default function App() {
     [edges, setNodes, pushHistory]
   );
 
+  const selectedNode = nodesWithValidation.find((n) => n.id === selectedId) || null;
+
   const handlePreview = async () => {
     setLoading(true);
     setLoadingMessage("Generating contract preview…");
@@ -239,6 +256,16 @@ export default function App() {
   };
 
   const handleDeploy = async () => {
+    if (!blockValidation.valid) {
+      setDeployError(blockValidation.errors);
+      toastError("Fix block validation errors before deploy");
+      return;
+    }
+    setShowDeployConfirm(true);
+  };
+
+  const confirmDeploy = async () => {
+    setShowDeployConfirm(false);
     setLoading(true);
     setLoadingMessage("Deploying pipeline…");
     setDeployError(null);
@@ -265,11 +292,36 @@ export default function App() {
     }
   };
 
+  useEffect(() => {
+    const onKeyDown = (e) => {
+      const mod = e.ctrlKey || e.metaKey;
+      if (mod && e.key === "z" && !e.shiftKey) {
+        e.preventDefault();
+        undo();
+      } else if (mod && (e.key === "y" || (e.key === "z" && e.shiftKey))) {
+        e.preventDefault();
+        redo();
+      } else if (mod && e.key === "s") {
+        e.preventDefault();
+        handlePreview();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  });
+
   return (
     <div className="app">
       <MobileWarning />
       <ToastStack toasts={toasts} />
       {loading && <LoadingOverlay message={loadingMessage} />}
+
+      <DeployConfirmModal
+        open={showDeployConfirm}
+        pipelineName={pipelineMeta.name}
+        onConfirm={confirmDeploy}
+        onCancel={() => setShowDeployConfirm(false)}
+      />
 
       <header className="header">
         <div>
@@ -317,7 +369,7 @@ export default function App() {
 
         <div className="canvas" ref={reactFlowWrapper}>
           <ReactFlow
-            nodes={nodes}
+            nodes={nodesWithValidation}
             edges={edges}
             nodeTypes={nodeTypes}
             onNodesChange={onNodesChange}

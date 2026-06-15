@@ -6,6 +6,8 @@
 
 ## System Planes
 
+> **Full AWS E2E diagram (draw.io):** [PIPELINE_E2E_DIAGRAM.md](PIPELINE_E2E_DIAGRAM.md) · [`diagrams/cognimesh-pipeline-e2e.drawio`](diagrams/cognimesh-pipeline-e2e.drawio)
+
 ```mermaid
 flowchart TB
     subgraph Control["Orchestration Control Plane"]
@@ -72,6 +74,7 @@ Implementation: `services/cognitive-runtime/`
 
 | Document | Description |
 |----------|-------------|
+| [PIPELINE_E2E_DIAGRAM.md](PIPELINE_E2E_DIAGRAM.md) | **AWS E2E diagram** — structured + cognitive pipelines |
 | [vaquar-pattern.md](vaquar-pattern.md) | The Vaquar Pattern (PVDM) |
 | [drag-drop-pipeline-flow.md](drag-drop-pipeline-flow.md) | Portal E2E |
 | [data-contract-spec.md](data-contract-spec.md) | DataContract spec |

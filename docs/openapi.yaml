@@ -1,0 +1,99 @@
+openapi: 3.0.3
+info:
+  title: CogniMesh API Gateway
+  version: 0.1.0
+  description: Local default base URL http://localhost:4000
+servers:
+  - url: http://localhost:4000
+paths:
+  /health:
+    get:
+      summary: Deep health check
+      responses:
+        "200":
+          description: All checks OK
+        "503":
+          description: Degraded (auth misconfigured or catalog unavailable without fallback)
+  /metrics:
+    get:
+      summary: Prometheus-style counters snapshot
+  /api/v1/pipelines/preview:
+    post:
+      summary: Compile graph to DataContract + Step Functions (no catalog write)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PipelineRequest"
+      responses:
+        "200":
+          description: Preview result
+  /api/v1/pipelines/deploy:
+    post:
+      summary: Deploy pipeline — integrity gate, compile, catalog register
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PipelineRequest"
+  /api/v1/pipelines/{name}/history:
+    get:
+      summary: Pipeline execution history
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: domain
+          in: query
+          schema:
+            type: string
+  /api/v1/pipelines/{name}/backfill:
+    post:
+      summary: Queue date-range backfill
+  /api/v1/products:
+    get:
+      summary: List marketplace products
+  /api/v1/products/{id}/lineage:
+    get:
+      summary: Product lineage graph
+  /api/v1/products/{id}/access-requests:
+    post:
+      summary: Consumer access request (Lake Formation grant workflow)
+  /api/v1/lineage/catalog:
+    get:
+      summary: Lineage catalog summary + graphs
+  /api/v1/audit:
+    get:
+      summary: Recent audit events
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    PipelineRequest:
+      type: object
+      required: [nodes, pipelineMeta]
+      properties:
+        nodes:
+          type: array
+        edges:
+          type: array
+        pipelineMeta:
+          type: object
+          properties:
+            name:
+              type: string
+            domain:
+              type: string
+            version:
+              type: string

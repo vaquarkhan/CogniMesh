@@ -29,6 +29,7 @@
 
 <p align="center">
   <a href="docs/vaquar-pattern.md"><b>⭐ The Vaquar Pattern</b></a> ·
+  <a href="docs/PIPELINE_E2E_DIAGRAM.md"><b>📐 Pipeline E2E Diagram</b></a> ·
   <a href="docs/drag-drop-pipeline-flow.md">Drag-and-drop E2E</a> ·
   <a href="docs/data-contract-spec.md">Data Contract</a> ·
   <a href="infra/terraform/README.md">Terraform</a> ·
@@ -71,6 +72,7 @@ Built on **[The Vaquar Pattern](docs/vaquar-pattern.md)** by [Vaquarkhan](https:
 | | Section |
 |---|---------|
 | 🏗️ | [System architecture](#system-architecture) |
+| 📐 | [Pipeline E2E diagram](docs/PIPELINE_E2E_DIAGRAM.md) |
 | 🔄 | [End-to-end journey](#end-to-end-journey) |
 | 🖥️ | [Zero-code portal](#zero-code-portal) |
 | 🔐 | [Security](#security-cognito) |
@@ -432,6 +434,7 @@ CogniMesh/
 | [docs/data-contract-spec.md](docs/data-contract-spec.md) | DataContract YAML spec |
 | [docs/LINEAGE_CATALOG.md](docs/LINEAGE_CATALOG.md) | Lineage catalog · schema evolution |
 | [docs/PLATFORM_CHECKLIST.md](docs/PLATFORM_CHECKLIST.md) | 10/10 evaluation tracker |
+| [docs/PIPELINE_E2E_DIAGRAM.md](docs/PIPELINE_E2E_DIAGRAM.md) | **AWS E2E diagram** (draw.io) · all pipelines |
 | [docs/DISTRIBUTION.md](docs/DISTRIBUTION.md) | Docker · npm · PyPI · Maven · Go |
 
 ---

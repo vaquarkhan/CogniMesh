@@ -1,5 +1,5 @@
-# CogniMesh integrity gate - quality, security, and compliance checks
-# Run in CI before marketplace product registration.
+# CogniMesh integrity gate — contract-focused checks on PRs that touch contracts/schemas.
+# Full platform CI (lint, unit, integration, Python, Go, Maven, Terraform, Docker): see ci.yml
 name: aiv-integrity-gate
 
 on:

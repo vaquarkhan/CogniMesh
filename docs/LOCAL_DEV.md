@@ -30,6 +30,8 @@ No local Java, Maven, or Vite install required:
 
 ```bash
 docker compose up --build
+# optional verification after services are up:
+npm run test:docker-smoke
 ```
 
 | Service | URL |

@@ -522,6 +522,46 @@ body {
   color: #94a3b8;
 }
 
+.pipeline-node.invalid {
+  box-shadow: 0 0 0 2px #dc2626;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-dialog {
+  background: #151b24;
+  border: 1px solid #243044;
+  border-radius: 10px;
+  padding: 1.25rem 1.5rem;
+  max-width: 420px;
+  color: #e7ecf3;
+}
+
+.modal-dialog h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.1rem;
+}
+
+.modal-warning {
+  color: #fbbf24;
+  font-size: 0.85rem;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
 .lineage-catalog-panel,
 .lineage-graph {
   background: #151b24;

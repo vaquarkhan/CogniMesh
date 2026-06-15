@@ -1,0 +1,12 @@
+node_modules
+portal/node_modules
+.git
+.github
+infra/terraform/.terraform
+**/__tests__
+*.md
+docs
+python
+contracts/examples/*.yaml
+.env
+.env.*

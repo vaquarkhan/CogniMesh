@@ -16,6 +16,7 @@ Install and run CogniMesh via Docker, npm, PyPI, Maven, or Go.
 git clone https://github.com/vaquarkhan/CogniMesh.git
 cd CogniMesh
 docker compose up --build
+npm run test:docker-smoke   # optional: verify catalog, API, portal
 ```
 
 | Service | Image (local build) | Port |

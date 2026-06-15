@@ -1,0 +1,366 @@
+<mxfile host="app.diagrams.net" modified="2026-06-15T00:00:00.000Z" agent="CogniMesh" version="22.1.0" type="device">
+  <diagram id="cognimesh-e2e" name="CogniMesh Pipeline E2E">
+    <mxGraphModel dx="1800" dy="1100" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2000" pageHeight="1400" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="title" value="CogniMesh — End-to-End Pipeline Architecture (AWS)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=22;fontStyle=1;fontColor=#232F3E;" vertex="1" parent="1">
+          <mxGeometry x="500" y="20" width="1000" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" value="Structured (Vaquar PVDM) · Cognitive (EKS + Bedrock) · Marketplace &amp; Governance" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=12;fontColor=#545B64;" vertex="1" parent="1">
+          <mxGeometry x="500" y="55" width="1000" height="24" as="geometry" />
+        </mxCell>
+
+        <!-- ========== CONTROL PLANE ========== -->
+        <mxCell id="grp-control" value="① Orchestration Control Plane" style="swimlane;startSize=28;fillColor=#E8F6F3;strokeColor=#0D9488;fontStyle=1;fontSize=13;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="100" width="1920" height="180" as="geometry" />
+        </mxCell>
+
+        <mxCell id="user" value="Business User" style="shape=mxgraph.aws4.users.users;fillColor=#232F3E;strokeColor=none;fontColor=#FFFFFF;fontSize=11;" vertex="1" parent="grp-control">
+          <mxGeometry x="30" y="50" width="60" height="60" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cf" value="CloudFront" style="shape=mxgraph.aws4.network_and_content_delivery.cloudfront;fillColor=#232F3E;strokeColor=none;fontColor=#FFFFFF;fontSize=10;" vertex="1" parent="grp-control">
+          <mxGeometry x="130" y="50" width="68" height="68" as="geometry" />
+        </mxCell>
+
+        <mxCell id="portal-s3" value="Portal SPA&#xa;(S3 origin)" style="shape=mxgraph.aws4.storage.simple_storage_service_s3;fillColor=#7AA116;strokeColor=none;fontColor=#FFFFFF;fontSize=10;" vertex="1" parent="grp-control">
+          <mxGeometry x="240" y="50" width="68" height="68" as="geometry" />
+        </mxCell>
+
+        <mxCell id="cognito" value="Cognito&#xa;(invite-only)" style="shape=mxgraph.aws4.security_identity_and_compliance.cognito;fillColor=#DD344C;strokeColor=none;fontColor=#FFFFFF;fontSize=10;" vertex="1" parent="grp-control">
+          <mxGeometry x="350" y="50" width="68" height="68" as="geometry" />
+        </mxCell>
+
+        <mxCell id="api" value="API Gateway&#xa;:4000 · JWT" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0D9488;strokeColor=#0F766E;fontColor=#FFFFFF;fontSize=11;fontStyle=1;" vertex="1" parent="grp-control">
+          <mxGeometry x="460" y="55" width="120" height="58" as="geometry" />
+        </mxCell>
+
+        <mxCell id="contract-builder" value="Contract Builder&#xa;graph → DataContract.yaml" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2563EB;strokeColor=#1D4ED8;fontColor=#FFFFFF;fontSize=10;" vertex="1" parent="grp-control">
+          <mxGeometry x="620" y="55" width="150" height="58" as="geometry" />
+        </mxCell>
+
+        <mxCell id="integrity-gate" value="Integrity Gate&#xa;(Lambda + rules)" style="shape=mxgraph.aws4.compute.lambda;fillColor=#FF9900;strokeColor=none;fontColor=#232F3E;fontSize=10;fontStyle=1;" vertex="1" parent="grp-control">
+          <mxGeometry x="810" y="50" width="68" height="68" as="geometry" />
+        </mxCell>
+
+        <mxCell id="compiler" value="Pipeline Compiler&#xa;SFN ASL + Vaquar mesh" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2563EB;strokeColor=#1D4ED8;fontColor=#FFFFFF;fontSize=10;" vertex="1" parent="grp-control">
+          <mxGeometry x="920" y="55" width="150" height="58" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ci" value="GitHub CI&#xa;lint · unit · docker" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#24292F;strokeColor=#57606A;fontColor=#FFFFFF;fontSize=10;" vertex="1" parent="grp-control">
+          <mxGeometry x="1100" y="55" width="120" height="58" as="geometry" />
+        </mxCell>
+
+        <mxCell id="lineage" value="Lineage Catalog&#xa;+ Execution History" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#334155;strokeColor=#475569;fontColor=#FFFFFF;fontSize=10;" vertex="1" parent="grp-control">
+          <mxGeometry x="1250" y="55" width="140" height="58" as="geometry" />
+        </mxCell>
+
+        <!-- control flow arrows -->
+        <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#0D9488;strokeWidth=2;" edge="1" parent="grp-control" source="user" target="cf">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#0D9488;strokeWidth=2;" edge="1" parent="grp-control" source="cf" target="portal-s3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" value="JWT" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#DD344C;dashed=1;" edge="1" parent="grp-control" source="cognito" target="api">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" value="Deploy / Preview" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#2563EB;strokeWidth=2;" edge="1" parent="grp-control" source="portal-s3" target="api">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#2563EB;" edge="1" parent="grp-control" source="api" target="contract-builder">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#FF9900;" edge="1" parent="grp-control" source="contract-builder" target="integrity-gate">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" value="PASS" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#059669;strokeWidth=2;" edge="1" parent="grp-control" source="integrity-gate" target="compiler">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ========== STRUCTURED PIPELINE ========== -->
+        <mxCell id="grp-structured" value="② Structured Pipeline — Vaquar PVDM (RDS CDC → Iceberg Gold)  ·  example: customer-orders-cdc" style="swimlane;startSize=28;fillColor=#EFF6FF;strokeColor=#2563EB;fontStyle=1;fontSize=13;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="310" width="940" height="520" as="geometry" />
+        </mxCell>
+
+        <mxCell id="sfn-struct" value="Step Functions&#xa;Orchestrator" style="shape=mxgraph.aws4.management_and_governance.step_functions;fillColor=#E7157B;strokeColor=none;fontColor=#FFFFFF;fontSize=10;" vertex="1" parent="grp-structured">
+          <mxGeometry x="30" y="50" width="68" height="68" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rds" value="Amazon RDS&#xa;MySQL · CDC" style="shape=mxgraph.aws4.database.rds;fillColor=#3B48CC;strokeColor=none;fontColor=#FFFFFF;fontSize=10;" vertex="1" parent="grp-structured">
+          <mxGeometry x="30" y="160" width="68" height="68" as="geometry" />
+        </mxCell>
+
+        <mxCell id="secrets" value="Secrets Manager&#xa;DB creds" style="shape=mxgraph.aws4.security_identity_and_compliance.secrets_manager;fillColor=#DD344C;strokeColor=none;fontColor=#FFFFFF;fontSize=10;" vertex="1" parent="grp-structured">
+          <mxGeometry x="130" y="160" width="68" height="68" as="geometry" />
+        </mxCell>
+
+        <mxCell id="extract-glue" value="Glue Extract Job&#xa;CDC → Bronze" style="shape=mxgraph.aws4.analytics.glue;fillColor=#8C4FFF;strokeColor=none;fontColor=#FFFFFF;fontSize=10;" vertex="1" parent="grp-structured">
+          <mxGeometry x="250" y="160" width="68" height="68" as="geometry" />
+        </mxCell>
+
+        <mxCell id="s3-bronze" value="S3 Bronze&#xa;raw CDC" style="shape=mxgraph.aws4.storage.simple_storage_service_s3;fillColor=#7AA116;strokeColor=none;fontColor=#FFFFFF;fontSize=10;" vertex="1" parent="grp-structured">
+          <mxGeometry x="360" y="160" width="68" height="68" as="geometry" />
+        </mxCell>
+
+        <mxCell id="pvdm-lambda" value="PVDM Runtime&#xa;(Lambda)" style="shape=mxgraph.aws4.compute.lambda;fillColor=#FF9900;strokeColor=none;fontColor=#232F3E;fontSize=10;fontStyle=1;" vertex="1" parent="grp-structured">
+          <mxGeometry x="480" y="140" width="68" height="68" as="geometry" />
+        </mxCell>
+
+        <!-- PVDM phases box -->
+        <mxCell id="pvdm-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F0FDF4;strokeColor=#059669;dashed=1;strokeWidth=2;" vertex="1" parent="grp-structured">
+          <mxGeometry x="460" y="230" width="440" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="pvdm-label" value="Vaquar PVDM Phases" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=1;fontSize=11;fontColor=#059669;" vertex="1" parent="grp-structured">
+          <mxGeometry x="470" y="235" width="160" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="p1" value="① Physical&#xa;IceGuard · Parquet chunks" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1E40AF;fontColor=#FFFFFF;fontSize=9;" vertex="1" parent="grp-structured">
+          <mxGeometry x="475" y="260" width="95" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="p2" value="② Verify&#xa;VRP multiset proof" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0D9488;fontColor=#FFFFFF;fontSize=9;" vertex="1" parent="grp-structured">
+          <mxGeometry x="580" y="260" width="95" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="p3" value="③ Durable&#xa;SFN resume loop" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#7C3AED;fontColor=#FFFFFF;fontSize=9;" vertex="1" parent="grp-structured">
+          <mxGeometry x="685" y="260" width="95" height="75" as="geometry" />
+        </mxCell>
+        <mxCell id="p4" value="④ Metadata&#xa;Iceberg commit" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D97706;fontColor=#FFFFFF;fontSize=9;" vertex="1" parent="grp-structured">
+          <mxGeometry x="790" y="260" width="95" height="75" as="geometry" />
+        </mxCell>
+
+        <mxCell id="s3-silver" value="S3 Silver&#xa;Spark SQL" style="shape=mxgraph.aws4.storage.simple_storage_service_s3;fillColor=#7AA116;strokeColor=none;fontColor=#FFFFFF;fontSize=10;" vertex="1" parent="grp-structured">
+          <mxGeometry x="360" y="380" width="68" height="68" as="geometry" />
+        </mxCell>
+
+        <mxCell id="glue-transform" value="Glue Transform&#xa;spark_sql" style="shape=mxgraph.aws4.analytics.glue;fillColor=#8C4FFF;strokeColor=none;fontColor=#FFFFFF;fontSize=10;" vertex="1" parent="grp-structured">
+          <mxGeometry x="250" y="380" width="68" height="68" as="geometry" />
+        </mxCell>
+
+        <mxCell id="s3-gold" value="S3 Gold&#xa;Iceberg table" style="shape=mxgraph.aws4.storage.simple_storage_service_s3;fillColor=#7AA116;strokeColor=none;fontColor=#FFFFFF;fontSize=10;" vertex="1" parent="grp-structured">
+          <mxGeometry x="480" y="380" width="68" height="68" as="geometry" />
+        </mxCell>
+
+        <mxCell id="s3-proof" value="S3 Proof&#xa;VRP artifacts" style="shape=mxgraph.aws4.storage.simple_storage_service_s3;fillColor=#7AA116;strokeColor=none;fontColor=#FFFFFF;fontSize=10;" vertex="1" parent="grp-structured">
+          <mxGeometry x="600" y="380" width="68" height="68" as="geometry" />
+        </mxCell>
+
+        <mxCell id="s3-checkpoint" value="S3 Checkpoint&#xa;resume tokens" style="shape=mxgraph.aws4.storage.simple_storage_service_s3;fillColor=#7AA116;strokeColor=none;fontColor=#FFFFFF;fontSize=10;" vertex="1" parent="grp-structured">
+          <mxGeometry x="720" y="380" width="68" height="68" as="geometry" />
+        </mxCell>
+
+        <mxCell id="domain-writer" value="Domain Writer&#xa;Lambda" style="shape=mxgraph.aws4.compute.lambda;fillColor=#FF9900;strokeColor=none;fontColor=#232F3E;fontSize=10;" vertex="1" parent="grp-structured">
+          <mxGeometry x="830" y="380" width="68" height="68" as="geometry" />
+        </mxCell>
+
+        <!-- structured arrows -->
+        <mxCell id="se1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#E7157B;strokeWidth=2;" edge="1" parent="grp-structured" source="sfn-struct" target="extract-glue">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="se2" value="CDC" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#3B48CC;" edge="1" parent="grp-structured" source="rds" target="extract-glue">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="se3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#DD344C;dashed=1;" edge="1" parent="grp-structured" source="secrets" target="extract-glue">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="se4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#7AA116;" edge="1" parent="grp-structured" source="extract-glue" target="s3-bronze">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="se5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#FF9900;" edge="1" parent="grp-structured" source="s3-bronze" target="pvdm-lambda">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="se6" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#059669;" edge="1" parent="grp-structured" source="p1" target="p2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="se7" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#059669;" edge="1" parent="grp-structured" source="p2" target="p3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="se8" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#059669;" edge="1" parent="grp-structured" source="p3" target="p4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="se9" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#8C4FFF;" edge="1" parent="grp-structured" source="glue-transform" target="s3-silver">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="se10" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#7AA116;" edge="1" parent="grp-structured" source="s3-silver" target="s3-gold">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ========== COGNITIVE PIPELINE ========== -->
+        <mxCell id="grp-cognitive" value="③ Cognitive Pipeline — Agentic (Media URL → Parquet → Iceberg)  ·  example: media-transcript-enrichment" style="swimlane;startSize=28;fillColor=#F5F3FF;strokeColor=#7C3AED;fontStyle=1;fontSize=13;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="1020" y="310" width="940" height="520" as="geometry" />
+        </mxCell>
+
+        <mxCell id="sfn-cog" value="Step Functions&#xa;Orchestrator" style="shape=mxgraph.aws4.management_and_governance.step_functions;fillColor=#E7157B;strokeColor=none;fontColor=#FFFFFF;fontSize=10;" vertex="1" parent="grp-cognitive">
+          <mxGeometry x="30" y="50" width="68" height="68" as="geometry" />
+        </mxCell>
+
+        <mxCell id="s3-media" value="S3 Ingest&#xa;media URLs" style="shape=mxgraph.aws4.storage.simple_storage_service_s3;fillColor=#7AA116;strokeColor=none;fontColor=#FFFFFF;fontSize=10;" vertex="1" parent="grp-cognitive">
+          <mxGeometry x="30" y="170" width="68" height="68" as="geometry" />
+        </mxCell>
+
+        <mxCell id="eks" value="Amazon EKS&#xa;Cognitive Runtime" style="shape=mxgraph.aws4.containers.eks;fillColor=#FF9900;strokeColor=none;fontColor=#232F3E;fontSize=10;fontStyle=1;" vertex="1" parent="grp-cognitive">
+          <mxGeometry x="160" y="160" width="68" height="68" as="geometry" />
+        </mxCell>
+
+        <mxCell id="bedrock" value="Amazon Bedrock&#xa;Claude agent" style="shape=mxgraph.aws4.machine_learning.bedrock;fillColor=#01A88D;strokeColor=none;fontColor=#FFFFFF;fontSize=10;" vertex="1" parent="grp-cognitive">
+          <mxGeometry x="290" y="160" width="68" height="68" as="geometry" />
+        </mxCell>
+
+        <mxCell id="mcp" value="Agent MCP&#xa;Service" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#7C3AED;fontColor=#FFFFFF;fontSize=10;" vertex="1" parent="grp-cognitive">
+          <mxGeometry x="400" y="165" width="100" height="58" as="geometry" />
+        </mxCell>
+
+        <!-- transactional runtime box -->
+        <mxCell id="rt-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FAF5FF;strokeColor=#7C3AED;dashed=1;strokeWidth=2;" vertex="1" parent="grp-cognitive">
+          <mxGeometry x="140" y="260" width="380" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="rt-label" value="Transactional Runtime (Go · Atomix-inspired)" style="text;html=1;strokeColor=none;fillColor=none;fontStyle=1;fontSize=11;fontColor=#7C3AED;" vertex="1" parent="grp-cognitive">
+          <mxGeometry x="150" y="265" width="260" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="epoch" value="Epoch&#xa;ordering" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4C1D95;fontColor=#FFFFFF;fontSize=9;" vertex="1" parent="grp-cognitive">
+          <mxGeometry x="155" y="290" width="80" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="frontier" value="Frontier&#xa;isolation" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4C1D95;fontColor=#FFFFFF;fontSize=9;" vertex="1" parent="grp-cognitive">
+          <mxGeometry x="250" y="290" width="80" height="65" as="geometry" />
+        </mxCell>
+        <mxCell id="comp" value="Compensation&#xa;rollback handler" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4C1D95;fontColor=#FFFFFF;fontSize=9;" vertex="1" parent="grp-cognitive">
+          <mxGeometry x="345" y="290" width="100" height="65" as="geometry" />
+        </mxCell>
+
+        <mxCell id="s3-parquet" value="S3 Silver&#xa;Parquet output" style="shape=mxgraph.aws4.storage.simple_storage_service_s3;fillColor=#7AA116;strokeColor=none;fontColor=#FFFFFF;fontSize=10;" vertex="1" parent="grp-cognitive">
+          <mxGeometry x="560" y="170" width="68" height="68" as="geometry" />
+        </mxCell>
+
+        <mxCell id="s3-ice-cog" value="S3 Gold&#xa;Iceberg table" style="shape=mxgraph.aws4.storage.simple_storage_service_s3;fillColor=#7AA116;strokeColor=none;fontColor=#FFFFFF;fontSize=10;" vertex="1" parent="grp-cognitive">
+          <mxGeometry x="680" y="170" width="68" height="68" as="geometry" />
+        </mxCell>
+
+        <mxCell id="glue-cog" value="Glue Load Job&#xa;Iceberg commit" style="shape=mxgraph.aws4.analytics.glue;fillColor=#8C4FFF;strokeColor=none;fontColor=#FFFFFF;fontSize=10;" vertex="1" parent="grp-cognitive">
+          <mxGeometry x="800" y="170" width="68" height="68" as="geometry" />
+        </mxCell>
+
+        <!-- cognitive arrows -->
+        <mxCell id="ce1" value="eks:runJob" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#E7157B;strokeWidth=2;" edge="1" parent="grp-cognitive" source="sfn-cog" target="eks">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ce2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#7AA116;" edge="1" parent="grp-cognitive" source="s3-media" target="eks">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ce3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#01A88D;" edge="1" parent="grp-cognitive" source="eks" target="bedrock">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ce4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#7C3AED;" edge="1" parent="grp-cognitive" source="mcp" target="bedrock">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ce5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#7AA116;" edge="1" parent="grp-cognitive" source="bedrock" target="s3-parquet">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ce6" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#8C4FFF;" edge="1" parent="grp-cognitive" source="s3-parquet" target="glue-cog">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ce7" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#7AA116;" edge="1" parent="grp-cognitive" source="glue-cog" target="s3-ice-cog">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ========== MARKETPLACE ========== -->
+        <mxCell id="grp-market" value="④ Marketplace &amp; Governance" style="swimlane;startSize=28;fillColor=#FFF7ED;strokeColor=#D97706;fontStyle=1;fontSize=13;rounded=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="860" width="1920" height="200" as="geometry" />
+        </mxCell>
+
+        <mxCell id="catalog-svc" value="Catalog Service&#xa;(Spring Boot)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D97706;fontColor=#FFFFFF;fontSize=11;fontStyle=1;" vertex="1" parent="grp-market">
+          <mxGeometry x="30" y="55" width="130" height="58" as="geometry" />
+        </mxCell>
+
+        <mxCell id="dynamo" value="DynamoDB&#xa;Product registry" style="shape=mxgraph.aws4.database.dynamodb;fillColor=#3B48CC;strokeColor=none;fontColor=#FFFFFF;fontSize=10;" vertex="1" parent="grp-market">
+          <mxGeometry x="200" y="50" width="68" height="68" as="geometry" />
+        </mxCell>
+
+        <mxCell id="glue-catalog" value="Glue Data Catalog&#xa;tables · schemas" style="shape=mxgraph.aws4.analytics.glue;fillColor=#8C4FFF;strokeColor=none;fontColor=#FFFFFF;fontSize=10;" vertex="1" parent="grp-market">
+          <mxGeometry x="320" y="50" width="68" height="68" as="geometry" />
+        </mxCell>
+
+        <mxCell id="lake-formation" value="Lake Formation&#xa;row filters · masks" style="shape=mxgraph.aws4.analytics.lake_formation;fillColor=#8C4FFF;strokeColor=none;fontColor=#FFFFFF;fontSize=10;" vertex="1" parent="grp-market">
+          <mxGeometry x="440" y="50" width="68" height="68" as="geometry" />
+        </mxCell>
+
+        <mxCell id="marketplace-ui" value="Marketplace UI&#xa;Portal panel" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0D9488;fontColor=#FFFFFF;fontSize=10;" vertex="1" parent="grp-market">
+          <mxGeometry x="560" y="55" width="120" height="58" as="geometry" />
+        </mxCell>
+
+        <mxCell id="sqs-dlq" value="SQS DLQ&#xa;pipeline failures" style="shape=mxgraph.aws4.application_integration.sqs;fillColor=#E7157B;strokeColor=none;fontColor=#FFFFFF;fontSize=10;" vertex="1" parent="grp-market">
+          <mxGeometry x="720" y="50" width="68" height="68" as="geometry" />
+        </mxCell>
+
+        <mxCell id="vpc" value="VPC&#xa;private subnets" style="shape=mxgraph.aws4.network_and_content_delivery.vpc;fillColor=#8C4FFF;strokeColor=none;fontColor=#FFFFFF;fontSize=10;" vertex="1" parent="grp-market">
+          <mxGeometry x="840" y="50" width="68" height="68" as="geometry" />
+        </mxCell>
+
+        <mxCell id="legend" value="Legend&#xa;── Design-time (portal → contract)&#xa;── Runtime orchestration (Step Functions)&#xa;── Proof-gated write (Vaquar PVDM)&#xa;── Agentic transform (EKS + Bedrock)" style="text;html=1;strokeColor=#CBD5E1;fillColor=#F8FAFC;align=left;verticalAlign=top;fontSize=10;fontColor=#334155;spacingLeft=8;spacingTop=4;rounded=1;" vertex="1" parent="grp-market">
+          <mxGeometry x="960" y="45" width="280" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="repo-map" value="Repo mapping&#xa;portal/ · services/api-gateway/ · lib/contract-builder/&#xa;services/pvdm-runtime/ · services/cognitive-runtime/&#xa;services/catalog/ · infra/terraform/" style="text;html=1;strokeColor=#CBD5E1;fillColor=#F8FAFC;align=left;verticalAlign=top;fontSize=10;fontColor=#334155;spacingLeft=8;spacingTop=4;rounded=1;" vertex="1" parent="grp-market">
+          <mxGeometry x="1280" y="45" width="380" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- market arrows -->
+        <mxCell id="me1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#D97706;" edge="1" parent="grp-market" source="catalog-svc" target="dynamo">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="me2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#8C4FFF;" edge="1" parent="grp-market" source="dynamo" target="glue-catalog">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="me3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#8C4FFF;" edge="1" parent="grp-market" source="glue-catalog" target="lake-formation">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="me4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#0D9488;" edge="1" parent="grp-market" source="lake-formation" target="marketplace-ui">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- cross-group: compiler to SFN -->
+        <mxCell id="x1" value="deploy ASL" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#E7157B;strokeWidth=2;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="compiler" target="sfn-struct">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="995" y="290" />
+              <mxPoint x="134" y="290" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="x2" value="agentic ASL" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#E7157B;strokeWidth=2;dashed=1;" edge="1" parent="1" source="compiler" target="sfn-cog">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="995" y="290" />
+              <mxPoint x="1094" y="290" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="x3" value="register product" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#D97706;strokeWidth=2;" edge="1" parent="1" source="api" target="catalog-svc">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="560" y="840" />
+              <mxPoint x="135" y="840" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="x4" value="metadata commit" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#D97706;dashed=1;" edge="1" parent="1" source="domain-writer" target="glue-catalog">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="904" y="840" />
+              <mxPoint x="394" y="840" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="x5" value="on failure" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#E7157B;dashed=1;" edge="1" parent="1" source="sfn-struct" target="sqs-dlq">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="134" y="840" />
+              <mxPoint x="794" y="840" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

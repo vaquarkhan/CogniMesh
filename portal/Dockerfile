@@ -1,5 +1,6 @@
 # CogniMesh Portal (Vite dev server)
 FROM node:20-alpine
+RUN apk add --no-cache wget
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci

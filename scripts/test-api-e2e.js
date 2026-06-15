@@ -44,7 +44,7 @@ async function run() {
   console.log("1. Health");
   const health = await fetch(`${API}/health`).then((r) => r.json());
   if (health.status !== "ok") throw new Error("API unhealthy");
-  console.log(`   ok (catalog reachable: ${health.catalog?.reachable ? "yes" : "no"}, fallback: ${health.catalog?.fallback || "n/a"})`);
+  console.log(`   ok (catalog reachable: ${health.catalog?.reachable ? "yes" : "no"}, storage: ${health.catalog?.storage || health.catalog?.fallback || "n/a"})`);
 
   console.log("2. Preview");
   const preview = await fetch(`${API}/api/v1/pipelines/preview`, {
@@ -93,11 +93,21 @@ async function run() {
   console.log(`\nAPI E2E passed${skipped ? ` (${skipped} check(s) skipped)` : ""}`);
 }
 
+function shutdown(code) {
+  try {
+    const http = require("http");
+    const https = require("https");
+    http.globalAgent.destroy();
+    https.globalAgent.destroy();
+  } catch {
+    /* ignore */
+  }
+  setTimeout(() => process.exit(code), 100);
+}
+
 run()
-  .then(() => {
-    setImmediate(() => process.exit(0));
-  })
+  .then(() => shutdown(0))
   .catch((err) => {
     console.error("FAIL:", err.message);
-    setImmediate(() => process.exit(1));
+    shutdown(1);
   });

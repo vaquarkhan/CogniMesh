@@ -26,8 +26,34 @@ jobs:
       - name: Unit tests
         run: npm run test:unit
 
+      - name: Portal production build
+        run: npm run test:portal
+
+      - name: Portal unit tests
+        run: npm run test:portal-unit
+
       - name: Integration tests
         run: npm test
+
+      - name: Validate example contracts
+        run: |
+          npm run validate:contract -- contracts/examples/structured-cdc-pipeline.yaml
+          npm run validate:contract -- contracts/examples/cognitive-media-pipeline.yaml
+
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install SDK + test deps
+        run: pip install "./python[dev]"
+
+      - name: Python SDK tests
+        run: python -m pytest python/tests -q
 
   go:
     runs-on: ubuntu-latest
@@ -64,16 +90,26 @@ jobs:
         run: |
           terraform init -backend=false
           terraform validate
+      - name: Terraform plan (no apply)
+        working-directory: infra/terraform/environments/prod
+        run: terraform plan -refresh=false -input=false -lock=false
+        continue-on-error: true
 
-  integrity-gate-contracts:
+  docker-compose:
     runs-on: ubuntu-latest
+    needs: [node, python, catalog]
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-      - run: npm ci
-      - run: |
-          npm run validate:contract -- contracts/examples/structured-cdc-pipeline.yaml
-          npm run validate:contract -- contracts/examples/cognitive-media-pipeline.yaml
-          npm run test:integrity-gate -- contracts/examples/structured-cdc-pipeline.yaml
+
+      - name: Build images
+        run: docker compose build
+
+      - name: Start stack
+        run: docker compose up -d
+
+      - name: Smoke test (catalog + API + portal)
+        run: node scripts/docker-smoke-test.js
+
+      - name: Tear down
+        if: always()
+        run: docker compose down -v

@@ -3,7 +3,9 @@ FROM node:20-alpine
 WORKDIR /app
 
 COPY package.json package-lock.json ./
-RUN npm ci --omit=dev
+# Portal postinstall is not needed in the API image
+ENV COGNIMESH_SKIP_PORTAL_INSTALL=1
+RUN npm ci --omit=dev --ignore-scripts
 
 COPY lib ./lib
 COPY services/api-gateway ./services/api-gateway

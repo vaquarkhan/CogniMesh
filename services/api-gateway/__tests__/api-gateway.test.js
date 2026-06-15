@@ -7,6 +7,7 @@ const assert = require("node:assert/strict");
 process.env.AUTH_DISABLED = "true";
 process.env.CSRF_DISABLED = "true";
 process.env.CATALOG_FALLBACK = "embedded";
+process.env.CATALOG_STORAGE = "memory";
 
 const { app } = require("../server");
 

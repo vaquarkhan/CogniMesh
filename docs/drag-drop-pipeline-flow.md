@@ -1,5 +1,7 @@
 # Drag-and-Drop to Pipeline: End-to-End Flow
 
+> **AWS architecture diagram:** [PIPELINE_E2E_DIAGRAM.md](PIPELINE_E2E_DIAGRAM.md) · open [`diagrams/cognimesh-pipeline-e2e.drawio`](diagrams/cognimesh-pipeline-e2e.drawio) in draw.io
+
 This document explains how the CogniMesh zero-code portal converts visual blocks into a deployed, governed data pipeline.
 
 ## Flow Overview

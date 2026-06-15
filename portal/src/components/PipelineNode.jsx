@@ -9,11 +9,16 @@ const COLORS = {
 
 function PipelineNode({ data, selected }) {
   const colors = COLORS[data.blockType] || COLORS.transform;
+  const invalid = Boolean(data.validationError);
 
   return (
     <div
-      className={`pipeline-node ${selected ? "selected" : ""}`}
-      style={{ borderColor: colors.border, background: colors.bg }}
+      className={`pipeline-node ${selected ? "selected" : ""} ${invalid ? "invalid" : ""}`}
+      style={{
+        borderColor: invalid ? "#dc2626" : colors.border,
+        background: invalid ? "#7f1d1d" : colors.bg,
+      }}
+      title={data.validationError || undefined}
     >
       {data.blockType !== "source" && (
         <Handle type="target" position={Position.Left} className="handle" />
@@ -21,7 +26,7 @@ function PipelineNode({ data, selected }) {
 
       <div className="node-type">{data.blockType}</div>
       <div className="node-label">{data.label}</div>
-      <div className="node-detail">{data.detail}</div>
+      <div className="node-detail">{data.validationError || data.detail}</div>
 
       {data.blockType !== "sink" && (
         <Handle type="source" position={Position.Right} className="handle" />

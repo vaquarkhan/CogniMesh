@@ -9,15 +9,23 @@ const { requireAuth } = require("./middleware/auth");
 const { csrfProtection } = require("./middleware/csrf");
 const { rateLimit } = require("./middleware/rate-limit");
 const { requestLogger, structuredLog } = require("./middleware/logger");
-const { listProducts, getProduct, catalogReachable, fallbackEnabled } = require("../../lib/catalog-client");
+const {
+  listProducts,
+  getProduct,
+  catalogReachable,
+  fallbackEnabled,
+  catalogStorageMode,
+} = require("../../lib/catalog-client");
 const { record: auditRecord } = require("../../lib/audit-log");
 const {
   getLineage,
   listLineageCatalog,
   lineageCatalogSummary,
 } = require("../../lib/lineage-catalog");
-const { listRuns, stats: executionStats } = require("../../lib/execution-history");
+const { listRuns, stats: executionStats, recordRun } = require("../../lib/execution-history");
 const metrics = require("../../lib/metrics");
+const { startSpan } = require("../../lib/tracing");
+const { alertDeployFailure } = require("../../lib/alerting");
 
 const PORT = process.env.PORT || 4000;
 const CATALOG_URL = process.env.CATALOG_URL || "http://localhost:8080";
@@ -36,14 +44,20 @@ app.use(
     ],
   })
 );
-app.use(express.json({ limit: "2mb" }));
+const BODY_LIMIT = process.env.API_BODY_LIMIT || "512kb";
+app.use(express.json({ limit: BODY_LIMIT }));
 app.use(requestLogger);
 app.use("/api/v1", rateLimit);
 app.use("/api/v1", csrfProtection);
 
 async function deepHealth() {
-  const catalogUp = await catalogReachable();
-  const authDisabled = process.env.AUTH_DISABLED === "true";
+  const embedded = fallbackEnabled();
+  const catalogUp = embedded ? false : await catalogReachable();
+  const authDisabled =
+    process.env.AUTH_DISABLED === "true" ||
+    (process.env.AUTH_DISABLED !== "false" &&
+      !process.env.COGNITO_USER_POOL_ID &&
+      process.env.NODE_ENV !== "production");
   const cognitoConfigured = Boolean(
     process.env.COGNITO_USER_POOL_ID && process.env.COGNITO_CLIENT_ID
   );
@@ -51,7 +65,10 @@ async function deepHealth() {
   const awsRole = Boolean(process.env.AWS_STEP_FUNCTIONS_ROLE_ARN);
 
   const checks = {
-    catalog: { ok: catalogUp || fallbackEnabled(), mode: catalogUp ? "remote" : fallbackEnabled() ? "embedded" : "unavailable" },
+    catalog: {
+      ok: embedded || catalogUp,
+      mode: catalogUp ? "remote" : embedded ? catalogStorageMode() : "unavailable",
+    },
     auth: { ok: authDisabled || cognitoConfigured, mode: authDisabled ? "disabled" : cognitoConfigured ? "cognito" : "misconfigured" },
     aws_deploy: { ok: !awsDeploy || awsRole, enabled: awsDeploy },
     lineage_catalog: { ok: true, products: lineageCatalogSummary().totalProducts },
@@ -70,8 +87,9 @@ app.get("/health", async (_req, res) => {
     auth: process.env.AUTH_DISABLED === "true" ? "disabled" : "cognito",
     catalog: {
       url: CATALOG_URL,
+      storage: catalogStorageMode(),
       reachable: deep.checks.catalog.mode === "remote",
-      fallback: fallbackEnabled() ? "embedded" : "none",
+      fallback: fallbackEnabled() ? catalogStorageMode() : "none",
     },
     checks: deep.checks,
   });
@@ -108,6 +126,41 @@ app.get("/api/v1/pipelines/:name/history", requireAuth, (req, res) => {
   });
 });
 
+app.post("/api/v1/pipelines/:name/backfill", requireAuth, (req, res) => {
+  const { domain, startDate, endDate } = req.body || {};
+  const run = recordRun({
+    pipelineName: req.params.name,
+    domain,
+    outcome: "backfill_queued",
+    message: `Backfill queued ${startDate || "?"} → ${endDate || "?"}`,
+    userId: req.auth?.sub,
+  });
+  auditRecord({
+    action: "pipeline_backfill",
+    user_id: req.auth?.sub,
+    pipeline: req.params.name,
+    startDate,
+    endDate,
+  });
+  res.json({ status: "success", run });
+});
+
+app.post("/api/v1/products/:id/access-requests", requireAuth, (req, res) => {
+  const { requestAccess } = require("../../lib/access-requests");
+  const record = requestAccess({
+    productId: req.params.id,
+    userId: req.auth?.sub,
+    userEmail: req.auth?.email,
+    reason: req.body?.reason,
+  });
+  auditRecord({
+    action: "access_request",
+    user_id: req.auth?.sub,
+    product_id: req.params.id,
+  });
+  res.status(201).json(record);
+});
+
 app.get("/api/v1/audit", requireAuth, (_req, res) => {
   const { listRecent } = require("../../lib/audit-log");
   res.json({ events: listRecent(100) });
@@ -123,30 +176,36 @@ app.get("/api/v1/auth/config", (_req, res) => {
 });
 
 app.post("/api/v1/pipelines/preview", requireAuth, (req, res) => {
-  const start = Date.now();
+  const span = startSpan("api.preview", { user_id: req.auth?.sub });
   const { nodes, edges, pipelineMeta } = req.body;
   if (!nodes?.length) {
+    span.end("error", { reason: "missing_nodes" });
     return res.status(400).json({ status: "error", errors: ["nodes array is required"] });
   }
+  const compileSpan = startSpan("compile.preview", { trace_parent: span.traceId });
   const result = previewPipeline({ nodes, edges: edges || [], pipelineMeta });
+  compileSpan.end(result.status, { contract_id: result.contract?.metadata?.name });
   if (result.status === "success") metrics.inc("preview_success");
   else metrics.inc("preview_failed");
   structuredLog("pipeline_preview", {
     user_id: req.auth?.sub,
     contract_id: result.contract?.metadata?.name,
     outcome: result.status,
-    duration_ms: Date.now() - start,
+    trace_id: span.traceId,
   });
+  span.end(result.status, { contract_id: result.contract?.metadata?.name });
   res.status(result.status === "success" ? 200 : 422).json(result);
 });
 
 app.post("/api/v1/pipelines/deploy", requireAuth, async (req, res) => {
-  const start = Date.now();
+  const span = startSpan("api.deploy", { user_id: req.auth?.sub });
   const { nodes, edges, pipelineMeta } = req.body;
   if (!nodes?.length) {
+    span.end("error", { reason: "missing_nodes" });
     return res.status(400).json({ status: "error", errors: ["nodes array is required"] });
   }
 
+  const compileSpan = startSpan("compile.deploy", { trace_parent: span.traceId });
   const result = await deployPipeline({
     nodes,
     edges: edges || [],
@@ -154,12 +213,23 @@ app.post("/api/v1/pipelines/deploy", requireAuth, async (req, res) => {
     catalogUrl: CATALOG_URL,
     auth: req.auth,
   });
+  compileSpan.end(result.status, {
+    contract_id: result.contract?.metadata?.name,
+    stage: result.stage,
+  });
 
   if (result.status === "success") {
     metrics.inc("deploy_success");
     if (result.lineage) metrics.inc("lineage_registered");
   } else {
     metrics.inc("deploy_failed");
+    await alertDeployFailure({
+      pipelineName: result.contract?.metadata?.name || pipelineMeta?.name,
+      domain: result.contract?.metadata?.domain || pipelineMeta?.domain,
+      errors: result.errors,
+      userId: req.auth?.sub,
+      stage: result.stage,
+    });
   }
 
   auditRecord({
@@ -171,16 +241,17 @@ app.post("/api/v1/pipelines/deploy", requireAuth, async (req, res) => {
     version: result.contract?.metadata?.version,
     outcome: result.status,
     catalog_registered: Boolean(result.catalog?.registered),
-    duration_ms: Date.now() - start,
+    trace_id: span.traceId,
   });
 
   structuredLog("pipeline_deploy", {
     user_id: req.auth?.sub,
     contract_id: result.contract?.metadata?.name,
     outcome: result.status,
-    duration_ms: Date.now() - start,
+    trace_id: span.traceId,
   });
 
+  span.end(result.status, { contract_id: result.contract?.metadata?.name });
   res.status(result.status === "success" ? 201 : 422).json(result);
 });
 

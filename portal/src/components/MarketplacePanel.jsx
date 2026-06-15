@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { listProducts } from "../lib/api";
+import { listProducts, requestProductAccess } from "../lib/api";
 
 function freshnessLabel(registeredAt) {
   if (!registeredAt) return { text: "Unknown", className: "freshness-unknown" };
@@ -14,6 +14,7 @@ export default function MarketplacePanel({ token, refreshKey }) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [accessMsg, setAccessMsg] = useState(null);
 
   useEffect(() => {
     (async () => {
@@ -35,6 +36,7 @@ export default function MarketplacePanel({ token, refreshKey }) {
       <h2>Marketplace</h2>
       {loading && <p className="properties-hint">Loading products…</p>}
       {error && <p className="login-error" role="alert">{error}</p>}
+      {accessMsg && <p className="properties-hint">{accessMsg}</p>}
       {!loading && !error && products.length === 0 && (
         <p className="properties-hint">No data products yet. Deploy a pipeline to register one.</p>
       )}
@@ -51,6 +53,20 @@ export default function MarketplacePanel({ token, refreshKey }) {
                 <span className={`product-status status-${p.status}`}>{p.status}</span>
                 <span className={`freshness-badge ${fresh.className}`}>{fresh.text}</span>
               </div>
+              <button
+                type="button"
+                className="btn-secondary product-access-btn"
+                onClick={async () => {
+                  try {
+                    const { ok, data } = await requestProductAccess({ token, productId: p.id });
+                    setAccessMsg(ok ? `Access requested for ${p.name}` : data.errors?.[0] || "Request failed");
+                  } catch (err) {
+                    setAccessMsg(err.message);
+                  }
+                }}
+              >
+                Request Access
+              </button>
             </li>
           );
         })}

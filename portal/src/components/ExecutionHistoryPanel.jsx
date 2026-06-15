@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getPipelineHistory } from "../lib/api";
+import { getPipelineHistory, triggerBackfill } from "../lib/api";
 
 function formatTs(ts) {
   if (!ts) return "—";
@@ -14,6 +14,7 @@ export default function ExecutionHistoryPanel({ token, pipelineName, domain, ref
   const [runs, setRuns] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [backfillMsg, setBackfillMsg] = useState(null);
 
   useEffect(() => {
     if (!pipelineName) {
@@ -53,6 +54,33 @@ export default function ExecutionHistoryPanel({ token, pipelineName, domain, ref
       </p>
       {loading && <p className="properties-hint">Loading runs…</p>}
       {error && <p className="login-error">{error}</p>}
+      {backfillMsg && <p className="properties-hint">{backfillMsg}</p>}
+      <div className="backfill-row">
+        <button
+          type="button"
+          className="btn-secondary"
+          onClick={async () => {
+            const startDate = prompt("Backfill start date (YYYY-MM-DD)", "2026-01-01");
+            if (!startDate) return;
+            const endDate = prompt("Backfill end date (YYYY-MM-DD)", "2026-01-31");
+            if (!endDate) return;
+            try {
+              const { ok, data } = await triggerBackfill({
+                token,
+                pipelineName,
+                domain,
+                startDate,
+                endDate,
+              });
+              setBackfillMsg(ok ? "Backfill queued" : data.errors?.[0] || "Backfill failed");
+            } catch (err) {
+              setBackfillMsg(err.message);
+            }
+          }}
+        >
+          Trigger backfill
+        </button>
+      </div>
       {!loading && !error && runs.length === 0 && (
         <p className="properties-hint">No runs recorded yet.</p>
       )}
