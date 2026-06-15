@@ -1,0 +1,275 @@
+import { useCallback, useRef, useState } from "react";
+import ReactFlow, {
+  Background,
+  Controls,
+  MiniMap,
+  addEdge,
+  useEdgesState,
+  useNodesState,
+} from "reactflow";
+import "reactflow/dist/style.css";
+
+import BlockPalette from "./components/BlockPalette";
+import PipelineNode from "./components/PipelineNode";
+import PropertiesPanel from "./components/PropertiesPanel";
+import DeployPanel from "./components/DeployPanel";
+import MarketplacePanel from "./components/MarketplacePanel";
+import { deployPipeline, previewPipeline } from "./lib/api";
+import { useAuth } from "./auth/AuthContext";
+
+const nodeTypes = { pipeline: PipelineNode };
+
+let nodeId = 0;
+const nextId = () => `node-${++nodeId}`;
+
+const initialNodes = [
+  {
+    id: "source-1",
+    type: "pipeline",
+    position: { x: 100, y: 160 },
+    data: {
+      label: "Source",
+      blockType: "source",
+      sourceType: "rds",
+      database: "orders_db",
+      table: "orders",
+      cdcEnabled: true,
+      primaryKey: "order_id",
+      detail: "rds · CDC",
+    },
+  },
+  {
+    id: "transform-1",
+    type: "pipeline",
+    position: { x: 380, y: 160 },
+    data: {
+      label: "Transform",
+      blockType: "transform",
+      transformType: "spark_sql",
+      executionMode: "batch",
+      schedule: "0 */6 * * *",
+      sparkSql: "SELECT order_id, customer_id, total_amount FROM bronze.orders",
+      detail: "spark_sql",
+    },
+  },
+  {
+    id: "sink-1",
+    type: "pipeline",
+    position: { x: 660, y: 160 },
+    data: {
+      label: "Sink",
+      blockType: "sink",
+      targetType: "iceberg",
+      location: "s3://cognimesh-dev-gold/portal-output/",
+      catalogDatabase: "portal_gold",
+      catalogTable: "orders",
+      detail: "iceberg",
+    },
+  },
+];
+
+const initialEdges = [
+  { id: "e1", source: "source-1", target: "transform-1", animated: true },
+  { id: "e2", source: "transform-1", target: "sink-1", animated: true },
+];
+
+export default function App() {
+  const { token, userEmail, logout, authDisabled } = useAuth();
+  const reactFlowWrapper = useRef(null);
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const [selectedId, setSelectedId] = useState(null);
+  const [pipelineMeta, setPipelineMeta] = useState({
+    name: "customer-orders-cdc",
+    domain: "commerce",
+    version: "1.0.0",
+  });
+  const [deployResult, setDeployResult] = useState(null);
+  const [deployError, setDeployError] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [showDeploy, setShowDeploy] = useState(false);
+  const [showMarketplace, setShowMarketplace] = useState(true);
+  const [catalogRefresh, setCatalogRefresh] = useState(0);
+
+  const selectedNode = nodes.find((n) => n.id === selectedId) || null;
+
+  const onConnect = useCallback(
+    (params) => setEdges((eds) => addEdge({ ...params, animated: true }, eds)),
+    [setEdges]
+  );
+
+  const onDragOver = useCallback((event) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "move";
+  }, []);
+
+  const onDrop = useCallback(
+    (event) => {
+      event.preventDefault();
+      const raw = event.dataTransfer.getData("application/cognimesh-block");
+      if (!raw) return;
+
+      const block = JSON.parse(raw);
+      const bounds = reactFlowWrapper.current.getBoundingClientRect();
+      const position = {
+        x: event.clientX - bounds.left - 80,
+        y: event.clientY - bounds.top - 30,
+      };
+
+      const blockType = block.defaults.blockType;
+      const existing = nodes.find((n) => n.data.blockType === blockType);
+      if (existing && blockType !== "transform") {
+        setDeployError([`Only one ${blockType} block is allowed. Select and edit the existing block.`]);
+        return;
+      }
+
+      const newNode = {
+        id: nextId(),
+        type: "pipeline",
+        position,
+        data: { ...block.defaults },
+      };
+
+      setNodes((nds) => {
+        if (blockType === "transform" && existing) {
+          return nds.map((n) => (n.id === existing.id ? newNode : n));
+        }
+        return nds.concat(newNode);
+      });
+      setDeployError(null);
+    },
+    [nodes, setNodes]
+  );
+
+  const updateNode = useCallback(
+    (id, patch) => {
+      setNodes((nds) =>
+        nds.map((n) =>
+          n.id === id ? { ...n, data: { ...n.data, ...patch } } : n
+        )
+      );
+    },
+    [setNodes]
+  );
+
+  const handlePreview = async () => {
+    setLoading(true);
+    setDeployError(null);
+    setShowDeploy(true);
+    try {
+      const meta = {
+        ...pipelineMeta,
+        ownerEmail: userEmail,
+      };
+      const result = await previewPipeline({ nodes, edges, pipelineMeta: meta, token });
+      if (result.status === "success") {
+        setDeployResult({ ...result, status: "success", catalog: null, integrityGate: null });
+      } else {
+        setDeployError(result.errors || result.validation?.errors || ["Preview failed"]);
+        setDeployResult(null);
+      }
+    } catch (err) {
+      setDeployError([err.message]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeploy = async () => {
+    setLoading(true);
+    setDeployError(null);
+    setShowDeploy(true);
+    try {
+      const meta = {
+        ...pipelineMeta,
+        ownerEmail: userEmail,
+      };
+      const { ok, data } = await deployPipeline({ nodes, edges, pipelineMeta: meta, token });
+      if (ok) {
+        setDeployResult(data);
+        setDeployError(null);
+        setCatalogRefresh((k) => k + 1);
+      } else {
+        setDeployError(data.errors || data.validation?.errors || ["Deploy failed"]);
+        setDeployResult(data.contract ? data : null);
+      }
+    } catch (err) {
+      setDeployError([err.message]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="app">
+      <header className="header">
+        <div>
+          <h1>CogniMesh</h1>
+          <p className="subtitle">Zero-code pipeline designer</p>
+        </div>
+        <div className="header-actions">
+          {!authDisabled && userEmail && (
+            <span className="user-badge">{userEmail}</span>
+          )}
+          <button className="btn-secondary" onClick={() => setShowMarketplace((v) => !v)}>
+            Marketplace
+          </button>
+          <button className="btn-secondary" onClick={handlePreview} disabled={loading}>
+            Preview YAML
+          </button>
+          <button className="deploy-btn" onClick={handleDeploy} disabled={loading}>
+            Deploy Pipeline
+          </button>
+          {!authDisabled && (
+            <button className="btn-secondary" onClick={logout}>
+              Sign out
+            </button>
+          )}
+        </div>
+      </header>
+
+      <div className="main">
+        <BlockPalette />
+
+        <div className="canvas" ref={reactFlowWrapper}>
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            nodeTypes={nodeTypes}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            onDrop={onDrop}
+            onDragOver={onDragOver}
+            onNodeClick={(_, node) => setSelectedId(node.id)}
+            onPaneClick={() => setSelectedId(null)}
+            fitView
+            deleteKeyCode={["Backspace", "Delete"]}
+          >
+            <Background gap={20} color="#243044" />
+            <Controls />
+            <MiniMap nodeColor={(n) => {
+              const c = { source: "#059669", transform: "#2563eb", sink: "#ea580c" };
+              return c[n.data?.blockType] || "#6b7280";
+            }} />
+          </ReactFlow>
+        </div>
+
+        <PropertiesPanel
+          node={selectedNode}
+          onChange={updateNode}
+          pipelineMeta={pipelineMeta}
+          onMetaChange={setPipelineMeta}
+        />
+
+        {showMarketplace && (
+          <MarketplacePanel token={token} refreshKey={catalogRefresh} />
+        )}
+
+        {showDeploy && (
+          <DeployPanel result={deployResult} loading={loading} error={deployError} />
+        )}
+      </div>
+    </div>
+  );
+}

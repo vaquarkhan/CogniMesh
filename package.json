@@ -1,0 +1,38 @@
+{
+  "name": "cognimesh",
+  "version": "0.1.0",
+  "private": true,
+  "description": "CogniMesh - Multimodal Cognitive Data Mesh & Marketplace",
+  "scripts": {
+    "validate:contract": "node scripts/validate-contract.js",
+    "test:e2e": "node scripts/test-e2e-pipeline.js",
+    "test:api": "node scripts/test-api-e2e.js",
+    "test:integrity-gate": "node scripts/test-integrity-gate.js",
+    "test:vaquar": "node scripts/test-vaquar-bridge.js",
+    "test:pvdm": "node scripts/test-pvdm-runtime.js",
+    "vaquar:apply": "node scripts/vaquar-apply.js",
+    "test": "npm run test:e2e && npm run test:vaquar && npm run test:pvdm && npm run test:integrity-gate -- contracts/examples/structured-cdc-pipeline.yaml",
+    "package:lambda": "powershell -ExecutionPolicy Bypass -File infra/terraform/scripts/package-integrity-gate.ps1",
+    "package:domain-writer": "powershell -ExecutionPolicy Bypass -File infra/terraform/scripts/package-domain-writer.ps1",
+    "dev:agent-mcp": "node services/agent-mcp/server.js",
+    "dev:api": "node services/api-gateway/server.js",
+    "dev:portal": "npm run dev --prefix portal",
+    "dev:catalog": "mvn -q -f services/catalog spring-boot:run",
+    "dev": "concurrently -n api,portal,catalog -c cyan,green,yellow \"npm run dev:api\" \"npm run dev:portal\" \"npm run dev:catalog\"",
+    "start": "npm run dev"
+  },
+  "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.654.0",
+    "@aws-sdk/client-sfn": "^3.654.0",
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
+    "aws-jwt-verify": "^4.0.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.1"
+  }
+}

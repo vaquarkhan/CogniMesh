@@ -1,0 +1,72 @@
+# CogniMesh integrity gate - quality, security, and compliance checks
+# Run in CI before marketplace product registration.
+name: aiv-integrity-gate
+
+on:
+  pull_request:
+    paths:
+      - "contracts/**"
+      - "schemas/**"
+  workflow_dispatch:
+
+jobs:
+  validate-contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate example contracts
+        run: |
+          npm run validate:contract -- contracts/examples/structured-cdc-pipeline.yaml
+          npm run validate:contract -- contracts/examples/cognitive-media-pipeline.yaml
+          npm run test:integrity-gate -- contracts/examples/structured-cdc-pipeline.yaml
+          npm run test:integrity-gate -- contracts/examples/cognitive-media-pipeline.yaml
+
+  compile-pipelines:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Compile Step Functions definitions
+        run: |
+          npm ci
+          node services/pipeline-engine/compile.js contracts/examples/structured-cdc-pipeline.yaml
+          node services/pipeline-engine/compile.js contracts/examples/cognitive-media-pipeline.yaml
+
+  cognitive-runtime:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+
+      - name: Test cognitive runtime
+        working-directory: services/cognitive-runtime
+        run: go test ./...
+
+  catalog-service:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Test catalog service
+        working-directory: services/catalog
+        run: mvn -B test

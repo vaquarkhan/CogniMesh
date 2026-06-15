@@ -1,0 +1,57 @@
+apiVersion: cognimesh.io/v1
+kind: DataContract
+metadata:
+  name: media-transcript-enrichment
+  domain: media-intelligence
+  version: 1.0.0
+  description: Cognitive pipeline - media URL to structured Parquet via agentic transform
+  owner:
+    team: media-ai
+    contact: media-ai@example.com
+  tags:
+    tier: silver
+    modality: multimodal
+
+spec:
+  execution:
+    mode: stream
+    slaMinutes: 30
+
+  source:
+    type: media_url
+    connection:
+      endpoint: s3://cognimesh-media-ingest/raw/
+    schema:
+      - name: media_uri
+        type: string
+        nullable: false
+      - name: content_type
+        type: string
+      - name: ingested_at
+        type: timestamp
+
+  transform:
+    type: agentic
+    layers: [silver, gold]
+    agentic:
+      modelId: anthropic.claude-3-sonnet-20240229-v1:0
+      promptTemplate: |
+        Extract structured entities from the provided media.
+        Return JSON with fields: title, summary, entities[], sentiment.
+      outputFormat: parquet
+      compensationHandler: cognimesh.compensation.media-rollback
+      idempotencyKey: "${media_uri}:${ingested_at}"
+
+  target:
+    type: iceberg
+    location: s3://cognimesh-media-gold/transcripts/
+    catalog:
+      database: media_gold
+      table: enriched_transcripts
+    partitionBy: [ingested_at]
+
+  governance:
+    piiClassification: low
+    rowFilters:
+      - tag: domain
+        expression: "domain = 'media-intelligence'"

@@ -1,0 +1,75 @@
+# CogniMesh integrity gate - Vaquar Pattern inspired
+# Order: Rules → Schema → Security → Compliance → Compile
+# Invariant: catalog registration ⟹ integrity_gate = PASS
+
+rules:
+  - id: governance.pii_requires_masks
+    description: High/restricted PII classification requires column masks
+    when:
+      governance.piiClassification: [high, restricted]
+    assert:
+      governance.columnMasks: required
+
+  - id: governance.medium_pii_recommends_masks
+    description: Medium PII should define column masks
+    when:
+      governance.piiClassification: [medium]
+    warn:
+      governance.columnMasks: recommended
+
+  - id: security.no_wildcard_principal
+    description: Agentic transforms must declare compensation handler
+    when:
+      transform.type: agentic
+    assert:
+      transform.agentic.compensationHandler: required
+
+  - id: security.agentic_idempotency
+    description: Agentic jobs require idempotency key for exactly-once
+    when:
+      transform.type: agentic
+    assert:
+      transform.agentic.idempotencyKey: required
+
+  - id: compliance.metadata_owner
+    description: Production pipelines require owner contact
+    when:
+      metadata.domain: "!default"
+    assert:
+      metadata.owner.contact: required
+
+  - id: compliance.semver_version
+    description: Version must be valid semver
+    assert:
+      metadata.version: semver
+
+  - id: rules.spark_sql_non_empty
+    description: Spark SQL transforms require SQL body
+    when:
+      transform.type: spark_sql
+    assert:
+      transform.sparkSql: non_empty
+
+  - id: rules.batch_requires_schedule
+    description: Batch pipelines require cron schedule
+    when:
+      execution.mode: batch
+    assert:
+      execution.schedule: required
+
+  - id: rules.target_catalog
+    description: Iceberg targets require Glue catalog registration
+    when:
+      target.type: iceberg
+    assert:
+      target.catalog.database: required
+      target.catalog.table: required
+
+blocked_patterns:
+  - field: target.location
+    pattern: '(?i)(\*|public-read|allusers)'
+    message: Target location must not expose public ACL patterns
+
+  - field: source.connection.secretArn
+    pattern: '^arn:aws:secretsmanager:'
+    message: RDS/MySQL sources must use Secrets Manager ARN

@@ -1,0 +1,27 @@
+# Copy to terraform.tfvars and customize bucket names (must be globally unique)
+
+name_prefix            = "cognimesh-prod"
+aws_region             = "us-east-1"
+default_admin_email    = "admin@yourcompany.com"
+
+checkpoint_bucket_name = "cognimesh-prod-checkpoints-UNIQUE"
+proof_bucket_name      = "cognimesh-prod-proofs-UNIQUE"
+lakehouse_bucket_name  = "cognimesh-prod-lakehouse-UNIQUE"
+bronze_bucket_name     = "cognimesh-prod-bronze-UNIQUE"
+silver_bucket_name     = "cognimesh-prod-silver-UNIQUE"
+gold_bucket_name       = "cognimesh-prod-gold-UNIQUE"
+
+glue_database_name         = "cognimesh_mesh"
+consumer_principal_arn     = "arn:aws:iam::ACCOUNT_ID:role/cognimesh-consumer"
+
+enable_cognito = true
+enable_step_functions = true
+enable_lake_formation_governance = true
+enable_integrity_gate_lambda = true
+enable_eks = true
+enable_portal_cdn = true
+
+portal_callback_urls = ["http://localhost:3000/", "https://portal.yourcompany.com/"]
+
+portal_bucket_name = "cognimesh-prod-portal-UNIQUE"
+portal_logout_urls   = ["http://localhost:3000/", "https://portal.yourcompany.com/"]

@@ -1,0 +1,252 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cognimesh.io/schemas/data-contract-v1.schema.json",
+  "title": "CogniMesh Data Contract",
+  "description": "Declarative pipeline manifest for CogniMesh orchestration",
+  "type": "object",
+  "required": ["apiVersion", "kind", "metadata", "spec"],
+  "additionalProperties": false,
+  "properties": {
+    "apiVersion": {
+      "type": "string",
+      "const": "cognimesh.io/v1"
+    },
+    "kind": {
+      "type": "string",
+      "const": "DataContract"
+    },
+    "metadata": {
+      "type": "object",
+      "required": ["name", "domain", "version"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$"
+        },
+        "domain": {
+          "type": "string",
+          "description": "Data mesh domain owning this product"
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$"
+        },
+        "description": { "type": "string" },
+        "tags": {
+          "type": "object",
+          "additionalProperties": { "type": "string" }
+        },
+        "owner": {
+          "type": "object",
+          "properties": {
+            "team": { "type": "string" },
+            "contact": { "type": "string", "format": "email" }
+          }
+        }
+      }
+    },
+    "spec": {
+      "type": "object",
+      "required": ["execution", "source", "transform", "target"],
+      "additionalProperties": false,
+      "properties": {
+        "execution": {
+          "type": "object",
+          "required": ["mode"],
+          "properties": {
+            "mode": {
+              "type": "string",
+              "enum": ["batch", "stream"]
+            },
+            "schedule": {
+              "type": "string",
+              "description": "Cron expression for batch pipelines"
+            },
+            "slaMinutes": { "type": "integer", "minimum": 1 },
+            "pattern": {
+              "type": "string",
+              "enum": ["vaquar", "glue", "cognitive"],
+              "description": "Runtime pattern: Vaquar PVDM, legacy Glue, or cognitive EKS"
+            },
+            "pvdm": {
+              "type": "object",
+              "properties": {
+                "lambdaTimeoutSeconds": { "type": "integer" },
+                "durableTimeoutSeconds": { "type": "integer" },
+                "maxResumeAttempts": { "type": "integer" }
+              }
+            }
+          }
+        },
+        "source": {
+          "$ref": "#/$defs/sourceConfig"
+        },
+        "transform": {
+          "$ref": "#/$defs/transformLogic"
+        },
+        "target": {
+          "$ref": "#/$defs/targetStorage"
+        },
+        "governance": {
+          "type": "object",
+          "properties": {
+            "piiClassification": {
+              "type": "string",
+              "enum": ["none", "low", "medium", "high", "restricted"]
+            },
+            "rowFilters": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["tag", "expression"],
+                "properties": {
+                  "tag": { "type": "string" },
+                  "expression": { "type": "string" }
+                }
+              }
+            },
+            "columnMasks": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["column", "maskType"],
+                "properties": {
+                  "column": { "type": "string" },
+                  "maskType": {
+                    "type": "string",
+                    "enum": ["hash", "redact", "partial", "tokenize"]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "sourceConfig": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["rds", "mysql", "s3", "kafka", "media_url", "api"]
+        },
+        "connection": {
+          "type": "object",
+          "properties": {
+            "secretArn": { "type": "string" },
+            "endpoint": { "type": "string" },
+            "database": { "type": "string" },
+            "table": { "type": "string" }
+          }
+        },
+        "cdc": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "primaryKey": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          }
+        },
+        "schema": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "type"],
+            "properties": {
+              "name": { "type": "string" },
+              "type": { "type": "string" },
+              "nullable": { "type": "boolean", "default": true },
+              "pii": { "type": "boolean", "default": false }
+            }
+          }
+        }
+      }
+    },
+    "transformLogic": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["spark_sql", "glue_etl", "agentic", "passthrough"]
+        },
+        "layers": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["bronze", "silver", "gold"]
+          }
+        },
+        "sparkSql": { "type": "string" },
+        "sparkRules": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "drlS3Uri": { "type": "string" }
+          }
+        },
+        "pvdm": {
+          "type": "object",
+          "properties": {
+            "identityFields": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "contentFields": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "partitionKey": { "type": "string" },
+            "qualityPolicyId": { "type": "string" },
+            "maxChunkRecords": { "type": "integer" },
+            "checkpointInterval": { "type": "integer" },
+            "rollbackThresholdMs": { "type": "integer" },
+            "autoRepair": { "type": "boolean" },
+            "canaryMaxDivergencePct": { "type": "number" }
+          }
+        },
+        "agentic": {
+          "type": "object",
+          "properties": {
+            "modelId": { "type": "string" },
+            "promptTemplate": { "type": "string" },
+            "outputFormat": {
+              "type": "string",
+              "enum": ["parquet", "json"]
+            },
+            "compensationHandler": { "type": "string" },
+            "idempotencyKey": { "type": "string" }
+          }
+        }
+      }
+    },
+    "targetStorage": {
+      "type": "object",
+      "required": ["type", "location"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["s3", "iceberg", "redshift", "delta"]
+        },
+        "location": { "type": "string" },
+        "catalog": {
+          "type": "object",
+          "properties": {
+            "database": { "type": "string" },
+            "table": { "type": "string" }
+          }
+        },
+        "partitionBy": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,68 @@
+apiVersion: cognimesh.io/v1
+kind: DataContract
+metadata:
+  name: customer-orders-cdc
+  domain: commerce
+  version: 1.0.0
+  description: CDC extraction from RDS orders into Iceberg gold layer
+  owner:
+    team: commerce-data
+    contact: commerce-data@example.com
+  tags:
+    tier: gold
+    classification: internal
+
+spec:
+  execution:
+    mode: batch
+    pattern: vaquar
+    schedule: "0 */6 * * *"
+    slaMinutes: 120
+
+  source:
+    type: rds
+    connection:
+      secretArn: arn:aws:secretsmanager:us-east-1:123456789012:secret:rds/orders
+      database: orders_db
+      table: orders
+    cdc:
+      enabled: true
+      primaryKey: [order_id]
+    schema:
+      - name: order_id
+        type: string
+        nullable: false
+      - name: customer_id
+        type: string
+        pii: true
+      - name: total_amount
+        type: decimal
+      - name: created_at
+        type: timestamp
+
+  transform:
+    type: spark_sql
+    layers: [bronze, silver, gold]
+    sparkRules:
+      enabled: true
+    pvdm:
+      identityFields: [order_id]
+      contentFields: [order_id, customer_id, total_amount, created_at]
+    sparkSql: |
+      SELECT order_id, customer_id, total_amount, created_at
+      FROM bronze.orders
+      WHERE created_at >= '${execution_date}'
+
+  target:
+    type: iceberg
+    location: s3://cognimesh-commerce-gold/orders/
+    catalog:
+      database: commerce_gold
+      table: orders
+    partitionBy: [created_at]
+
+  governance:
+    piiClassification: medium
+    columnMasks:
+      - column: customer_id
+        maskType: hash

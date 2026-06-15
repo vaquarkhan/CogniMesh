@@ -1,0 +1,12 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: cognimesh-catalog
+
+cognimesh:
+  catalog:
+    storage: memory
+    table-name: cognimesh-data-products
+    aws-region: us-east-1

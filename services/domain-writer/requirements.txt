@@ -1,0 +1,1 @@
+serverless-data-mesh>=1.1.0
