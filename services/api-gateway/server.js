@@ -174,6 +174,17 @@ app.get("/api/v1/access-requests/pending", requireAuth, (_req, res) => {
   res.json({ requests: listPending() });
 });
 
+app.get("/api/v1/access-requests/mine", requireAuth, (req, res) => {
+  const { listForUser } = require("../../lib/access-requests");
+  res.json({ requests: listForUser(req.auth?.sub) });
+});
+
+app.get("/api/v1/products/:id/access-status", requireAuth, (req, res) => {
+  const { getAccessForProduct } = require("../../lib/access-requests");
+  const record = getAccessForProduct(req.params.id, req.auth?.sub);
+  res.json({ access: record });
+});
+
 app.post("/api/v1/access-requests/:id/approve", requireAuth, (req, res) => {
   const { approveRequest } = require("../../lib/access-requests");
   const result = approveRequest(req.params.id, req.auth?.sub);
@@ -201,6 +212,8 @@ app.get("/api/v1/products/:id/consumer-detail", requireAuth, async (req, res) =>
   const manifestYaml = product?.manifestYaml || "";
   const schema = parseSchemaFromManifest(manifestYaml);
   const sampleRows = sampleRowsFromSchema(schema);
+  const { getAccessForProduct } = require("../../lib/access-requests");
+  const access = getAccessForProduct(req.params.id, req.auth?.sub);
   const dbMatch = manifestYaml.match(/catalogDatabase:\s*(\S+)/);
   const tableMatch = manifestYaml.match(/catalogTable:\s*(\S+)/);
   const database = dbMatch?.[1] || product?.domain || "default";
@@ -211,6 +224,7 @@ app.get("/api/v1/products/:id/consumer-detail", requireAuth, async (req, res) =>
     sampleRows,
     athenaUrl: athenaConsoleUrl({ database, table }),
     proofGated: /pattern:\s*vaquar/.test(manifestYaml) || /qualityPolicyId/.test(manifestYaml),
+    access,
   });
 });
 

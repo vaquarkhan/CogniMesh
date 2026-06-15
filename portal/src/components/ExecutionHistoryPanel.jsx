@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { getPipelineHistory, getPipelineObservability, triggerBackfill, getExecutionStatus } from "../lib/api";
 import RunObservabilityDashboard from "./RunObservabilityDashboard";
 import PvdmFlowDiagram from "./PvdmFlowDiagram";
+import { s3ConsoleUrl } from "../lib/s3-console";
 function formatTs(ts) {
   if (!ts) return "—";
   try {
@@ -51,6 +52,14 @@ export default function ExecutionHistoryPanel({ token, pipelineName, domain, ref
       }
     })();
   }, [token, pipelineName, domain, refreshKey]);
+
+  useEffect(() => {
+    const latest = runs.find((r) => r.awsExecutionArn);
+    if (!latest?.awsExecutionArn) return;
+    loadAwsStatus(latest.awsExecutionArn);
+    const id = setInterval(() => loadAwsStatus(latest.awsExecutionArn), 5000);
+    return () => clearInterval(id);
+  }, [runs, token]);
 
   const loadAwsStatus = async (arn) => {
     if (!arn) return;
@@ -149,13 +158,27 @@ export default function ExecutionHistoryPanel({ token, pipelineName, domain, ref
                     <dt>Proof artifact</dt>
                     <dd>
                       {r.proofS3Uri ? (
-                        <a href={`#proof-${r.id}`} className="proof-link" title={r.proofS3Uri}>{r.proofS3Uri}</a>
+                        <>
+                          <code className="proof-link">{r.proofS3Uri}</code>
+                          {s3ConsoleUrl(r.proofS3Uri) && (
+                            <a href={s3ConsoleUrl(r.proofS3Uri)} target="_blank" rel="noreferrer" className="aws-console-link">
+                              Open proof in S3 ↗
+                            </a>
+                          )}
+                        </>
                       ) : "—"}
                     </dd>
                     <dt>Checkpoint</dt>
                     <dd>
                       {r.checkpointS3Uri ? (
-                        <code className="proof-link">{r.checkpointS3Uri}</code>
+                        <>
+                          <code className="proof-link">{r.checkpointS3Uri}</code>
+                          {s3ConsoleUrl(r.checkpointS3Uri) && (
+                            <a href={s3ConsoleUrl(r.checkpointS3Uri)} target="_blank" rel="noreferrer" className="aws-console-link">
+                              Open checkpoint in S3 ↗
+                            </a>
+                          )}
+                        </>
                       ) : "—"}
                     </dd>
                     <dt>AWS execution</dt>

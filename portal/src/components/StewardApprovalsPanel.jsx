@@ -34,7 +34,11 @@ export default function StewardApprovalsPanel({ token, refreshKey }) {
                 className="deploy-btn compact"
                 onClick={async () => {
                   const { ok, data } = await approveAccessRequest({ token, requestId: r.id });
-                  setMsg(ok ? `Approved ${r.productName} — LF grant applied` : data.error);
+                  setMsg(
+                    ok
+                      ? `Approved ${r.productName} — LF ${data.record?.lakeFormationGrant?.permission || "SELECT"}: ${data.record?.lakeFormationGrant?.note || "granted"}`
+                      : data.error
+                  );
                 }}
               >
                 Approve

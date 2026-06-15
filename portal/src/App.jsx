@@ -543,7 +543,7 @@ export default function App() {
           />
         )}
 
-        {showDeploy && <DeployPanel result={deployResult} loading={loading} error={deployError} />}
+        {showDeploy && <DeployPanel result={deployResult} loading={loading} error={deployError} token={token} />}
       </div>
     </div>
   );

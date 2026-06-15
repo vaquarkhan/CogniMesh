@@ -1,9 +1,11 @@
 import { useState } from "react";
 import LineageGraph from "./LineageGraph";
+import VrpProofPanel from "./VrpProofPanel";
+import AwsDeployStatusBanner from "./AwsDeployStatusBanner";
 
-const TABS = ["contract", "lineage", "history", "stepfunctions", "vaquar", "deploy"];
+const TABS = ["contract", "lineage", "vaquar", "history", "stepfunctions", "deploy"];
 
-export default function DeployPanel({ result, loading, error }) {
+export default function DeployPanel({ result, loading, error, token }) {
   const [tab, setTab] = useState("contract");
 
   if (loading) {
@@ -47,6 +49,7 @@ export default function DeployPanel({ result, loading, error }) {
 
       {result.status === "success" && (
         <div className="deploy-summary">
+          <AwsDeployStatusBanner aws={result.aws} token={token} />
           <p>✓ Graph topology validated</p>
           <p>✓ DataContract schema passed</p>
           <p>✓ Integrity gate (Vaquar rules engine)</p>
@@ -113,17 +116,7 @@ export default function DeployPanel({ result, loading, error }) {
           <pre>{JSON.stringify(result.stateMachine, null, 2)}</pre>
         )}
         {tab === "vaquar" && (
-          <pre>{JSON.stringify(
-            {
-              pattern: result.vaquar?.pattern,
-              outputDir: result.vaquar?.outputDir,
-              phases: result.vaquar?.phases,
-              mesh: result.vaquar?.mesh,
-              meshYaml: result.vaquar?.meshYaml,
-            },
-            null,
-            2
-          )}</pre>
+          <VrpProofPanel pvdmSummary={result.pvdmSummary} vaquar={result.vaquar} aws={result.aws} />
         )}
         {tab === "deploy" && (
           <pre>{JSON.stringify(

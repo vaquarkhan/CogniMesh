@@ -76,7 +76,7 @@ Built on **[The Vaquar Pattern](docs/vaquar-pattern.md)** by [Vaquarkhan](https:
 | 🔄 | [End-to-end journey](#end-to-end-journey) |
 | 🖥️ | [Zero-code portal](#zero-code-portal) · [Pattern catalog](docs/PORTAL_UI.md) |
 | 🔐 | [Security](#security-cognito) |
-| ⭐ | [Vaquar Pattern](docs/vaquar-pattern.md) |
+| ⭐ | [Vaquar Pattern](docs/vaquar-pattern.md) · [Top 3 features](docs/TOP3_FEATURES.md) |
 | 🔀 | [Dual pipeline model](#dual-pipeline-model) |
 | 🏪 | [Marketplace](#marketplace--governance) |
 | ☁️ | [Terraform](#aws-infrastructure-terraform) |

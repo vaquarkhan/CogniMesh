@@ -68,6 +68,14 @@ export default function MarketplacePanel({ token, refreshKey }) {
           {detail && (
             <>
               {detail.proofGated && <p className="proof-gated-banner">🛡 Vaquar PVDM proof-gated product</p>}
+              {detail.access && (
+                <p className={`access-status access-${detail.access.status}`}>
+                  Access: <strong>{detail.access.status}</strong>
+                  {detail.access.status === "approved" && detail.access.lakeFormationGrant && (
+                    <span> · Lake Formation {detail.access.lakeFormationGrant.permission} ({detail.access.lakeFormationGrant.note})</span>
+                  )}
+                </p>
+              )}
               <h4>Schema</h4>
               <table className="schema-table">
                 <thead><tr><th>Column</th><th>Type</th></tr></thead>
@@ -115,7 +123,8 @@ export default function MarketplacePanel({ token, refreshKey }) {
                       productName: p.name,
                       domain: p.domain,
                     });
-                    setAccessMsg(ok ? `Access requested for ${p.name}` : data.errors?.[0] || "Request failed");
+                    setAccessMsg(ok ? `Access requested for ${p.name} — pending steward approval` : data.errors?.[0] || "Request failed");
+                    if (ok) openDetail(p);
                   } catch (err) {
                     setAccessMsg(err.message);
                   }

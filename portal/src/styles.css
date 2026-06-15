@@ -1382,6 +1382,28 @@ body {
   font-size: 0.82rem;
 }
 .modal-error { color: #fca5a5; border-color: #dc2626; }
+
+.vrp-proof-panel { font-size: 0.82rem; }
+.vrp-proof-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; }
+.vrp-proof-dl { margin-top: 0.75rem; }
+.vrp-aws-block { margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid #243044; }
+.vrp-aws-block h4 { margin: 0 0 0.35rem; font-size: 0.85rem; }
+.aws-deploy-banner {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 0.5rem 0.65rem;
+  margin-bottom: 0.75rem;
+  font-size: 0.82rem;
+}
+.aws-deploy-banner.aws-banner-SUCCEEDED { border-color: #059669; }
+.aws-deploy-banner.aws-banner-RUNNING { border-color: #2563eb; }
+.aws-deploy-banner.aws-banner-FAILED { border-color: #dc2626; }
+.aws-polling { color: #93c5fd; font-size: 0.75rem; }
+.access-status { font-size: 0.8rem; margin: 0.35rem 0; padding: 0.35rem 0.5rem; border-radius: 6px; background: #1e293b; }
+.access-status.access-pending { color: #fde68a; border: 1px solid #ca8a04; }
+.access-status.access-approved { color: #6ee7b7; border: 1px solid #059669; }
+.access-status.access-rejected { color: #fca5a5; border: 1px solid #dc2626; }
 .props-aws-findings {
   background: #422006;
   border: 1px solid #b45309;
