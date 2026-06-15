@@ -1,8 +1,20 @@
 <p align="center">
+  <img src="docs/assets/cognimesh-hero.png" alt="CogniMesh — Multimodal Cognitive Data Mesh &amp; Marketplace" width="720" />
+</p>
+
+<p align="center">
   <img src="https://img.shields.io/badge/CogniMesh-0.1.0-0d9488?style=for-the-badge" alt="CogniMesh" />
   <img src="https://img.shields.io/badge/Vaquar-PVDM-2563eb?style=for-the-badge" alt="Vaquar PVDM" />
   <img src="https://img.shields.io/badge/AWS-Serverless-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white" alt="AWS" />
   <img src="https://img.shields.io/badge/Tests-passing-22c55e?style=for-the-badge" alt="Tests" />
+</p>
+
+<p align="center">
+  <a href="docs/DISTRIBUTION.md#docker-recommended-for-local-full-stack"><img src="https://img.shields.io/badge/Docker-Compose-2496ED?style=flat-square&logo=docker&logoColor=white" alt="Docker" /></a>
+  <a href="docs/DISTRIBUTION.md#npm-nodejs"><img src="https://img.shields.io/badge/npm-0.1.0-CB3837?style=flat-square&logo=npm&logoColor=white" alt="npm" /></a>
+  <a href="docs/DISTRIBUTION.md#pypi-python-sdk"><img src="https://img.shields.io/badge/PyPI-cognimesh-3776AB?style=flat-square&logo=pypi&logoColor=white" alt="PyPI" /></a>
+  <a href="docs/DISTRIBUTION.md#maven-java-catalog"><img src="https://img.shields.io/badge/Maven-catalog-ED8B00?style=flat-square&logo=apachemaven&logoColor=white" alt="Maven" /></a>
+  <a href="docs/DISTRIBUTION.md#go-cognitive-runtime"><img src="https://img.shields.io/badge/Go-runtime-00ADD8?style=flat-square&logo=go&logoColor=white" alt="Go" /></a>
 </p>
 
 <h1 align="center">CogniMesh</h1>
@@ -67,6 +79,7 @@ Built on **[The Vaquar Pattern](docs/vaquar-pattern.md)** by [Vaquarkhan](https:
 | 🏪 | [Marketplace](#marketplace--governance) |
 | ☁️ | [Terraform](#aws-infrastructure-terraform) |
 | ✅ | [Feature matrix](#feature-matrix) |
+| 📦 | [Distribution](#distribution) |
 | 🚀 | [Quick start](#quick-start) |
 | 📚 | [Documentation](#documentation) |
 
@@ -293,6 +306,49 @@ flowchart TB
 
 ---
 
+## Distribution
+
+Install and run CogniMesh via Docker, npm, PyPI, Maven, or Go. Full details: **[docs/DISTRIBUTION.md](docs/DISTRIBUTION.md)**.
+
+| Channel | Install | Use case |
+|---------|---------|----------|
+| **Docker** | `docker compose up --build` | Full stack — no local Java/Maven |
+| **npm** | `npm install && npm start` | Monorepo dev — API, portal, contract compiler |
+| **PyPI** | `pip install cognimesh` | Python SDK + CLI for contracts & API |
+| **Maven** | `cd services/catalog && mvn spring-boot:run` | Marketplace catalog service |
+| **Go** | `cd services/cognitive-runtime && go run ./cmd/controller` | Cognitive epoch runtime |
+
+### Docker
+
+```bash
+docker compose up --build
+# Portal :3000 · API :4000 · Catalog :8080
+```
+
+| Image | Tag |
+|-------|-----|
+| `ghcr.io/vaquarkhan/cognimesh-api` | `0.1.0` |
+| `ghcr.io/vaquarkhan/cognimesh-portal` | `0.1.0` |
+| `ghcr.io/vaquarkhan/cognimesh-catalog` | `0.1.0` |
+
+### PyPI
+
+```bash
+pip install cognimesh
+cognimesh validate contracts/examples/structured-cdc-pipeline.yaml
+cognimesh health --api http://localhost:4000
+```
+
+```python
+from cognimesh import CogniMeshClient, load_contract
+client = CogniMeshClient("http://localhost:4000")
+print(client.health())
+```
+
+Related Vaquar package: [`serverless-data-mesh`](https://pypi.org/project/serverless-data-mesh/) (`pip install serverless-data-mesh`).
+
+---
+
 ## Quick start
 
 ```bash
@@ -374,7 +430,9 @@ CogniMesh/
 | [docs/drag-drop-pipeline-flow.md](docs/drag-drop-pipeline-flow.md) | Portal → deploy E2E |
 | [docs/architecture.md](docs/architecture.md) | Architecture deep-dive |
 | [docs/data-contract-spec.md](docs/data-contract-spec.md) | DataContract YAML spec |
-| [docs/LOCAL_DEV.md](docs/LOCAL_DEV.md) | Docker Compose · embedded catalog · dev modes |
+| [docs/LINEAGE_CATALOG.md](docs/LINEAGE_CATALOG.md) | Lineage catalog · schema evolution |
+| [docs/PLATFORM_CHECKLIST.md](docs/PLATFORM_CHECKLIST.md) | 10/10 evaluation tracker |
+| [docs/DISTRIBUTION.md](docs/DISTRIBUTION.md) | Docker · npm · PyPI · Maven · Go |
 
 ---
 

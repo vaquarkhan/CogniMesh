@@ -88,6 +88,23 @@
         "target": {
           "$ref": "#/$defs/targetStorage"
         },
+        "schemaEvolution": {
+          "type": "object",
+          "properties": {
+            "policy": {
+              "type": "string",
+              "enum": ["strict", "compatible", "ignore"]
+            },
+            "onNewColumn": {
+              "type": "string",
+              "enum": ["add_nullable", "reject", "backfill_required"]
+            },
+            "onRemovedColumn": {
+              "type": "string",
+              "enum": ["reject", "deprecate", "allow"]
+            }
+          }
+        },
         "governance": {
           "type": "object",
           "properties": {

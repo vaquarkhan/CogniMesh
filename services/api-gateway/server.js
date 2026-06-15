@@ -11,6 +11,13 @@ const { rateLimit } = require("./middleware/rate-limit");
 const { requestLogger, structuredLog } = require("./middleware/logger");
 const { listProducts, getProduct, catalogReachable, fallbackEnabled } = require("../../lib/catalog-client");
 const { record: auditRecord } = require("../../lib/audit-log");
+const {
+  getLineage,
+  listLineageCatalog,
+  lineageCatalogSummary,
+} = require("../../lib/lineage-catalog");
+const { listRuns, stats: executionStats } = require("../../lib/execution-history");
+const metrics = require("../../lib/metrics");
 
 const PORT = process.env.PORT || 4000;
 const CATALOG_URL = process.env.CATALOG_URL || "http://localhost:8080";
@@ -47,6 +54,8 @@ async function deepHealth() {
     catalog: { ok: catalogUp || fallbackEnabled(), mode: catalogUp ? "remote" : fallbackEnabled() ? "embedded" : "unavailable" },
     auth: { ok: authDisabled || cognitoConfigured, mode: authDisabled ? "disabled" : cognitoConfigured ? "cognito" : "misconfigured" },
     aws_deploy: { ok: !awsDeploy || awsRole, enabled: awsDeploy },
+    lineage_catalog: { ok: true, products: lineageCatalogSummary().totalProducts },
+    execution_history: { ok: true, ...executionStats() },
   };
 
   const ok = Object.values(checks).every((c) => c.ok);
@@ -65,6 +74,37 @@ app.get("/health", async (_req, res) => {
       fallback: fallbackEnabled() ? "embedded" : "none",
     },
     checks: deep.checks,
+  });
+});
+
+app.get("/metrics", (_req, res) => {
+  res.json(
+    metrics.snapshot({
+      lineage: lineageCatalogSummary(),
+      executions: executionStats(),
+    })
+  );
+});
+
+app.get("/api/v1/lineage/catalog", requireAuth, (req, res) => {
+  const domain = req.query.domain;
+  const summary = lineageCatalogSummary();
+  const graphs = listLineageCatalog(domain);
+  res.json({ ...summary, graphs });
+});
+
+app.get("/api/v1/products/:id/lineage", requireAuth, (req, res) => {
+  const graph = getLineage(req.params.id);
+  if (!graph) {
+    return res.status(404).json({ status: "error", errors: ["Lineage not found for product"] });
+  }
+  res.json(graph);
+});
+
+app.get("/api/v1/pipelines/:name/history", requireAuth, (req, res) => {
+  const domain = req.query.domain;
+  res.json({
+    runs: listRuns({ pipelineName: req.params.name, domain, limit: 20 }),
   });
 });
 
@@ -89,6 +129,8 @@ app.post("/api/v1/pipelines/preview", requireAuth, (req, res) => {
     return res.status(400).json({ status: "error", errors: ["nodes array is required"] });
   }
   const result = previewPipeline({ nodes, edges: edges || [], pipelineMeta });
+  if (result.status === "success") metrics.inc("preview_success");
+  else metrics.inc("preview_failed");
   structuredLog("pipeline_preview", {
     user_id: req.auth?.sub,
     contract_id: result.contract?.metadata?.name,
@@ -112,6 +154,13 @@ app.post("/api/v1/pipelines/deploy", requireAuth, async (req, res) => {
     catalogUrl: CATALOG_URL,
     auth: req.auth,
   });
+
+  if (result.status === "success") {
+    metrics.inc("deploy_success");
+    if (result.lineage) metrics.inc("lineage_registered");
+  } else {
+    metrics.inc("deploy_failed");
+  }
 
   auditRecord({
     action: "pipeline_deploy",

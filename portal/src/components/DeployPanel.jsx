@@ -1,6 +1,7 @@
 import { useState } from "react";
+import LineageGraph from "./LineageGraph";
 
-const TABS = ["contract", "stepfunctions", "vaquar", "deploy"];
+const TABS = ["contract", "lineage", "history", "stepfunctions", "vaquar", "deploy"];
 
 export default function DeployPanel({ result, loading, error }) {
   const [tab, setTab] = useState("contract");
@@ -59,13 +60,27 @@ export default function DeployPanel({ result, loading, error }) {
       <div className="tabs">
         {TABS.map((t) => (
           <button key={t} className={tab === t ? "active" : ""} onClick={() => setTab(t)}>
-            {t === "contract" ? "YAML" : t === "stepfunctions" ? "Step Functions" : t === "vaquar" ? "Vaquar" : "Status"}
+            {t === "contract"
+              ? "YAML"
+              : t === "lineage"
+                ? "Lineage"
+                : t === "history"
+                  ? "History"
+                  : t === "stepfunctions"
+                    ? "Step Functions"
+                    : t === "vaquar"
+                      ? "Vaquar"
+                      : "Status"}
           </button>
         ))}
       </div>
 
       <div className="tab-content">
         {tab === "contract" && <pre>{result.manifestYaml}</pre>}
+        {tab === "lineage" && <LineageGraph lineage={result.lineage} height={360} />}
+        {tab === "history" && (
+          <pre>{JSON.stringify(result.executionHistory || { note: "Deploy to record runs; see Run History panel" }, null, 2)}</pre>
+        )}
         {tab === "stepfunctions" && (
           <pre>{JSON.stringify(result.stateMachine, null, 2)}</pre>
         )}

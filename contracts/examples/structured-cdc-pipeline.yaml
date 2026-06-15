@@ -61,6 +61,11 @@ spec:
       table: orders
     partitionBy: [created_at]
 
+  schemaEvolution:
+    policy: compatible
+    onNewColumn: add_nullable
+    onRemovedColumn: reject
+
   governance:
     piiClassification: medium
     columnMasks:

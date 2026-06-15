@@ -521,3 +521,102 @@ body {
   background: #334155;
   color: #94a3b8;
 }
+
+.lineage-catalog-panel,
+.lineage-graph {
+  background: #151b24;
+  border-left: 1px solid #243044;
+  padding: 0.75rem;
+  overflow: auto;
+}
+
+.lineage-meta {
+  display: flex;
+  gap: 0.75rem;
+  font-size: 0.75rem;
+  color: #8b9cb3;
+  margin-bottom: 0.5rem;
+}
+
+.lineage-policy {
+  color: #6ee7b7;
+}
+
+.lineage-product-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0.75rem;
+}
+
+.lineage-product-btn {
+  width: 100%;
+  text-align: left;
+  background: #243044;
+  border: 1px solid transparent;
+  color: #e7ecf3;
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  margin-bottom: 0.35rem;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.lineage-product-btn.active {
+  border-color: #6ee7b7;
+  background: #1e3a32;
+}
+
+.execution-history-panel {
+  background: #151b24;
+  border-left: 1px solid #243044;
+  padding: 0.75rem;
+  max-height: 100%;
+  overflow: auto;
+}
+
+.execution-run-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.execution-run {
+  padding: 0.5rem 0.6rem;
+  margin-bottom: 0.35rem;
+  border-radius: 6px;
+  background: #243044;
+  font-size: 0.8rem;
+}
+
+.execution-run.outcome-success {
+  border-left: 3px solid #059669;
+}
+
+.execution-run.outcome-schema_evolution_blocked,
+.execution-run.outcome-failed {
+  border-left: 3px solid #dc2626;
+}
+
+.execution-run-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.execution-outcome {
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  color: #6ee7b7;
+}
+
+.execution-ts {
+  color: #8b9cb3;
+  font-size: 0.7rem;
+}
+
+.execution-run-meta {
+  color: #94a3b8;
+  margin-top: 0.2rem;
+  font-size: 0.75rem;
+}

@@ -4,6 +4,7 @@
 
 services:
   catalog:
+    image: ghcr.io/vaquarkhan/cognimesh-catalog:0.1.0
     build:
       context: ./services/catalog
       dockerfile: Dockerfile
@@ -19,6 +20,7 @@ services:
       start_period: 40s
 
   api:
+    image: ghcr.io/vaquarkhan/cognimesh-api:0.1.0
     build:
       context: .
       dockerfile: docker/api.Dockerfile
@@ -35,6 +37,7 @@ services:
         condition: service_healthy
 
   portal:
+    image: ghcr.io/vaquarkhan/cognimesh-portal:0.1.0
     build:
       context: ./portal
       dockerfile: Dockerfile

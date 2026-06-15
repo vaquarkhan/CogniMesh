@@ -33,3 +33,29 @@ export async function listProducts({ token, domain } = {}) {
   if (!res.ok) throw new Error("Failed to load marketplace");
   return res.json();
 }
+
+export async function listLineageCatalog({ token, domain } = {}) {
+  const qs = domain ? `?domain=${encodeURIComponent(domain)}` : "";
+  const res = await fetch(`${API_BASE}/api/v1/lineage/catalog${qs}`, {
+    headers: authHeaders(token),
+  });
+  if (!res.ok) throw new Error("Failed to load lineage catalog");
+  return res.json();
+}
+
+export async function getProductLineage({ token, productId }) {
+  const res = await fetch(`${API_BASE}/api/v1/products/${encodeURIComponent(productId)}/lineage`, {
+    headers: authHeaders(token),
+  });
+  if (!res.ok) throw new Error("Lineage not found");
+  return res.json();
+}
+
+export async function getPipelineHistory({ token, name, domain }) {
+  const qs = domain ? `?domain=${encodeURIComponent(domain)}` : "";
+  const res = await fetch(`${API_BASE}/api/v1/pipelines/${encodeURIComponent(name)}/history${qs}`, {
+    headers: authHeaders(token),
+  });
+  if (!res.ok) throw new Error("Failed to load pipeline history");
+  return res.json();
+}

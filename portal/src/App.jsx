@@ -14,6 +14,8 @@ import PipelineNode from "./components/PipelineNode";
 import PropertiesPanel from "./components/PropertiesPanel";
 import DeployPanel from "./components/DeployPanel";
 import MarketplacePanel from "./components/MarketplacePanel";
+import LineageCatalogPanel from "./components/LineageCatalogPanel";
+import ExecutionHistoryPanel from "./components/ExecutionHistoryPanel";
 import ToastStack, { useToast } from "./components/Toast";
 import MobileWarning from "./components/MobileWarning";
 import LoadingOverlay from "./components/LoadingOverlay";
@@ -103,6 +105,8 @@ export default function App() {
   const [loadingMessage, setLoadingMessage] = useState("Working…");
   const [showDeploy, setShowDeploy] = useState(false);
   const [showMarketplace, setShowMarketplace] = useState(true);
+  const [showLineageCatalog, setShowLineageCatalog] = useState(false);
+  const [showExecutionHistory, setShowExecutionHistory] = useState(true);
   const [catalogRefresh, setCatalogRefresh] = useState(0);
 
   const selectedNode = nodes.find((n) => n.id === selectedId) || null;
@@ -285,6 +289,12 @@ export default function App() {
           >
             Redo
           </button>
+          <button className="btn-secondary" type="button" onClick={() => setShowExecutionHistory((v) => !v)}>
+            Run History
+          </button>
+          <button className="btn-secondary" type="button" onClick={() => setShowLineageCatalog((v) => !v)}>
+            Lineage Catalog
+          </button>
           <button className="btn-secondary" type="button" onClick={() => setShowMarketplace((v) => !v)}>
             Marketplace
           </button>
@@ -339,6 +349,19 @@ export default function App() {
         />
 
         {showMarketplace && <MarketplacePanel token={token} refreshKey={catalogRefresh} />}
+
+        {showLineageCatalog && (
+          <LineageCatalogPanel token={token} refreshKey={catalogRefresh} />
+        )}
+
+        {showExecutionHistory && (
+          <ExecutionHistoryPanel
+            token={token}
+            pipelineName={pipelineMeta.name}
+            domain={pipelineMeta.domain}
+            refreshKey={catalogRefresh}
+          />
+        )}
 
         {showDeploy && (
           <DeployPanel result={deployResult} loading={loading} error={deployError} />
