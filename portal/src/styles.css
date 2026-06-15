@@ -1240,3 +1240,158 @@ body {
 .pvdm-flow-step.pvdm-ok { border-color: #059669; }
 .pvdm-flow-step.pvdm-fail { border-color: #dc2626; background: #450a0a; }
 .pvdm-flow-arrow { color: #64748b; font-size: 0.85rem; }
+
+/* AWS Design Review HUD */
+.aws-review-hud {
+  position: absolute;
+  left: 0.75rem;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  z-index: 10;
+  background: rgba(15, 20, 25, 0.94);
+  border: 1px solid #334155;
+  border-radius: 12px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+  max-height: 55vh;
+  display: flex;
+  flex-direction: column;
+}
+.aws-review-hud.collapsed .aws-review-body { display: none; }
+.aws-review-hud.expanded { max-height: 70vh; }
+.aws-review-empty { padding: 0.75rem 1rem; font-size: 0.82rem; color: #94a3b8; }
+.aws-review-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.6rem 0.85rem;
+  background: transparent;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+.aws-review-scores { display: flex; gap: 0.5rem; flex-shrink: 0; }
+.aws-review-summary { flex: 1; min-width: 0; }
+.aws-review-summary strong { display: block; font-size: 0.9rem; color: #e7ecf3; }
+.aws-review-loading { font-size: 0.75rem; color: #93c5fd; }
+.overall-grade { font-size: 0.78rem; color: #6ee7b7; }
+.overall-grade.grade-blocked { color: #fca5a5; }
+.aws-critical-banner { display: block; font-size: 0.72rem; color: #fca5a5; margin-top: 0.15rem; }
+.aws-review-chevron { color: #64748b; font-size: 1rem; }
+.aws-review-body { overflow: auto; padding: 0 0.85rem 0.85rem; border-top: 1px solid #243044; }
+.aws-review-tabs { display: flex; flex-wrap: wrap; gap: 0.35rem; margin: 0.5rem 0; align-items: center; }
+.aws-review-tabs button {
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #cbd5e1;
+  border-radius: 6px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.72rem;
+  cursor: pointer;
+}
+.aws-review-tabs button.active { border-color: #6ee7b7; color: #6ee7b7; }
+.aws-refresh-btn { margin-left: auto; }
+.aws-score-ring { position: relative; display: inline-flex; }
+.aws-score-inner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.62rem;
+  color: #94a3b8;
+}
+.aws-score-inner strong { font-size: 0.95rem; color: #e7ecf3; }
+.aws-topology { margin: 0.5rem 0; }
+.aws-topology h4 { margin: 0 0 0.25rem; font-size: 0.78rem; color: #cbd5e1; }
+.aws-topology-grid { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.aws-topology-node {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  padding: 0.25rem 0.45rem;
+  font-size: 0.68rem;
+}
+.aws-topology-node.status-issue { border-color: #dc2626; background: #450a0a; }
+.aws-topology-node.status-ok { border-color: #059669; }
+.aws-topo-icon { font-size: 0.85rem; }
+.aws-topo-flow { font-size: 0.62rem; color: #64748b; margin-top: 0.35rem; word-break: break-all; }
+.aws-findings-list { list-style: none; padding: 0; margin: 0.5rem 0 0; }
+.aws-finding {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-left-width: 3px;
+  border-radius: 6px;
+  padding: 0.5rem 0.6rem;
+  margin-bottom: 0.4rem;
+  font-size: 0.78rem;
+}
+.aws-finding.sev-critical { border-left-color: #dc2626; }
+.aws-finding.sev-high { border-left-color: #ea580c; }
+.aws-finding.sev-medium { border-left-color: #ca8a04; }
+.aws-finding.sev-low { border-left-color: #64748b; }
+.aws-finding.sev-info { border-left-color: #2563eb; }
+.aws-finding-head { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; margin-bottom: 0.25rem; }
+.sev-pill { font-size: 0.6rem; text-transform: uppercase; padding: 0.1rem 0.3rem; border-radius: 4px; font-weight: 700; }
+.sev-pill.sev-critical { background: #450a0a; color: #fca5a5; }
+.sev-pill.sev-high { background: #431407; color: #fdba74; }
+.sev-pill.sev-medium { background: #422006; color: #fde68a; }
+.sev-pill.sev-low { background: #334155; color: #cbd5e1; }
+.sev-pill.sev-info { background: #1e3a5f; color: #93c5fd; }
+.wa-ref { font-size: 0.62rem; color: #64748b; }
+.aws-finding-msg { color: #94a3b8; margin: 0.2rem 0; }
+.aws-finding-fix { color: #6ee7b7; margin: 0.25rem 0; font-size: 0.72rem; }
+.aws-finding-services { font-size: 0.65rem; color: #64748b; margin: 0.2rem 0; }
+.header-score {
+  display: inline-block;
+  margin-left: 0.35rem;
+  padding: 0.05rem 0.35rem;
+  border-radius: 4px;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+.header-score.score-ok { background: #064e3b; color: #6ee7b7; }
+.header-score.score-bad { background: #450a0a; color: #fca5a5; }
+.node-aws-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  font-size: 0.55rem;
+  font-weight: 700;
+  padding: 0.1rem 0.3rem;
+  border-radius: 4px;
+  border: 1px solid #334155;
+  background: #1e293b;
+}
+.node-aws-badge.sev-critical { background: #dc2626; color: #fff; border-color: #991b1b; }
+.node-aws-badge.sev-high { background: #ea580c; color: #fff; }
+.node-aws-badge.sev-medium { background: #ca8a04; color: #1e293b; }
+.canvas { position: relative; }
+.deploy-review-summary {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 0.5rem 0.65rem;
+  margin: 0.5rem 0;
+  font-size: 0.82rem;
+}
+.modal-error { color: #fca5a5; border-color: #dc2626; }
+.props-aws-findings {
+  background: #422006;
+  border: 1px solid #b45309;
+  border-radius: 8px;
+  padding: 0.45rem 0.55rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.75rem;
+}
+.props-aws-findings ul { margin: 0.35rem 0 0; padding-left: 1rem; }
+.props-aws-findings li { margin-bottom: 0.35rem; }
+.props-aws-findings li.sev-critical { color: #fca5a5; }
+.props-aws-findings li.sev-high { color: #fdba74; }
+.props-aws-findings small { display: block; color: #94a3b8; font-size: 0.68rem; }

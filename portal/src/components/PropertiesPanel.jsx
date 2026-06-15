@@ -18,7 +18,7 @@ function Field({ label, tip, children }) {
   );
 }
 
-export default function PropertiesPanel({ node, onChange, pipelineMeta, onMetaChange }) {
+export default function PropertiesPanel({ node, onChange, pipelineMeta, onMetaChange, awsFindings }) {
   if (!node) {
     return (
       <aside className="properties">
@@ -91,6 +91,19 @@ export default function PropertiesPanel({ node, onChange, pipelineMeta, onMetaCh
     <aside className="properties">
       <h2>{d.label}</h2>
       <p className="properties-type">{d.blockType}</p>
+      {awsFindings?.length > 0 && (
+        <div className="props-aws-findings">
+          <strong>AWS review ({awsFindings.length})</strong>
+          <ul>
+            {awsFindings.map((f) => (
+              <li key={f.id} className={`sev-${f.severity}`}>
+                {f.title}
+                <small>{f.fix}</small>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       <p className="field-tip block-tip">{tipFor(bt, "_default")}</p>
 
       <Field label="Display label">
@@ -131,6 +144,20 @@ export default function PropertiesPanel({ node, onChange, pipelineMeta, onMetaCh
                   <input value={d.primaryKey || ""} onChange={(e) => update({ primaryKey: e.target.value })} />
                 </Field>
               )}
+              <Field label="Secrets Manager ARN" tip="Required for AWS security review — never embed passwords">
+                <input
+                  value={d.secretArn || ""}
+                  onChange={(e) => update({ secretArn: e.target.value })}
+                  placeholder="arn:aws:secretsmanager:us-east-1:123456789012:secret:db-creds"
+                />
+              </Field>
+              <Field label="VPC security group (optional)" tip="Private subnet deployment for RDS">
+                <input
+                  value={d.vpcSecurityGroup || ""}
+                  onChange={(e) => update({ vpcSecurityGroup: e.target.value })}
+                  placeholder="sg-0abc123"
+                />
+              </Field>
             </>
           )}
           {(d.sourceType === "media_url" || d.sourceType === "s3" || d.sourceType === "kafka") && (

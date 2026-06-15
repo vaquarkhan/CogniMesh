@@ -229,6 +229,41 @@ app.post("/api/v1/pipelines/ai-design", requireAuth, (req, res) => {
   res.status(result.success ? 200 : 400).json(result);
 });
 
+app.post("/api/v1/pipelines/design-review", requireAuth, (req, res) => {
+  const { runDesignReview } = require("../../lib/aws-design-review");
+  const { graphToContractSmart } = require("../../lib/contract-builder");
+  const { runIntegrityGate } = require("../../lib/integrity-gate");
+  const { validateWorkflowGraph, isWorkflowGraph } = require("../../lib/contract-builder/graph-to-workflow");
+  const { nodes, edges, pipelineMeta } = req.body || {};
+  if (!nodes?.length) {
+    return res.status(400).json({ status: "error", errors: ["nodes array is required"] });
+  }
+
+  let contract = null;
+  let integrityGate = null;
+  let workflowStats = null;
+  const graphResult = graphToContractSmart(nodes, edges || [], pipelineMeta || {});
+  if (graphResult.success) {
+    contract = graphResult.contract;
+    integrityGate = runIntegrityGate(contract);
+    workflowStats = graphResult.workflowStats;
+  }
+  if (isWorkflowGraph(nodes)) {
+    const wf = validateWorkflowGraph(nodes, edges || []);
+    workflowStats = { ...workflowStats, ...wf.stats, orphanNodes: wf.orphanNodes };
+  }
+
+  const review = runDesignReview({
+    nodes,
+    edges: edges || [],
+    pipelineMeta: pipelineMeta || {},
+    contract,
+    integrityGate,
+    workflowStats,
+  });
+  res.json({ status: "success", ...review });
+});
+
 app.get("/api/v1/audit", requireAuth, (_req, res) => {
   const { listRecent } = require("../../lib/audit-log");
   res.json({ events: listRecent(100) });

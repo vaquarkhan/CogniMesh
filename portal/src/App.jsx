@@ -23,7 +23,8 @@ import CanvasTipBar from "./components/CanvasTipBar";
 import ToastStack, { useToast } from "./components/Toast";
 import MobileWarning from "./components/MobileWarning";
 import LoadingOverlay from "./components/LoadingOverlay";
-import { deployPipeline, previewPipeline } from "./lib/api";
+import { deployPipeline, previewPipeline, runAwsDesignReview } from "./lib/api";
+import AwsDesignReviewHUD from "./components/AwsDesignReviewHUD";
 import { validateBlocks, isWorkflowGraph } from "./lib/validate-blocks";
 import { formatApiErrors } from "./lib/format-api-errors";
 import { useAuth } from "./auth/AuthContext";
@@ -93,6 +94,11 @@ export default function App() {
   const [catalogRefresh, setCatalogRefresh] = useState(0);
   const [showDeployConfirm, setShowDeployConfirm] = useState(false);
   const [showStewardApprovals, setShowStewardApprovals] = useState(false);
+  const [tipDismissed, setTipDismissed] = useState(false);
+  const [awsReview, setAwsReview] = useState(null);
+  const [awsReviewLoading, setAwsReviewLoading] = useState(false);
+  const [awsReviewExpanded, setAwsReviewExpanded] = useState(true);
+  const reactFlowInstance = useRef(null);
 
   const blockValidation = useMemo(() => validateBlocks(nodes, edges), [nodes, edges]);
   const workflowStep = useMemo(
@@ -101,18 +107,54 @@ export default function App() {
   );
   const tipVariant = deriveTipVariant(nodes, blockValidation);
 
-  const nodesWithValidation = useMemo(
-    () =>
-      nodes.map((n) => ({
+  const nodesWithValidation = useMemo(() => {
+    const reviewByNode = awsReview?.findingsByNode || {};
+    return nodes.map((n) => {
+      const issues = reviewByNode[n.id] || [];
+      const topIssue = issues.find((f) => f.severity === "critical") || issues.find((f) => f.severity === "high") || issues[0];
+      return {
         ...n,
         data: {
           ...n.data,
           validationError: blockValidation.byNode[n.id] || null,
+          awsReviewCount: issues.length,
+          awsReviewSeverity: topIssue?.severity || null,
+          awsReviewTitle: topIssue?.title || null,
         },
-      })),
-    [nodes, blockValidation.byNode]
-  );
+      };
+    });
+  }, [nodes, blockValidation.byNode, awsReview?.findingsByNode]);
 
+  const runDesignReviewScan = useCallback(async () => {
+    if (!nodes.length) {
+      setAwsReview(null);
+      return;
+    }
+    setAwsReviewLoading(true);
+    try {
+      const meta = { ...pipelineMeta, ownerEmail: userEmail };
+      const result = await runAwsDesignReview({ nodes, edges, pipelineMeta: meta, token });
+      setAwsReview(result);
+    } catch {
+      setAwsReview(null);
+    } finally {
+      setAwsReviewLoading(false);
+    }
+  }, [nodes, edges, pipelineMeta, token, userEmail]);
+
+  useEffect(() => {
+    const t = setTimeout(runDesignReviewScan, 500);
+    return () => clearTimeout(t);
+  }, [runDesignReviewScan]);
+
+  const focusCanvasNode = useCallback((nodeId) => {
+    setSelectedId(nodeId);
+    const inst = reactFlowInstance.current;
+    const node = nodes.find((n) => n.id === nodeId);
+    if (inst && node) {
+      inst.setCenter(node.position.x + 80, node.position.y + 40, { zoom: 1.2, duration: 400 });
+    }
+  }, [nodes]);
   const applyPattern = useCallback(
     (instance) => {
       nodeId = instance.nodes.length;
@@ -274,6 +316,11 @@ export default function App() {
       toastError("Fix block validation errors before deploy");
       return;
     }
+    if (awsReview?.overall?.deployBlocked) {
+      setAwsReviewExpanded(true);
+      toastError(`${awsReview.overall.criticalCount} critical AWS issue(s) — fix in Design Review`);
+      return;
+    }
     setShowDeployConfirm(true);
   };
 
@@ -340,6 +387,7 @@ export default function App() {
       <DeployConfirmModal
         open={showDeployConfirm}
         pipelineName={pipelineMeta.name}
+        awsReview={awsReview}
         onConfirm={confirmDeploy}
         onCancel={() => setShowDeployConfirm(false)}
       />
@@ -359,6 +407,14 @@ export default function App() {
           </button>
           <button className="btn-secondary" type="button" onClick={() => setShowStewardApprovals((v) => !v)}>
             Approvals
+          </button>
+          <button className="btn-secondary" type="button" onClick={() => setAwsReviewExpanded((v) => !v)}>
+            AWS Review
+            {awsReview?.overall?.score != null && (
+              <span className={`header-score ${awsReview.overall.deployBlocked ? "score-bad" : "score-ok"}`}>
+                {awsReview.overall.score}
+              </span>
+            )}
           </button>
           <button className="btn-secondary" type="button" onClick={() => setShowExecutionHistory((v) => !v)}>
             Run History
@@ -419,6 +475,9 @@ export default function App() {
               nodes={nodesWithValidation}
               edges={edges}
               nodeTypes={nodeTypes}
+              onInit={(inst) => {
+                reactFlowInstance.current = inst;
+              }}
               onNodesChange={onNodesChange}
               onEdgesChange={onEdgesChange}
               onConnect={onConnect}
@@ -449,6 +508,15 @@ export default function App() {
                 }}
               />
             </ReactFlow>
+
+            <AwsDesignReviewHUD
+              review={awsReview}
+              loading={awsReviewLoading}
+              expanded={awsReviewExpanded}
+              onToggleExpand={() => setAwsReviewExpanded((v) => !v)}
+              onFocusNode={focusCanvasNode}
+              onRunReview={runDesignReviewScan}
+            />
           </div>
         </div>
 
@@ -457,6 +525,7 @@ export default function App() {
           onChange={updateNode}
           pipelineMeta={pipelineMeta}
           onMetaChange={setPipelineMeta}
+          awsFindings={selectedId ? awsReview?.findingsByNode?.[selectedId] : null}
         />
 
         {showStewardApprovals && <StewardApprovalsPanel token={token} refreshKey={catalogRefresh} />}

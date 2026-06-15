@@ -104,6 +104,16 @@ export async function designPipelineFromAi({ message, token }) {
   return res.json();
 }
 
+export async function runAwsDesignReview({ nodes, edges, pipelineMeta, token }) {
+  const res = await apiFetch("/api/v1/pipelines/design-review", {
+    method: "POST",
+    token,
+    body: JSON.stringify({ nodes, edges, pipelineMeta }),
+  });
+  if (!res.ok) throw new Error("Design review failed");
+  return res.json();
+}
+
 export async function getExecutionStatus({ token, executionArn }) {
   const qs = `?arn=${encodeURIComponent(executionArn)}`;
   const res = await apiFetch(`/api/v1/executions/status${qs}`, { token });
