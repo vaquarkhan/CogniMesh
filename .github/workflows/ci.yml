@@ -92,8 +92,17 @@ jobs:
           terraform validate
       - name: Terraform plan (no apply)
         working-directory: infra/terraform/environments/prod
-        run: terraform plan -refresh=false -input=false -lock=false
-        continue-on-error: true
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
+        run: |
+          if [ -z "$AWS_ACCESS_KEY_ID" ]; then
+            echo "Skipping terraform plan — set AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY repo secrets to enable"
+            exit 0
+          fi
+          terraform init -input=false
+          terraform plan -refresh=false -input=false -lock=false
 
   docker-compose:
     runs-on: ubuntu-latest

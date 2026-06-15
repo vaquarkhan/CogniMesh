@@ -29,10 +29,10 @@ Vaquar evaluation tracker — all items addressed.
 | 9 | Portal unit tests | ✅ | `portal/src/lib/validate-blocks.test.js`, vitest |
 | 10 | Integrity gate edge cases | ✅ | `lib/integrity-gate/__tests__/` |
 | 11 | PVDM failure-path tests | ✅ | `lib/__tests__/pvdm-failure.test.js` |
-| 12 | Schema v2 / migration test | ✅ | `lib/__tests__/schema-migration.test.js` |
+| 12 | Schema v2 / migration test | ✅ | `lib/schema-migration.js`, `lib/__tests__/schema-migration.test.js` |
 | 13 | Vite build in CI | ✅ | `npm run test:portal` in `ci.yml` |
 | 14 | Full CI workflow | ✅ | `.github/workflows/ci.yml` |
-| 15 | Terraform plan in CI | ✅ | `ci.yml` terraform job |
+| 15 | Terraform plan in CI | ✅ | `ci.yml` — plan when AWS secrets configured, skip otherwise |
 | 16 | Docker build + smoke in CI | ✅ | `ci.yml` docker-compose job |
 
 ## Portal UX
