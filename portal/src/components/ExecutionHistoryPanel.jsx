@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { getPipelineHistory, triggerBackfill, getExecutionStatus } from "../lib/api";
-
+import { getPipelineHistory, getPipelineObservability, triggerBackfill, getExecutionStatus } from "../lib/api";
+import RunObservabilityDashboard from "./RunObservabilityDashboard";
+import PvdmFlowDiagram from "./PvdmFlowDiagram";
 function formatTs(ts) {
   if (!ts) return "—";
   try {
@@ -23,6 +24,7 @@ export default function ExecutionHistoryPanel({ token, pipelineName, domain, ref
   const [backfillMsg, setBackfillMsg] = useState(null);
   const [expandedRun, setExpandedRun] = useState(null);
   const [awsStatus, setAwsStatus] = useState(null);
+  const [obsSummary, setObsSummary] = useState(null);
 
   useEffect(() => {
     if (!pipelineName) {
@@ -35,6 +37,12 @@ export default function ExecutionHistoryPanel({ token, pipelineName, domain, ref
       try {
         const data = await getPipelineHistory({ token, name: pipelineName, domain });
         setRuns(data.runs || []);
+        try {
+          const obs = await getPipelineObservability({ token, name: pipelineName, domain });
+          setObsSummary(obs);
+        } catch {
+          setObsSummary(null);
+        }
       } catch (err) {
         setError(err.message);
         setRuns([]);
@@ -73,6 +81,11 @@ export default function ExecutionHistoryPanel({ token, pipelineName, domain, ref
       {loading && <p className="properties-hint">Loading runs…</p>}
       {error && <p className="login-error">{error}</p>}
       {backfillMsg && <p className="properties-hint">{backfillMsg}</p>}
+
+      <RunObservabilityDashboard
+        summary={obsSummary}
+        selectedRun={runs.find((r) => r.id === expandedRun) || null}
+      />
 
       <div className="backfill-row">
         <button
@@ -122,6 +135,7 @@ export default function ExecutionHistoryPanel({ token, pipelineName, domain, ref
 
               {open && (
                 <div className="execution-run-detail">
+                  <PvdmFlowDiagram verdict={r.vrpVerdict} proofGated={r.proofGated} compact />
                   {r.message && <p className="run-message">{r.message}</p>}
                   <dl className="proof-dl">
                     <dt>Quality policy</dt>

@@ -64,6 +64,13 @@ export async function getPipelineHistory({ token, name, domain }) {
   return res.json();
 }
 
+export async function getPipelineObservability({ token, name, domain }) {
+  const qs = domain ? `?domain=${encodeURIComponent(domain)}` : "";
+  const res = await apiFetch(`/api/v1/pipelines/${encodeURIComponent(name)}/observability${qs}`, { token });
+  if (!res.ok) throw new Error("Failed to load observability");
+  return res.json();
+}
+
 export async function requestProductAccess({ token, productId, reason, productName, domain }) {
   const res = await apiFetch(`/api/v1/products/${encodeURIComponent(productId)}/access-requests`, {
     method: "POST",

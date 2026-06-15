@@ -1218,3 +1218,25 @@ body {
 .steward-actions { display: flex; gap: 0.35rem; margin-top: 0.5rem; }
 .steward-reason { font-size: 0.78rem; color: #94a3b8; margin: 0.35rem 0; }
 .deploy-btn.compact, .btn-secondary.compact { padding: 0.25rem 0.5rem; font-size: 0.72rem; }
+
+/* Observability dashboard */
+.obs-dashboard { margin: 0.75rem 0 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid #243044; }
+.obs-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; margin-bottom: 0.75rem; }
+.obs-card { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 0.45rem 0.55rem; }
+.obs-card-label { display: block; font-size: 0.65rem; color: #64748b; text-transform: uppercase; }
+.obs-card-value { display: block; font-size: 1.1rem; color: #e7ecf3; }
+.obs-card small { font-size: 0.68rem; color: #94a3b8; }
+.obs-charts { display: grid; gap: 0.5rem; }
+.obs-chart-block h3 { font-size: 0.78rem; margin: 0 0 0.15rem; color: #cbd5e1; }
+.obs-spark { width: 100%; max-width: 280px; height: auto; }
+.obs-pvdm-block { margin-top: 0.75rem; }
+.obs-pvdm-block h3 { font-size: 0.78rem; margin: 0 0 0.35rem; color: #cbd5e1; }
+.pvdm-flow { display: flex; align-items: center; flex-wrap: wrap; gap: 0.25rem; margin: 0.35rem 0; }
+.pvdm-flow-compact { margin-bottom: 0.5rem; }
+.pvdm-flow-step-wrap { display: flex; align-items: center; gap: 0.25rem; }
+.pvdm-flow-step { background: #1e293b; border: 1px solid #334155; border-radius: 6px; padding: 0.35rem 0.5rem; font-size: 0.72rem; min-width: 72px; }
+.pvdm-flow-step strong { display: block; color: #e7ecf3; }
+.pvdm-flow-step small { color: #94a3b8; font-size: 0.62rem; }
+.pvdm-flow-step.pvdm-ok { border-color: #059669; }
+.pvdm-flow-step.pvdm-fail { border-color: #dc2626; background: #450a0a; }
+.pvdm-flow-arrow { color: #64748b; font-size: 0.85rem; }

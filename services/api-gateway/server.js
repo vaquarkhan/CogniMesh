@@ -126,6 +126,12 @@ app.get("/api/v1/pipelines/:name/history", requireAuth, (req, res) => {
   });
 });
 
+app.get("/api/v1/pipelines/:name/observability", requireAuth, (req, res) => {
+  const { pipelineObservability } = require("../../lib/execution-observability");
+  const domain = req.query.domain;
+  res.json(pipelineObservability({ pipelineName: req.params.name, domain, limit: 20 }));
+});
+
 app.post("/api/v1/pipelines/:name/backfill", requireAuth, (req, res) => {
   const { domain, startDate, endDate } = req.body || {};
   const run = recordRun({

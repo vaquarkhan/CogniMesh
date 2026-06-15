@@ -18,7 +18,9 @@ function toFlowGraph(lineage) {
   const nodes = lineage.nodes.map((n, i) => ({
     id: n.id,
     position: { x: (i % 3) * 180, y: Math.floor(i / 3) * 100 },
-    data: { label: `${n.label}\n${n.detail || ""}`.trim() },
+    data: {
+      label: `${n.label}${n.proofGated || n.type === "governance" ? "\n🛡 VRP proof" : ""}\n${n.detail || ""}`.trim(),
+    },
     style: {
       background: TYPE_COLORS[n.type] || "#334155",
       color: "#fff",
@@ -54,6 +56,7 @@ export default function LineageGraph({ lineage, height = 280 }) {
         <span>{lineage.productKey}</span>
         <span>v{lineage.version}</span>
         <span className="lineage-policy">schema: {lineage.schemaEvolution?.policy || "compatible"}</span>
+        {lineage.proofGated && <span className="proof-gated-tag">🛡 Proof-gated</span>}
       </div>
       <ReactFlow
         nodes={nodes}
