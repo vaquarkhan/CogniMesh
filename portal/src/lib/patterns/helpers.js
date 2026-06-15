@@ -55,11 +55,15 @@ export function medallionPattern({
 }
 
 export const ARCHITECTURE_LABELS = {
-  medallion: "Medallion (Bronze → Silver → Gold)",
-  workflow: "Step Functions workflow graph",
-  streaming: "Real-time stream processing",
-  lakehouse: "Iceberg lakehouse curation",
+  datamesh: "Data Mesh — domain data products · Lake Formation · federated governance",
+  datalake: "Data Lake — raw / curated / consumption zones · schema-on-read",
+  lakehouse: "Lakehouse — Iceberg ACID · medallion · open table format",
+  kappa: "Kappa (κ) — stream-only · replay from log · no batch layer",
+  lambda_arch: "Lambda (λ) — batch layer + speed layer · merge at query",
+  streaming: "Streaming — Kinesis · MSK · Flink · real-time",
+  medallion: "Medallion — Bronze → Silver → Gold curation",
+  workflow: "Step Functions — Parallel · Choice · Merge orchestration",
   cognitive: "AI / Bedrock agentic pipeline",
-  warehouse: "OLTP → warehouse sync",
+  warehouse: "ELT warehouse — Redshift / Snowflake-style marts",
   compliance: "Governance-first with integrity gates",
 };

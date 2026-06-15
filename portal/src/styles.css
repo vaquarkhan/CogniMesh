@@ -1395,3 +1395,48 @@ body {
 .props-aws-findings li.sev-critical { color: #fca5a5; }
 .props-aws-findings li.sev-high { color: #fdba74; }
 .props-aws-findings small { display: block; color: #94a3b8; font-size: 0.68rem; }
+
+/* Architecture pattern filters + AWS chips */
+.pattern-arch-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+.pattern-filter-label { font-size: 0.68rem; color: #64748b; margin-right: 0.25rem; }
+.pattern-arch-filters button {
+  font-size: 0.65rem;
+  padding: 0.2rem 0.4rem;
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #cbd5e1;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.pattern-arch-filters button.active { border-color: #6ee7b7; color: #6ee7b7; }
+.aws-chip {
+  display: inline-block;
+  background: #1e3a5f;
+  color: #93c5fd;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  margin: 0.1rem 0.15rem 0.1rem 0;
+  font-size: 0.65rem;
+}
+.node-aws-service {
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.55rem;
+  background: #0f1419;
+  border: 1px solid #334155;
+  border-radius: 4px;
+  padding: 0.05rem 0.3rem;
+  white-space: nowrap;
+  color: #93c5fd;
+}
+.palette-cat-aws-ingest .palette-item { border-left: 3px solid #059669; }
+.palette-cat-aws-process .palette-item { border-left: 3px solid #2563eb; }
+.palette-cat-aws-serving .palette-item { border-left: 3px solid #ea580c; }

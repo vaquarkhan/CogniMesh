@@ -3,11 +3,14 @@ import { PIPELINE_PATTERNS, instantiatePattern, getPatternById } from "./pipelin
 
 describe("pipeline-patterns", () => {
   it("includes structured and cognitive patterns", () => {
-    expect(PIPELINE_PATTERNS.length).toBeGreaterThan(15);
+    expect(PIPELINE_PATTERNS.length).toBeGreaterThan(25);
     expect(getPatternById("vaquar-cdc-orders")).toBeTruthy();
     expect(getPatternById("cognitive-media")).toBeTruthy();
     expect(getPatternById("medallion-full-stack")).toBeTruthy();
-    expect(getPatternById("healthcare-fhir")).toBeTruthy();
+    expect(getPatternById("arch-datamesh-domain-product")).toBeTruthy();
+    expect(getPatternById("arch-kappa-stream-only")).toBeTruthy();
+    expect(getPatternById("arch-lambda-batch-speed")).toBeTruthy();
+    expect(getPatternById("arch-glue-etl-factory")).toBeTruthy();
   });
 
   it("instantiatePattern remaps node ids and edges", () => {

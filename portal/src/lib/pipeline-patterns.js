@@ -4,9 +4,18 @@
  */
 
 import { EXTRA_PATTERNS } from "./patterns/extra-patterns";
+import { ARCHITECTURE_PATTERNS } from "./patterns/architecture-patterns";
 export { ARCHITECTURE_LABELS } from "./patterns/helpers";
+export { ARCHITECTURE_TYPES } from "./aws-services";
 
 export const PATTERN_CATEGORIES = [
+  "Data Mesh",
+  "Data Lake",
+  "Lakehouse",
+  "Kappa",
+  "Lambda Architecture",
+  "Streaming",
+  "ETL / ELT",
   "Medallion",
   "Structured",
   "Finance",
@@ -14,7 +23,6 @@ export const PATTERN_CATEGORIES = [
   "Retail",
   "Cognitive",
   "Analytics",
-  "Streaming",
   "Compliance",
 ];
 
@@ -552,7 +560,7 @@ const CORE_PATTERNS = [
   },
 ];
 
-export const PIPELINE_PATTERNS = [...CORE_PATTERNS, ...EXTRA_PATTERNS];
+export const PIPELINE_PATTERNS = [...ARCHITECTURE_PATTERNS, ...CORE_PATTERNS, ...EXTRA_PATTERNS];
 
 export const WORKFLOW_STEPS = [
   {

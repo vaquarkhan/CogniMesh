@@ -12,8 +12,8 @@ export default function BlockPalette() {
     <aside className="palette workflow-palette">
       <h2>Workflow blocks</h2>
       <p className="palette-hint">
-        Drag blocks onto the canvas. Add <strong>many sources, transforms, and sinks</strong> — connect them
-        with Parallel, Choice, and Merge like AWS Step Functions.
+        Drag AWS blocks: <strong>Kinesis, Glue, MSK, DMS, Firehose</strong> — ETL, ELT, enrichment, dedupe, streaming.
+        Use Parallel / Choice / Merge for complex multi-domain pipelines.
       </p>
 
       {categories.map((cat) => (

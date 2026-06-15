@@ -1,10 +1,13 @@
 import { PIPELINE_META_TIPS, tipFor } from "../lib/field-tips";
 import { QUALITY_POLICIES, SCHEMA_EVOLUTION_POLICIES } from "../lib/data-quality-presets";
+import { AWS_SERVICES, PROCESSING_MODES } from "../lib/aws-services";
+import { applyProcessingTemplate } from "../lib/processing-templates";
 
-const SOURCE_TYPES = ["rds", "mysql", "s3", "kafka", "media_url", "api"];
-const TRANSFORM_TYPES = ["spark_sql", "glue_etl", "agentic", "passthrough"];
+const SOURCE_TYPES = ["rds", "mysql", "s3", "kafka", "kinesis", "media_url", "api"];
+const TRANSFORM_TYPES = ["spark_sql", "glue_etl", "glue_streaming", "agentic", "passthrough"];
 const TARGET_TYPES = ["s3", "iceberg", "redshift", "delta"];
 const EXECUTION_MODES = ["batch", "stream"];
+const AWS_SERVICE_KEYS = Object.keys(AWS_SERVICES);
 
 function Field({ label, tip, children }) {
   return (
@@ -110,6 +113,26 @@ export default function PropertiesPanel({ node, onChange, pipelineMeta, onMetaCh
         <input value={d.label} onChange={(e) => update({ label: e.target.value })} />
       </Field>
 
+      {AWS_SERVICE_KEYS.includes(d.awsService) || ["source", "transform", "sink"].includes(d.blockType) ? (
+        <Field label="AWS service" tip="Which AWS service backs this block in your account">
+          <select
+            value={d.awsService || ""}
+            onChange={(e) => {
+              const svc = e.target.value;
+              const meta = AWS_SERVICES[svc];
+              update({ awsService: svc || undefined, detail: meta ? `${meta.icon} ${meta.label}` : d.detail });
+            }}
+          >
+            <option value="">— auto —</option>
+            {AWS_SERVICE_KEYS.map((k) => (
+              <option key={k} value={k}>
+                {AWS_SERVICES[k].icon} {AWS_SERVICES[k].label}
+              </option>
+            ))}
+          </select>
+        </Field>
+      ) : null}
+
       {d.blockType === "source" && (
         <>
           <Field label="Source type" tip={tipFor("source", "sourceType")}>
@@ -160,12 +183,12 @@ export default function PropertiesPanel({ node, onChange, pipelineMeta, onMetaCh
               </Field>
             </>
           )}
-          {(d.sourceType === "media_url" || d.sourceType === "s3" || d.sourceType === "kafka") && (
-            <Field label="Endpoint / path" tip={tipFor("source", "endpoint")}>
+          {(d.sourceType === "media_url" || d.sourceType === "s3" || d.sourceType === "kafka" || d.sourceType === "kinesis") && (
+            <Field label="Endpoint / stream / topic" tip={tipFor("source", "endpoint")}>
               <input
                 value={d.endpoint || ""}
                 onChange={(e) => update({ endpoint: e.target.value })}
-                placeholder="s3://bucket/prefix/ or topic name"
+                placeholder={d.sourceType === "kinesis" ? "stream-name or ARN" : "s3://bucket/prefix/ or topic"}
               />
             </Field>
           )}
@@ -174,6 +197,26 @@ export default function PropertiesPanel({ node, onChange, pipelineMeta, onMetaCh
 
       {d.blockType === "transform" && (
         <>
+          <Field label="Processing mode" tip="ETL vs ELT vs enrichment — data architect pattern">
+            <select
+              value={d.processingMode || "sql"}
+              onChange={(e) => {
+                const mode = e.target.value;
+                const tpl = applyProcessingTemplate(mode);
+                update({
+                  processingMode: mode,
+                  ...tpl,
+                  detail: tpl.detail,
+                });
+              }}
+            >
+              {PROCESSING_MODES.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.label} — {m.desc}
+                </option>
+              ))}
+            </select>
+          </Field>
           <Field label="Transform type" tip={tipFor("transform", "transformType")}>
             <select
               value={d.transformType}
@@ -195,9 +238,9 @@ export default function PropertiesPanel({ node, onChange, pipelineMeta, onMetaCh
               ))}
             </select>
           </Field>
-          {d.transformType === "spark_sql" && (
+          {(d.transformType === "spark_sql" || d.transformType === "glue_etl" || d.transformType === "glue_streaming") && (
             <>
-              <Field label="Spark SQL" tip={tipFor("transform", "sparkSql")}>
+              <Field label={d.transformType === "glue_etl" ? "Glue script / Spark SQL" : "Spark SQL"} tip={tipFor("transform", "sparkSql")}>
                 <textarea rows={5} value={d.sparkSql || ""} onChange={(e) => update({ sparkSql: e.target.value })} />
               </Field>
 

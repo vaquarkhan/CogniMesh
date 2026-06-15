@@ -3,12 +3,14 @@ import { designPipelineFromAi } from "../lib/api";
 import { getPatternById, instantiatePattern } from "../lib/pipeline-patterns";
 
 const EXAMPLE_PROMPTS = [
-  "CDC from RDS orders into Iceberg gold with medallion layers",
-  "Kafka clickstream for retail e-commerce sessions",
-  "FHIR healthcare bundles with HIPAA compliance",
-  "RAG knowledge base from PDF documents using Bedrock",
-  "Multi-source parallel workflow with fraud scoring",
-  "Payment ledger with strict data quality and SOX audit",
+  "Data mesh domain product with Lake Formation and Iceberg gold",
+  "Kappa architecture stream-only from Kinesis with Glue streaming",
+  "Lambda batch + speed layers merged in Athena serving view",
+  "Glue ETL factory: DMS extract, enrichment, dedupe, aggregate chain",
+  "MSK Kafka streaming to Iceberg lakehouse with CDC merge",
+  "Data lake raw and curated zones with Glue crawler and Athena",
+  "Multi-domain data mesh customer 360 with parallel domains",
+  "Kinesis Firehose clickstream to enriched Iceberg gold",
 ];
 
 export default function AiPipelineBuilder({ onApplyPattern, token }) {

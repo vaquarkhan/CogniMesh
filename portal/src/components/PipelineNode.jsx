@@ -1,5 +1,6 @@
 import { memo } from "react";
 import { Handle, Position } from "reactflow";
+import { AWS_SERVICES } from "../lib/aws-services";
 
 const STYLES = {
   start: { bg: "#065f46", border: "#10b981", shape: "circle", icon: "▶" },
@@ -14,13 +15,33 @@ const STYLES = {
   sink: { bg: "#ea580c", border: "#c2410c", shape: "rect", icon: "⬆" },
 };
 
+const AWS_STYLE = {
+  glue: { bg: "#0369a1", border: "#0284c7" },
+  kinesis: { bg: "#0e7490", border: "#06b6d4" },
+  firehose: { bg: "#c2410c", border: "#ea580c" },
+  msk: { bg: "#6d28d9", border: "#8b5cf6" },
+  dms: { bg: "#047857", border: "#059669" },
+  emr: { bg: "#ea580c", border: "#f97316" },
+  lambda: { bg: "#854d0e", border: "#ca8a04" },
+  athena: { bg: "#7e22ce", border: "#9333ea" },
+  redshift: { bg: "#be123c", border: "#e11d48" },
+  iceberg: { bg: "#0891b2", border: "#06b6d4" },
+  flink: { bg: "#0d9488", border: "#14b8a6" },
+  bedrock: { bg: "#4338ca", border: "#6366f1" },
+  s3: { bg: "#a16207", border: "#ca8a04" },
+  rds: { bg: "#047857", border: "#10b981" },
+};
+
 const NO_TARGET = new Set(["start"]);
 const NO_SOURCE = new Set(["sink"]);
 const MULTI_SOURCE = new Set(["parallel", "choice"]);
 
 function PipelineNode({ data, selected }) {
   const bt = data.blockType || "pass";
-  const style = STYLES[bt] || STYLES.pass;
+  const baseStyle = STYLES[bt] || STYLES.pass;
+  const awsSvc = data.awsService ? AWS_SERVICES[data.awsService] : null;
+  const awsColors = data.awsService ? AWS_STYLE[data.awsService] : null;
+  const style = awsColors ? { ...baseStyle, bg: awsColors.bg, border: awsColors.border, icon: awsSvc?.icon || baseStyle.icon } : baseStyle;
   const invalid = Boolean(data.validationError);
   const awsIssues = data.awsReviewCount || 0;
   const awsSev = data.awsReviewSeverity;
@@ -51,9 +72,14 @@ function PipelineNode({ data, selected }) {
       <div className="node-icon" aria-hidden>
         {style.icon}
       </div>
-      <div className="node-type">{bt.replace("_", " ")}</div>
+      <div className="node-type">{data.processingMode || bt.replace("_", " ")}</div>
       <div className="node-label">{data.label}</div>
       <div className="node-detail">{data.validationError || data.detail}</div>
+      {awsSvc && (
+        <span className="node-aws-service" title={awsSvc.label}>
+          {awsSvc.icon} {awsSvc.label.split(" ").pop()}
+        </span>
+      )}
       {awsIssues > 0 && (
         <span className={`node-aws-badge sev-${awsSev || "medium"}`} title={data.awsReviewTitle}>
           AWS {awsIssues}

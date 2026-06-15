@@ -6,8 +6,8 @@ import AiPipelineBuilder from "./AiPipelineBuilder";
 
 const TABS = [
   { id: "ai", label: "AI Builder", hint: "Describe your pipeline in English" },
-  { id: "patterns", label: "Patterns", hint: "Rich pattern library" },
-  { id: "blocks", label: "Blocks", hint: "Customize" },
+  { id: "patterns", label: "Architectures", hint: "Data Mesh, Lakehouse, Kappa, Lambda, Glue, Kinesis" },
+  { id: "blocks", label: "AWS Blocks", hint: "Glue, Kinesis, MSK, DMS, ETL/ELT transforms" },
   { id: "guide", label: "Guide", hint: "Help" },
 ];
 
