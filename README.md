@@ -74,7 +74,7 @@ Built on **[The Vaquar Pattern](docs/vaquar-pattern.md)** by [Vaquarkhan](https:
 | 🏗️ | [System architecture](#system-architecture) |
 | 📐 | [Pipeline E2E diagram](docs/PIPELINE_E2E_DIAGRAM.md) |
 | 🔄 | [End-to-end journey](#end-to-end-journey) |
-| 🖥️ | [Zero-code portal](#zero-code-portal) |
+| 🖥️ | [Zero-code portal](#zero-code-portal) · [Pattern catalog](docs/PORTAL_UI.md) |
 | 🔐 | [Security](#security-cognito) |
 | ⭐ | [Vaquar Pattern](docs/vaquar-pattern.md) |
 | 🔀 | [Dual pipeline model](#dual-pipeline-model) |
@@ -171,27 +171,94 @@ sequenceDiagram
 
 ## Zero-code portal
 
-```mermaid
-flowchart LR
-    subgraph Palette["Palette"]
-        S["Source"]
-        T["Transform"]
-        K["Sink"]
-    end
-    subgraph Canvas["Canvas"]
-        N1 --> N2 --> N3
-    end
-    subgraph Out["Output"]
-        DC["DataContract.yaml"]
-    end
-    Palette -.-> Canvas --> DC
-```
+Visual pipeline designer: **28+ architecture patterns**, AWS service blocks (Glue, Kinesis, MSK, DMS, Firehose), AI builder, live AWS security/architecture review, VRP observability, and consumer marketplace.
+
+→ Full pattern catalog: **[docs/PORTAL_UI.md](docs/PORTAL_UI.md)**
+
+### Portal screenshots
+
+<p align="center">
+  <img src="docs/assets/portal-overview.png" alt="CogniMesh portal — canvas with Kappa architecture and AWS Design Review" width="720" />
+  <br /><em>Design canvas · AWS Design Review HUD · VRP-ready pipeline</em>
+</p>
+
+<table>
+<tr>
+<td width="50%">
+
+**Pattern library & architecture filters**
+
+<p><img src="docs/assets/portal-pattern-library.png" alt="Architecture pattern library with Data Mesh, Lakehouse, Kappa filters" width="100%" /></p>
+
+Data Mesh · Data Lake · Lakehouse · Kappa · Lambda λ · Streaming · ETL/ELT
+
+</td>
+<td width="50%">
+
+**AWS Blocks palette**
+
+<p><img src="docs/assets/portal-aws-blocks.png" alt="AWS Blocks — Glue, Kinesis, MSK, ETL enrichment transforms" width="100%" /></p>
+
+Glue ETL/ELT · enrichment · dedupe · CDC merge · stream windows
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+**Complex canvas (Data Mesh)**
+
+<p><img src="docs/assets/portal-canvas-datamesh.png" alt="Multi-domain data mesh workflow on canvas" width="100%" /></p>
+
+Parallel domains · Merge · PVDM gate · Iceberg gold
+
+</td>
+<td width="50%">
+
+**AI pipeline builder**
+
+<p><img src="docs/assets/portal-ai-builder.png" alt="AI Builder — describe pipeline in English" width="100%" /></p>
+
+Natural language → pattern → canvas
+
+</td>
+</tr>
+</table>
+
+<details>
+<summary><strong>All patterns in the UI (click to expand)</strong></summary>
+
+| Category | Patterns |
+|----------|----------|
+| **Data Mesh** | Domain Data Product · Multi-Domain Parallel (Customer 360) |
+| **Data Lake** | Raw / Curated / Consumption zones |
+| **Lakehouse** | Iceberg Medallion · Glue ETL Factory |
+| **Kappa** | Stream-only (Kinesis → Flink → Iceberg) |
+| **Lambda λ** | Batch layer + Speed layer → Athena serving |
+| **Streaming** | Kinesis + Firehose · MSK + Glue streaming |
+| **ETL / ELT** | Glue multi-stage factory · Redshift ELT marts |
+| **Medallion** | Full Bronze → Silver → Gold |
+| **Finance** | Payment ledger (SOX / double-entry) |
+| **Healthcare** | FHIR → HIPAA gold |
+| **Retail** | Clickstream funnel |
+| **Cognitive** | Media Bedrock · GenAI RAG documents |
+| **Compliance** | Fraud parallel · DQ quarantine |
+| **Structured** | Vaquar CDC · Multi-source Parallel → Choice |
+| **Analytics** | IoT fleet · SCD2 · Feature store |
+
+Regenerate screenshots: `npm run build --prefix portal && npx playwright install chromium && npm run docs:screenshots`
+
+</details>
+
+### Blocks → DataContract
 
 | Block | Contract | Examples |
 |-------|----------|----------|
-| Source | `spec.source` | `rds`, `s3`, `media_url`, `kafka` |
-| Transform | `spec.transform` | `spark_sql`, `agentic` |
-| Sink | `spec.target` | `iceberg`, `s3`, `delta` |
+| Source | `spec.source` | `rds`, `s3`, `kinesis`, `kafka`, `media_url`, `api` |
+| Transform | `spec.transform` | `spark_sql`, `glue_etl`, `agentic` + modes: ETL, ELT, enrichment, dedupe, aggregate, CDC merge |
+| Sink | `spec.target` | `iceberg`, `s3`, `redshift`, `delta`, Athena views |
+| Flow | Step Functions ASL | `parallel`, `choice`, `merge`, `map`, `start` |
+| Governance | Integrity gate | Vaquar PVDM · VRP proof before commit |
 
 → [Full drag-and-drop guide](docs/drag-drop-pipeline-flow.md)
 

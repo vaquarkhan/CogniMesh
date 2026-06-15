@@ -19,6 +19,7 @@
     "test:python": "python -m pytest python/tests -q",
     "test:portal": "npm run build --prefix portal",
     "test:portal-unit": "npm test --prefix portal",
+    "docs:screenshots": "node scripts/capture-portal-screenshots.js",
     "start:dev": "node scripts/start-dev.js",
     "lint": "eslint lib services scripts portal/src services/api-gateway --ext .js,.jsx",
     "lint:fix": "eslint lib services scripts portal/src services/api-gateway --ext .js,.jsx --fix",
@@ -52,6 +53,7 @@
     "cross-env": "^7.0.3",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
+    "playwright": "^1.61.0",
     "prettier": "^3.3.3"
   }
 }
