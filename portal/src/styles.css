@@ -1932,6 +1932,12 @@ body {
   color: #fde68a;
 }
 
+.agent-deploy-banner.agent-deploy-exported {
+  background: #1e3a5f;
+  border-color: #3b82f6;
+  color: #bfdbfe;
+}
+
 .agent-deploy-banner.agent-deploy-failed {
   background: #450a0a;
   border-color: #ef4444;

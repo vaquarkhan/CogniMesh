@@ -46,6 +46,10 @@ export default function StewardApprovalsPanel({ token, refreshKey }) {
                 onClick={async () => {
                   try {
                     const data = await approveDeployRequest(token, r.id);
+                    if (!data) {
+                      setMsg("Deploy approval API unavailable");
+                      return;
+                    }
                     setMsg(
                       data.status === "success"
                         ? `Deployed ${r.pipelineName} after approval`

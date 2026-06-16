@@ -488,13 +488,21 @@ export default function PlatformOperationsPanel({
             className="btn-secondary"
             disabled={!importArn}
             onClick={async () => {
-              const data = await importFromStateMachine(token, {
-                stateMachineArn: importArn,
-                domain: pipelineMeta?.domain,
-                name: pipelineMeta?.name,
-              });
-              setImportResult(data);
-              if (data.success && onImport) onImport(data);
+              try {
+                const data = await importFromStateMachine(token, {
+                  stateMachineArn: importArn,
+                  domain: pipelineMeta?.domain,
+                  name: pipelineMeta?.name,
+                });
+                if (!data) {
+                  setError("Import API unavailable");
+                  return;
+                }
+                setImportResult(data);
+                if (data.success && onImport) onImport(data);
+              } catch (e) {
+                setError(e.message);
+              }
             }}
           >
             Import SFN
@@ -509,12 +517,20 @@ export default function PlatformOperationsPanel({
             className="btn-secondary"
             disabled={!importGlueJob}
             onClick={async () => {
-              const data = await importFromGlueJob(token, {
-                jobName: importGlueJob,
-                domain: pipelineMeta?.domain,
-              });
-              setImportResult(data);
-              if (data.success && onImport) onImport(data);
+              try {
+                const data = await importFromGlueJob(token, {
+                  jobName: importGlueJob,
+                  domain: pipelineMeta?.domain,
+                });
+                if (!data) {
+                  setError("Import API unavailable");
+                  return;
+                }
+                setImportResult(data);
+                if (data.success && onImport) onImport(data);
+              } catch (e) {
+                setError(e.message);
+              }
             }}
           >
             Import Glue job

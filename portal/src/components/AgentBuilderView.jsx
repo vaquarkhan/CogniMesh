@@ -28,8 +28,18 @@ function snapshot(nodes, edges) {
   return { nodes: JSON.parse(JSON.stringify(nodes)), edges: JSON.parse(JSON.stringify(edges)) };
 }
 
-export default function AgentBuilderView({ userEmail, authDisabled, onLogout, token, bootstrap, onBootstrapApplied }) {
-  const { success, error: toastError } = useToast();
+export default function AgentBuilderView({
+  userEmail,
+  authDisabled,
+  onLogout,
+  token,
+  bootstrap,
+  onBootstrapApplied,
+  notify,
+}) {
+  const internalToast = useToast();
+  const success = notify?.success ?? internalToast.success;
+  const toastError = notify?.error ?? internalToast.error;
   const reactFlowWrapper = useRef(null);
   const reactFlowInstance = useRef(null);
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
@@ -209,6 +219,10 @@ export default function AgentBuilderView({ userEmail, authDisabled, onLogout, to
     setDeployMessage(null);
     try {
       const data = await deployAgentManifest(token, result.manifest);
+      if (!data) {
+        toastError("Agent deploy API unavailable");
+        return;
+      }
       setDeployMessage({
         status: data.deployed ? "deployed" : data.simulated ? "simulated" : "failed",
         agentName: agentMeta.name,

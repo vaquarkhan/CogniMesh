@@ -29,9 +29,16 @@ const metrics = require("../../lib/metrics");
 const { startSpan } = require("../../lib/tracing");
 const { mountPlatformRoutes, savePipelineVersion, isDeployApprovalRequired, queueDeployApproval, approveDeploy } = require("../../lib/platform");
 
+const ALLOWED_ORIGINS = (
+  process.env.CORS_ORIGINS ||
+  "http://localhost:3000,http://localhost:5173,http://localhost:4173"
+)
+  .split(",")
+  .map((o) => o.trim())
+  .filter(Boolean);
+
 const PORT = process.env.PORT || 4000;
 const CATALOG_URL = process.env.CATALOG_URL || "http://localhost:8080";
-const ALLOWED_ORIGINS = (process.env.CORS_ORIGINS || "http://localhost:3000").split(",");
 
 const app = express();
 app.use(securityHeaders);

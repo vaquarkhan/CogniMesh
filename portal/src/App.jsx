@@ -450,7 +450,7 @@ export default function App() {
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  });
+  }, [undo, redo, handlePreview]);
 
   return (
     <div className="app">
@@ -554,6 +554,7 @@ export default function App() {
           token={token}
           bootstrap={agentBootstrap}
           onBootstrapApplied={() => setAgentBootstrap(null)}
+          notify={{ success, error: toastError }}
         />
       ) : (
       <div className="main">

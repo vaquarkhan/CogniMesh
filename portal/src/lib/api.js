@@ -211,7 +211,8 @@ export async function isApiReachable() {
   try {
     const res = await apiFetch("/health");
     const data = await safeJson(res, "Health");
-    return data?.status === "ok";
+    if (!data) return false;
+    return data.status === "ok" || data.status === "degraded";
   } catch {
     return false;
   }
