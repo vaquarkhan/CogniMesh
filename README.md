@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/CogniMesh-0.1.0-0d9488?style=for-the-badge" alt="CogniMesh" />
+  <img src="https://img.shields.io/badge/CogniMesh-1.0.0-0d9488?style=for-the-badge" alt="CogniMesh" />
   <img src="https://img.shields.io/badge/Vaquar-PVDM-2563eb?style=for-the-badge" alt="Vaquar PVDM" />
   <img src="https://img.shields.io/badge/AWS-Serverless-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white" alt="AWS" />
   <img src="https://img.shields.io/badge/Tests-passing-22c55e?style=for-the-badge" alt="Tests" />
@@ -11,8 +11,8 @@
 
 <p align="center">
   <a href="docs/DISTRIBUTION.md#docker-recommended-for-local-full-stack"><img src="https://img.shields.io/badge/Docker-Compose-2496ED?style=flat-square&logo=docker&logoColor=white" alt="Docker" /></a>
-  <a href="docs/DISTRIBUTION.md#npm-nodejs"><img src="https://img.shields.io/badge/npm-0.1.0-CB3837?style=flat-square&logo=npm&logoColor=white" alt="npm" /></a>
-  <a href="docs/DISTRIBUTION.md#pypi-python-sdk"><img src="https://img.shields.io/badge/PyPI-cognimesh-3776AB?style=flat-square&logo=pypi&logoColor=white" alt="PyPI" /></a>
+  <a href="docs/DISTRIBUTION.md#npm-nodejs"><img src="https://img.shields.io/badge/npm-1.0.0-CB3837?style=flat-square&logo=npm&logoColor=white" alt="npm" /></a>
+  <a href="docs/DISTRIBUTION.md#pypi-python-sdk"><img src="https://img.shields.io/badge/PyPI-cognimesh_1.0.0-3776AB?style=flat-square&logo=pypi&logoColor=white" alt="PyPI" /></a>
   <a href="docs/DISTRIBUTION.md#maven-java-catalog"><img src="https://img.shields.io/badge/Maven-catalog-ED8B00?style=flat-square&logo=apachemaven&logoColor=white" alt="Maven" /></a>
   <a href="docs/DISTRIBUTION.md#go-cognitive-runtime"><img src="https://img.shields.io/badge/Go-runtime-00ADD8?style=flat-square&logo=go&logoColor=white" alt="Go" /></a>
 </p>
@@ -412,14 +412,14 @@ docker compose up --build
 
 | Image | Tag |
 |-------|-----|
-| `ghcr.io/vaquarkhan/cognimesh-api` | `0.1.0` |
-| `ghcr.io/vaquarkhan/cognimesh-portal` | `0.1.0` |
-| `ghcr.io/vaquarkhan/cognimesh-catalog` | `0.1.0` |
+| `ghcr.io/vaquarkhan/cognimesh-api` | `1.0.0` |
+| `ghcr.io/vaquarkhan/cognimesh-portal` | `1.0.0` |
+| `ghcr.io/vaquarkhan/cognimesh-catalog` | `1.0.0` |
 
 ### PyPI
 
 ```bash
-pip install cognimesh
+pip install cognimesh==1.0.0
 cognimesh validate contracts/examples/structured-cdc-pipeline.yaml
 cognimesh health --api http://localhost:4000
 ```

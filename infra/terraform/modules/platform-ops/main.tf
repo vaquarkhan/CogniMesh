@@ -99,9 +99,9 @@ resource "aws_iam_role_policy" "api_platform" {
         Resource = ["arn:aws:athena:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:workgroup/${aws_athena_workgroup.platform.name}"]
       },
       {
-        Sid    = "AthenaResultsS3"
-        Effect = "Allow"
-        Action = ["s3:GetObject", "s3:PutObject", "s3:ListBucket", "s3:GetBucketLocation"]
+        Sid      = "AthenaResultsS3"
+        Effect   = "Allow"
+        Action   = ["s3:GetObject", "s3:PutObject", "s3:ListBucket", "s3:GetBucketLocation"]
         Resource = [var.lakehouse_bucket_arn, "${var.lakehouse_bucket_arn}/*"]
       },
       {
@@ -126,21 +126,21 @@ resource "aws_iam_role_policy" "api_platform" {
         Resource = "*"
       },
       {
-        Sid    = "RdsDataApiPreview"
-        Effect = "Allow"
-        Action = ["rds-data:ExecuteStatement", "rds-data:BatchExecuteStatement"]
+        Sid      = "RdsDataApiPreview"
+        Effect   = "Allow"
+        Action   = ["rds-data:ExecuteStatement", "rds-data:BatchExecuteStatement"]
         Resource = "*"
       },
       {
-        Sid    = "SfnImport"
-        Effect = "Allow"
-        Action = ["states:DescribeStateMachine", "states:ListStateMachines"]
+        Sid      = "SfnImport"
+        Effect   = "Allow"
+        Action   = ["states:DescribeStateMachine", "states:ListStateMachines"]
         Resource = "*"
       },
       {
-        Sid    = "SecretsForRds"
-        Effect = "Allow"
-        Action = ["secretsmanager:GetSecretValue"]
+        Sid      = "SecretsForRds"
+        Effect   = "Allow"
+        Action   = ["secretsmanager:GetSecretValue"]
         Resource = "*"
       },
     ]
@@ -204,10 +204,10 @@ output "bedrock_agent_role_arn" {
 
 output "platform_env" {
   value = {
-    PLATFORM_STORE           = "dynamodb"
-    PLATFORM_DYNAMODB_TABLE  = aws_dynamodb_table.platform_state.name
-    ATHENA_WORKGROUP         = aws_athena_workgroup.platform.name
-    ATHENA_OUTPUT_LOCATION   = "s3://${var.lakehouse_bucket_name}/athena-results/"
+    PLATFORM_STORE             = "dynamodb"
+    PLATFORM_DYNAMODB_TABLE    = aws_dynamodb_table.platform_state.name
+    ATHENA_WORKGROUP           = aws_athena_workgroup.platform.name
+    ATHENA_OUTPUT_LOCATION     = "s3://${var.lakehouse_bucket_name}/athena-results/"
     AWS_BEDROCK_AGENT_ROLE_ARN = aws_iam_role.bedrock_agent.arn
   }
 }

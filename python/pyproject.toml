@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cognimesh"
-version = "0.2.0"
+version = "1.0.0"
 description = "CogniMesh Python SDK - DataContract validation and Vaquar mesh client"
 readme = "README.md"
 license = "LicenseRef-Proprietary"

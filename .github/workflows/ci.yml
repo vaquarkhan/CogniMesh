@@ -18,7 +18,13 @@ jobs:
           cache: npm
 
       - name: Install
-        run: npm ci
+        run: |
+          for attempt in 1 2 3; do
+            npm ci && exit 0
+            echo "npm ci failed (attempt $attempt), retrying..."
+            sleep 15
+          done
+          exit 1
 
       - name: Lint
         run: npm run lint

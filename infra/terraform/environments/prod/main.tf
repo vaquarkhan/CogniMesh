@@ -139,11 +139,11 @@ module "platform_ops" {
   count  = var.enable_platform_ops ? 1 : 0
   source = "../../modules/platform-ops"
 
-  name_prefix          = var.name_prefix
-  lakehouse_bucket_arn = module.storage.lakehouse_bucket_arn
+  name_prefix           = var.name_prefix
+  lakehouse_bucket_arn  = module.storage.lakehouse_bucket_arn
   lakehouse_bucket_name = var.lakehouse_bucket_name
-  glue_database_name   = var.glue_database_name
-  tags                 = local.tags
+  glue_database_name    = var.glue_database_name
+  tags                  = local.tags
 }
 
 module "portal_cdn" {

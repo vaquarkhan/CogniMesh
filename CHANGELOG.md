@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-06-16
+
+### Added
+
+- Stable 1.0 release: platform operations, DynamoDB store, Terraform `platform-ops`, portal E2E tests
+- PyPI trusted-publisher workflow with API-token fallback
+
+### Changed
+
+- Docker publish fixes catalog image path in CI
+- CI: npm install retries, Terraform formatting
+
+[1.0.0]: https://github.com/vaquarkhan/CogniMesh/releases/tag/v1.0.0
+
 ## [0.2.0] - 2026-06-16
 
 ### Added

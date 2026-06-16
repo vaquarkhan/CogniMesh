@@ -31,30 +31,30 @@ Build from this repository:
 
 ```bash
 # API gateway
-docker build -f docker/api.Dockerfile -t cognimesh/api:0.1.0 .
+docker build -f docker/api.Dockerfile -t cognimesh/api:1.0.0 .
 
 # Catalog (Spring Boot)
-docker build -f services/catalog/Dockerfile -t cognimesh/catalog:0.1.0 services/catalog
+docker build -f services/catalog/Dockerfile -t cognimesh/catalog:1.0.0 services/catalog
 
 # Portal (Vite dev - local compose)
-docker build -f portal/Dockerfile -t cognimesh/portal:0.1.0 portal
+docker build -f portal/Dockerfile -t cognimesh/portal:1.0.0 portal
 
 # Portal (production - nginx + static, for GHCR)
-docker build -f docker/portal.Dockerfile -t cognimesh/portal:0.1.0 .
+docker build -f docker/portal.Dockerfile -t cognimesh/portal:1.0.0 .
 ```
 
 ### Published images (target registry)
 
 | Image | Tag | Purpose |
 |-------|-----|---------|
-| `ghcr.io/vaquarkhan/cognimesh-api` | `0.1.0` | API gateway |
-| `ghcr.io/vaquarkhan/cognimesh-portal` | `0.1.0` | Zero-code portal |
-| `ghcr.io/vaquarkhan/cognimesh-catalog` | `0.1.0` | Marketplace catalog |
+| `ghcr.io/vaquarkhan/cognimesh-api` | `1.0.0` | API gateway |
+| `ghcr.io/vaquarkhan/cognimesh-portal` | `1.0.0` | Zero-code portal |
+| `ghcr.io/vaquarkhan/cognimesh-catalog` | `1.0.0` | Marketplace catalog |
 
 ```bash
-docker pull ghcr.io/vaquarkhan/cognimesh-api:0.1.0
-docker pull ghcr.io/vaquarkhan/cognimesh-portal:0.1.0
-docker pull ghcr.io/vaquarkhan/cognimesh-catalog:0.1.0
+docker pull ghcr.io/vaquarkhan/cognimesh-api:1.0.0
+docker pull ghcr.io/vaquarkhan/cognimesh-portal:1.0.0
+docker pull ghcr.io/vaquarkhan/cognimesh-catalog:1.0.0
 
 # Run without building locally
 docker compose -f docker-compose.prod.yml up
@@ -95,7 +95,7 @@ npm run docker:up
 Lightweight client for DataContract YAML and CogniMesh HTTP API.
 
 ```bash
-pip install cognimesh
+pip install cognimesh==1.0.0
 ```
 
 From source:
@@ -170,7 +170,7 @@ See [infra/terraform/README.md](../infra/terraform/README.md).
 
 | Component | Version | Registry |
 |-----------|---------|----------|
-| CogniMesh platform | 0.1.0 | GitHub |
-| Python SDK | 0.1.0 | PyPI `cognimesh` |
-| npm root | 0.1.0 | GitHub (private monorepo) |
+| CogniMesh platform | 1.0.0 | GitHub |
+| Python SDK | 1.0.0 | PyPI `cognimesh` |
+| npm root | 1.0.0 | GitHub (private monorepo) |
 | DataContract schema | v1 | `schemas/data-contract-v1.schema.json` |

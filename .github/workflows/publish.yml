@@ -8,7 +8,7 @@ on:
       version:
         description: "Image and package version tag (e.g. 0.1.0)"
         required: true
-        default: "0.1.0"
+        default: "1.0.0"
       publish_pypi:
         description: "Upload Python wheel to PyPI"
         type: boolean
@@ -21,6 +21,7 @@ on:
 permissions:
   contents: read
   packages: write
+  id-token: write
 
 env:
   REGISTRY: ghcr.io
@@ -54,7 +55,7 @@ jobs:
             dockerfile: docker/api.Dockerfile
             context: .
           - name: cognimesh-catalog
-            dockerfile: Dockerfile
+            dockerfile: services/catalog/Dockerfile
             context: services/catalog
           - name: cognimesh-portal
             dockerfile: docker/portal.Dockerfile
@@ -110,11 +111,25 @@ jobs:
         working-directory: python
         run: python -m build
 
-      - name: Publish to PyPI
+      - name: Publish to PyPI (trusted publisher)
+        id: pypi_oidc
+        uses: pypa/gh-action-pypi-publish@release/v1
+        continue-on-error: true
+        with:
+          packages-dir: python/dist/
+          skip-existing: true
+
+      - name: Publish to PyPI (API token fallback)
+        if: steps.pypi_oidc.outcome == 'failure'
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
-        run: python -m twine upload --non-interactive python/dist/*
+        run: |
+          if [ -z "$TWINE_PASSWORD" ]; then
+            echo "::error::PyPI upload failed. Configure a trusted publisher for this workflow or set PYPI_API_TOKEN."
+            exit 1
+          fi
+          python -m twine upload --non-interactive python/dist/*
 
   summary:
     needs: [resolve-version, docker, pypi]

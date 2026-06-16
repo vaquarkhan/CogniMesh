@@ -4,7 +4,7 @@
 
 services:
   catalog:
-    image: ghcr.io/vaquarkhan/cognimesh-catalog:0.1.0
+    image: ghcr.io/vaquarkhan/cognimesh-catalog:1.0.0
     ports:
       - "8080:8080"
     environment:
@@ -17,7 +17,7 @@ services:
       start_period: 40s
 
   api:
-    image: ghcr.io/vaquarkhan/cognimesh-api:0.1.0
+    image: ghcr.io/vaquarkhan/cognimesh-api:1.0.0
     ports:
       - "4000:4000"
     environment:
@@ -31,7 +31,7 @@ services:
         condition: service_healthy
 
   portal:
-    image: ghcr.io/vaquarkhan/cognimesh-portal:0.1.0
+    image: ghcr.io/vaquarkhan/cognimesh-portal:1.0.0
     ports:
       - "3000:80"
     depends_on:
