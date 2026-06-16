@@ -18,7 +18,7 @@
 </p>
 
 <p align="center">
-  <strong>📦 Python SDK — install anytime from <a href="https://pypi.org/project/cognimesh/">PyPI</a></strong>
+  <strong>📦 Python SDK: install anytime from <a href="https://pypi.org/project/cognimesh/">PyPI</a></strong>
 </p>
 
 <p align="center">
@@ -79,9 +79,9 @@ Built on **[The Vaquar Pattern](docs/vaquar-pattern.md)** by [Vaquarkhan](https:
 
 ---
 
-## Why CogniMesh — everything in one place
+## Why CogniMesh: everything in one place
 
-**Design data products visually. Prove them before publish. Operate them in production. Let consumers discover and access governed datasets — on AWS, with contracts, not tribal knowledge.**
+**Design data products visually. Prove them before publish. Operate them in production. Let consumers discover and access governed datasets on AWS, with contracts instead of tribal knowledge.**
 
 CogniMesh is a full **data mesh control plane**: zero-code portal, proof-gated writes ([Vaquar Pattern](docs/vaquar-pattern.md)), marketplace, and an **Operations** layer for live ops, cost, lineage, and steward workflows. **v1.0.0** ships on [Docker](docs/DISTRIBUTION.md), [PyPI](https://pypi.org/project/cognimesh/1.0.0/), and Terraform.
 
@@ -89,11 +89,11 @@ CogniMesh is a full **data mesh control plane**: zero-code portal, proof-gated w
 
 | You get | What it means |
 |---------|----------------|
-| **Visual pipeline designer** | Drag Source → Transform → Sink on React Flow — no YAML hand-editing required |
-| **28+ architecture patterns** | Data Mesh, Lakehouse, Kappa, Lambda λ, medallion, CDC, fraud, healthcare FHIR, GenAI RAG, and more |
+| **Visual pipeline designer** | Drag Source → Transform → Sink on React Flow. No YAML hand-editing required. |
+| **28+ architecture patterns** | Ready-made pipeline blueprints (see [what this means](#what-28-patterns-means-no-code-required)) |
 | **AWS-native blocks** | Glue, Kinesis, MSK, DMS, Firehose, Step Functions Parallel/Choice/Map |
 | **AI Pipeline Designer** | Describe a pipeline in English → auto-load pattern + blocks + explanation |
-| **Agent Builder** | Bedrock AgentCore canvas — templates, guardrails, KB, tools, manifest export |
+| **Agent Builder** | Bedrock AgentCore canvas: templates, guardrails, KB, tools, manifest export |
 | **AI Agent Generator** | Natural language → agent graph in Agent Builder |
 | **AWS Design Review** | Live security/architecture score before deploy |
 | **DataContract compiler** | Graph → `cognimesh.io/v1` YAML + Step Functions ASL + Vaquar mesh artifacts |
@@ -102,13 +102,47 @@ CogniMesh is a full **data mesh control plane**: zero-code portal, proof-gated w
 
 → [Pattern catalog](docs/PORTAL_UI.md) · [26 pipeline + 8 agent tutorials](docs/tutorials/README.md) · [Developer customization](docs/developer/README.md)
 
+### What “28+ patterns” means (no code required)
+
+**Patterns are not separate products.** They are **ready-made pipeline canvases** in the portal: a full diagram of sources, transforms, sinks, and governance blocks already wired for a well-known data architecture or industry use case. You **do not write code to start**: you pick a pattern, then adjust names, connections, and settings in the UI.
+
+| Question | Answer |
+|----------|--------|
+| **What is a pattern?** | A pre-built visual pipeline (React Flow canvas) with realistic AWS services labeled on each block: Glue, Kinesis, RDS, Iceberg, Step Functions, Bedrock, and so on. |
+| **Do I need to code?** | **No** to get started. Open **Architectures → Use pattern** and the canvas loads. Change block properties, SQL, schedules, and domains in forms. Code is optional later (Python SDK, custom Spark, or Terraform from exported artifacts). |
+| **What does “28+” count?** | **27 entries** in the pattern library today: **26 fully wired examples** across architecture styles and industries, plus a **blank canvas**. The “+” reflects ongoing additions and the separate **8 agent tutorials** in Agent Builder (agents are not the same as data-pipeline patterns). |
+| **What do they cover?** | End-to-end **data mesh**, **lake / lakehouse**, **Kappa & Lambda λ**, **streaming**, **medallion** bronze→silver→gold, **CDC & batch ingest**, **finance & healthcare**, **retail clickstream**, **fraud & data quality**, **GenAI RAG & media enrichment**, **IoT**, **SCD2**, **feature store**, and **multi-source Step Functions** workflows. |
+| **What happens after I pick one?** | Customize blocks → run **AWS Design Review** → compile to **DataContract YAML** + Step Functions → deploy with **Vaquar proof** (PVDM/VRP) before gold commits. Same portal flow for every pattern. |
+
+**By category (all in the Architectures tab):**
+
+| Category | What you get (plain English) |
+|----------|------------------------------|
+| **Data Mesh** | Single-domain data product with catalog + Lake Formation share; multi-domain **Customer 360** with parallel domains merging to gold. |
+| **Data Lake** | Classic **raw → curated → consumption** zone layout on S3. |
+| **Lakehouse** | **Iceberg medallion** with ACID gold tables. |
+| **Kappa** | **Stream-only** path: Kinesis → Flink → Iceberg (no batch layer). |
+| **Lambda λ** | **Batch + speed** layers in parallel, merged for serving (e.g. Athena). |
+| **Streaming** | **Kinesis → Firehose → analytics**; **MSK → Glue streaming → lakehouse**. |
+| **ETL / ELT** | **Glue multi-stage factory**; **load-first ELT into Redshift** marts. |
+| **Medallion** | Canonical **bronze → silver → gold** lakehouse stack. |
+| **Structured starters** | **RDS CDC → Iceberg** (Vaquar); **S3 files → Iceberg**; **Kafka → Iceberg**; **MySQL → Redshift**; **multi-source parallel → choice** routing. |
+| **Finance** | **Double-entry payment ledger** with strict audit / SOX-style quality. |
+| **Healthcare** | **FHIR clinical resources → HIPAA-aware gold** tables. |
+| **Retail** | **Clickstream → real-time funnel / dashboard** feeds. |
+| **Cognitive** | **Media URL → Bedrock enrichment → gold**; **documents → RAG knowledge base**. |
+| **Compliance & analytics** | **Fraud scoring** (rules + ML in parallel); **DQ quarantine lane**; **IoT sensor fleet**; **SCD Type 2** customer dimension; **ML feature store** pipeline. |
+| **Blank canvas** | Empty designer when you already know your layout. |
+
+For screenshots and filters, see [Zero-code portal](#zero-code-portal) below. For step-by-step walkthroughs, see **[docs/tutorials/README.md](docs/tutorials/README.md)** (26 pipeline lessons + 8 agent lessons).
+
 ### Trust & proof (Vaquar Pattern)
 
 | You get | What it means |
 |---------|----------------|
 | **Integrity gate** | Design-time policy checks before anything hits AWS |
-| **PVDM runtime** | Physical → Verify → Durable → Metadata — proof before Iceberg commit |
-| **VRP verification** | Cryptographic row proof — PASS/FAIL per run |
+| **PVDM runtime** | Physical → Verify → Durable → Metadata. Proof before Iceberg commit. |
+| **VRP verification** | Cryptographic row proof with PASS/FAIL per run |
 | **IceGuard checkpoints** | Durable rollback on failed commits |
 | **Run History + observability** | VRP badges, drop trends, pass rate, S3 proof/console deep links |
 | **Deploy Vaquar tab** | Full proof panel at deploy time |
@@ -123,14 +157,14 @@ CogniMesh is a full **data mesh control plane**: zero-code portal, proof-gated w
 | **Live Step Functions status** | Running / Succeeded / Failed with AWS Console links |
 | **Deploy impact analysis** | Blast radius before you confirm |
 | **Deploy approval workflow** | Steward gate when `DEPLOY_APPROVAL_REQUIRED=true` |
-| **Pipeline versioning & rollback** | Snapshots per deploy — diff versions, roll back canvas |
+| **Pipeline versioning & rollback** | Snapshots per deploy: diff versions and roll back the canvas |
 | **Import existing assets** | Pull Glue jobs or Step Functions into the canvas |
 | **Agent deploy to Bedrock** | CreateAgent + KB/guardrail association |
 | **Multi-cloud compile targets** | AWS-first with extension points |
 
 ### Operations panel (platform ops)
 
-Open **Operations** in the portal header — your control tower after deploy:
+Open **Operations** in the portal header as your control tower after deploy:
 
 | Tab | Capability |
 |-----|------------|
@@ -141,7 +175,7 @@ Open **Operations** in the portal header — your control tower after deploy:
 | **Columns** | Column-level lineage from canvas schema |
 | **Federated** | Cross-org mesh product catalog |
 | **Billing** | Cross-org usage and rate-card billing |
-| **Audit** | Compliance report — JSON, Markdown, printable HTML |
+| **Audit** | Compliance report in JSON, Markdown, or printable HTML |
 | **Multi-cloud** | Deploy target registry |
 | **Plugins** | Custom source/transform/sink blocks (sandboxed registry) |
 | **Copilot** | Rule-based + optional **Bedrock LLM** ops assistant |
@@ -170,9 +204,9 @@ Open **Operations** in the portal header — your control tower after deploy:
 |---------|----------------|
 | **Production Terraform** | VPC, S3 medallion, Cognito (invite-only), Lambda, SFN, EKS, CloudFront |
 | **Platform-ops module** | DynamoDB platform state, Athena workgroup, Bedrock/RDS Data API IAM |
-| **DynamoDB persistence** | Versions, approvals, plugins, billing — `PLATFORM_STORE=dynamodb` |
+| **DynamoDB persistence** | Versions, approvals, plugins, billing (`PLATFORM_STORE=dynamodb`) |
 | **Docker images (GHCR)** | `cognimesh-api`, `cognimesh-portal`, `cognimesh-catalog` @ **1.0.0** |
-| **Python SDK (PyPI)** | `pip install cognimesh==1.0.0` — validate contracts, health, lineage CLI |
+| **Python SDK (PyPI)** | `pip install cognimesh==1.0.0` for contract validate, health, lineage CLI |
 | **CI + tests** | Unit, portal E2E (Playwright), integration, Terraform validate |
 | **OpenAPI** | `docs/openapi.yaml` + `/schemas/data-contract-v1.schema.json` |
 | **Structured logs · metrics · audit API** | `/health`, `/metrics`, `/api/v1/audit` |
@@ -192,7 +226,7 @@ Open **Operations** in the portal header — your control tower after deploy:
 
 | | Section |
 |---|---------|
-| ✨ | [Why CogniMesh — feature list](#why-cognimesh--everything-in-one-place) |
+| ✨ | [Why CogniMesh: feature list](#why-cognimesh-everything-in-one-place) |
 | 🏗️ | [System architecture](#system-architecture) |
 | 📐 | [Pipeline E2E diagram](docs/PIPELINE_E2E_DIAGRAM.md) |
 | 🔄 | [End-to-end journey](#end-to-end-journey) |
@@ -292,7 +326,7 @@ sequenceDiagram
 
 ## Zero-code portal
 
-Visual pipeline designer: **28+ architecture patterns**, AWS service blocks (Glue, Kinesis, MSK, DMS, Firehose), **AI Builder** (data pipeline + AI agent generator), **Agent Builder** (Bedrock AgentCore canvas), live AWS security/architecture review, VRP observability, and consumer marketplace.
+Visual pipeline designer with a **pattern library** (see [what “28+ patterns” means](#what-28-patterns-means-no-code-required)): pick a blueprint, customize in the UI without writing code, then deploy. Includes AWS service blocks (Glue, Kinesis, MSK, DMS, Firehose), **AI Builder** (describe a pipeline or agent in English), **Agent Builder** (Bedrock AgentCore canvas), live AWS security/architecture review, VRP observability, and a consumer marketplace.
 
 → Full pattern catalog: **[docs/PORTAL_UI.md](docs/PORTAL_UI.md)**  
 → **Step-by-step tutorials (26 pipelines + 8 agents):** **[docs/tutorials/README.md](docs/tutorials/README.md)**  
@@ -554,9 +588,9 @@ npm start
 
 ```bash
 npm run test:unit         # 74+ unit tests (platform, API, compiler, gate)
-npm run test:portal-e2e   # Playwright — Operations panel + approvals
+npm run test:portal-e2e   # Playwright: Operations panel + approvals
 npm test                  # offline integration (no servers)
-npm run dev:api           # API only — embedded catalog, no Java
+npm run dev:api           # API only: embedded catalog, no Java
 npm run dev:minimal       # API + portal (no catalog)
 npm run test:api          # SKIPs marketplace when catalog offline
 ```
