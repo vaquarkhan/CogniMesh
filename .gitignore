@@ -7,6 +7,8 @@ dist/
 build/
 generated/
 logs/
+data/pipeline-versions.json
+data/deploy-approvals.json
 *.jar
 !.mvn/wrapper/maven-wrapper.jar
 

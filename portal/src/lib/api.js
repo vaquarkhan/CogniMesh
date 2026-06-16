@@ -65,6 +65,9 @@ export async function deployPipeline({ nodes, edges, pipelineMeta, token }) {
   if (!data) {
     return { ok: false, data: { errors: ["API unavailable - run npm run start:dev for deploy."] } };
   }
+  if (res.status === 202 && data.status === "pending_approval") {
+    return { ok: true, pendingApproval: true, data };
+  }
   return { ok: res.ok, data };
 }
 

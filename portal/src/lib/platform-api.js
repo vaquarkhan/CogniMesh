@@ -88,3 +88,35 @@ export async function listSlaSubscriptions(token, productId) {
   const qs = productId ? `?productId=${encodeURIComponent(productId)}` : "";
   return platformGet(`/api/v1/platform/sla${qs}`, token);
 }
+
+export async function diffPipelineVersions(token, leftId, rightId) {
+  const qs = `?leftId=${encodeURIComponent(leftId)}&rightId=${encodeURIComponent(rightId)}`;
+  return platformGet(`/api/v1/platform/versions/diff${qs}`, token);
+}
+
+export async function selfHealPipeline(token, { domain, pipelineName }) {
+  return platformPost("/api/v1/platform/self-heal/pipeline", { domain, pipelineName }, token);
+}
+
+export async function listDeployApprovals(token) {
+  return platformGet("/api/v1/platform/deploy-approvals", token);
+}
+
+export async function approveDeployRequest(token, approvalId) {
+  return platformPost(`/api/v1/platform/deploy-approvals/${encodeURIComponent(approvalId)}/approve`, {}, token);
+}
+
+export async function rejectDeployRequest(token, approvalId, reason) {
+  return platformPost(
+    `/api/v1/platform/deploy-approvals/${encodeURIComponent(approvalId)}/reject`,
+    { reason },
+    token
+  );
+}
+
+export async function downloadAuditMarkdown(token, domain) {
+  const qs = domain ? `?domain=${encodeURIComponent(domain)}&format=markdown` : "?format=markdown";
+  const res = await apiFetch(`/api/v1/platform/audit-report${qs}`, { token });
+  if (!res.ok) throw new Error("Audit report unavailable");
+  return res.text();
+}

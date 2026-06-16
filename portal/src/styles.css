@@ -1105,6 +1105,29 @@ body {
   margin-top: 0.5rem;
 }
 
+.version-diff-block {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.version-diff-block select {
+  width: 100%;
+}
+
+.version-diff-result {
+  background: #1e293b;
+  padding: 0.5rem;
+  border-radius: 4px;
+  margin-top: 0.35rem;
+}
+
+.steward-section-title {
+  font-size: 0.85rem;
+  margin: 1rem 0 0.35rem;
+}
+
 @media (max-width: 1200px) {
   .main {
     grid-template-columns: 160px 1fr 220px;

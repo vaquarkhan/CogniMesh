@@ -14,6 +14,8 @@ import {
   getDeployTargets,
   listSlaSubscriptions,
   getColumnLineage,
+  diffPipelineVersions,
+  downloadAuditMarkdown,
 } from "../lib/platform-api";
 
 const TABS = [
@@ -56,6 +58,9 @@ export default function PlatformOperationsPanel({
   const [columnLineage, setColumnLineage] = useState(null);
   const [copilotMsg, setCopilotMsg] = useState("");
   const [copilotReply, setCopilotReply] = useState(null);
+  const [diffResult, setDiffResult] = useState(null);
+  const [diffLeft, setDiffLeft] = useState("");
+  const [diffRight, setDiffRight] = useState("");
 
   const load = useCallback(async () => {
     if (!token) return;
@@ -189,7 +194,7 @@ export default function PlatformOperationsPanel({
 
       {tab === "versions" && (
         <div className="platform-ops-body">
-          <p className="properties-hint">Rollback restores canvas + contract snapshot</p>
+          <p className="properties-hint">Rollback restores canvas + contract snapshot. Versions persist to data/pipeline-versions.json.</p>
           <ul className="platform-ops-list">
             {versions.map((v) => (
               <li key={v.id}>
@@ -201,6 +206,44 @@ export default function PlatformOperationsPanel({
             ))}
           </ul>
           {!versions.length && <p className="properties-hint">Deploy once to save versions</p>}
+          {versions.length >= 2 && (
+            <div className="version-diff-block">
+              <h4>Compare versions</h4>
+              <select value={diffLeft} onChange={(e) => setDiffLeft(e.target.value)}>
+                <option value="">Left version</option>
+                {versions.map((v) => (
+                  <option key={v.id} value={v.id}>v{v.version} · {v.savedAt}</option>
+                ))}
+              </select>
+              <select value={diffRight} onChange={(e) => setDiffRight(e.target.value)}>
+                <option value="">Right version</option>
+                {versions.map((v) => (
+                  <option key={v.id} value={v.id}>v{v.version} · {v.savedAt}</option>
+                ))}
+              </select>
+              <button
+                type="button"
+                className="btn-secondary"
+                disabled={!diffLeft || !diffRight || diffLeft === diffRight}
+                onClick={async () => {
+                  setDiffResult(await diffPipelineVersions(token, diffLeft, diffRight));
+                }}
+              >
+                Diff
+              </button>
+              {diffResult?.success && (
+                <div className="version-diff-result">
+                  <p><strong>{diffResult.diff.summary}</strong> · blast {diffResult.diff.blastRadius}</p>
+                  {diffResult.diff.schema.addedColumns.length > 0 && (
+                    <p className="properties-hint">Added: {diffResult.diff.schema.addedColumns.join(", ")}</p>
+                  )}
+                  {diffResult.diff.schema.removedColumns.length > 0 && (
+                    <p className="properties-hint">Removed: {diffResult.diff.schema.removedColumns.join(", ")}</p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -249,6 +292,22 @@ export default function PlatformOperationsPanel({
       {tab === "audit" && audit && (
         <div className="platform-ops-body">
           <p>Pipelines: {audit.summary.pipelines} · Runs: {audit.summary.runs}</p>
+          <button
+            type="button"
+            className="btn-secondary"
+            onClick={async () => {
+              const md = await downloadAuditMarkdown(token, pipelineMeta?.domain);
+              const blob = new Blob([md], { type: "text/markdown" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = `cognimesh-audit-${pipelineMeta?.domain || "all"}-${Date.now()}.md`;
+              a.click();
+              URL.revokeObjectURL(url);
+            }}
+          >
+            Download audit report (.md)
+          </button>
           <pre className="deploy-yaml agent-yaml">{audit.markdown?.slice(0, 2000)}</pre>
         </div>
       )}

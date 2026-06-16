@@ -385,8 +385,14 @@ export default function App() {
     setShowDeploy(true);
     try {
       const meta = { ...pipelineMeta, ownerEmail: userEmail };
-      const { ok, data } = await deployPipeline({ nodes, edges, pipelineMeta: meta, token });
-      if (ok) {
+      const { ok, pendingApproval, data } = await deployPipeline({ nodes, edges, pipelineMeta: meta, token });
+      if (pendingApproval) {
+        setDeployResult({ status: "pending_approval", ...data });
+        setDeployError(null);
+        setCatalogRefresh((k) => k + 1);
+        setShowStewardApprovals(true);
+        success("Deploy submitted for steward approval");
+      } else if (ok) {
         setDeployResult(data);
         setDeployError(null);
         setCatalogRefresh((k) => k + 1);

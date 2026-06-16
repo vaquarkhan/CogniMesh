@@ -74,9 +74,10 @@ All 20 roadmap items have **MVP implementations** under `lib/platform/` and port
 ## Enhancement path (post-MVP)
 
 ```
-Live JDBC/Athena sampling · Real Bedrock agent resources (KB, guardrails, tools)
-PDF audit export · Persistent version store (S3/DynamoDB) · Copilot with LLM backend
-Plugin sandbox · Cross-org billing · Open spec publication site
+✅ Persistent version store (file) · Contract diff · Deploy approval workflow
+✅ Live S3/local file preview · Self-heal UI · Audit markdown download
+JDBC/Athena sampling · Real Bedrock KB/guardrails/tools · PDF audit export
+Copilot with LLM backend · Plugin sandbox · Cross-org billing
 ```
 
 ### Technical anchors

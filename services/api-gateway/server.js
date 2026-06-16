@@ -25,7 +25,7 @@ const {
 const { listRuns, stats: executionStats, recordRun } = require("../../lib/execution-history");
 const metrics = require("../../lib/metrics");
 const { startSpan } = require("../../lib/tracing");
-const { mountPlatformRoutes, savePipelineVersion } = require("../../lib/platform");
+const { mountPlatformRoutes, savePipelineVersion, isDeployApprovalRequired, queueDeployApproval, approveDeploy } = require("../../lib/platform");
 
 const PORT = process.env.PORT || 4000;
 const CATALOG_URL = process.env.CATALOG_URL || "http://localhost:8080";
@@ -331,6 +331,22 @@ app.post("/api/v1/pipelines/deploy", requireAuth, async (req, res) => {
     return res.status(400).json({ status: "error", errors: ["nodes array is required"] });
   }
 
+  if (isDeployApprovalRequired() && !req.body?.skipApproval) {
+    const pending = queueDeployApproval({
+      nodes,
+      edges: edges || [],
+      pipelineMeta,
+      userId: req.auth?.sub,
+      userEmail: req.auth?.userEmail || req.auth?.email,
+    });
+    span.end("pending_approval");
+    return res.status(202).json({
+      status: "pending_approval",
+      message: "Deploy queued for steward approval",
+      approval: { id: pending.id, pipelineName: pending.pipelineName, domain: pending.domain },
+    });
+  }
+
   const compileSpan = startSpan("compile.deploy", { trace_parent: span.traceId });
   const result = await deployPipeline({
     nodes,
@@ -388,6 +404,52 @@ app.post("/api/v1/pipelines/deploy", requireAuth, async (req, res) => {
 
   span.end(result.status, { contract_id: result.contract?.metadata?.name });
   res.status(result.status === "success" ? 201 : 422).json(result);
+});
+
+app.post("/api/v1/platform/deploy-approvals/:id/approve", requireAuth, async (req, res) => {
+  const approved = approveDeploy(req.params.id, req.auth?.sub);
+  if (!approved.success) {
+    return res.status(404).json(approved);
+  }
+  const { nodes, edges, pipelineMeta } = approved.record;
+  const span = startSpan("api.deploy.approved", { user_id: req.auth?.sub });
+  const result = await deployPipeline({
+    nodes,
+    edges: edges || [],
+    pipelineMeta,
+    catalogUrl: CATALOG_URL,
+    auth: req.auth,
+  });
+  if (result.status === "success") {
+    metrics.inc("deploy_success");
+    savePipelineVersion({
+      contract: result.contract,
+      manifestYaml: result.manifestYaml,
+      nodes,
+      edges: edges || [],
+      aws: result.aws,
+      userEmail: approved.record.userEmail,
+    });
+  } else {
+    metrics.inc("deploy_failed");
+    const { notifyPipelineFailure } = require("../../lib/platform/notifications");
+    await notifyPipelineFailure({
+      pipelineName: result.contract?.metadata?.name || pipelineMeta?.name,
+      domain: result.contract?.metadata?.domain || pipelineMeta?.domain,
+      errors: result.errors,
+      userId: req.auth?.sub,
+      stage: result.stage,
+    });
+  }
+  auditRecord({
+    action: "pipeline_deploy_approved",
+    user_id: req.auth?.sub,
+    contract_id: result.contract?.metadata?.name,
+    outcome: result.status,
+    approval_id: req.params.id,
+  });
+  span.end(result.status);
+  res.status(result.status === "success" ? 201 : 422).json({ ...result, approvedBy: req.auth?.sub });
 });
 
 async function proxyCatalog(req, res, path, method = "GET", body) {

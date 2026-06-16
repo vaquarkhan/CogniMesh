@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getPipelineHistory, getPipelineObservability, triggerBackfill, getExecutionStatus } from "../lib/api";
+import { selfHealPipeline } from "../lib/platform-api";
 import RunObservabilityDashboard from "./RunObservabilityDashboard";
 import PvdmFlowDiagram from "./PvdmFlowDiagram";
 import { s3ConsoleUrl } from "../lib/s3-console";
@@ -26,6 +27,7 @@ export default function ExecutionHistoryPanel({ token, pipelineName, domain, ref
   const [expandedRun, setExpandedRun] = useState(null);
   const [awsStatus, setAwsStatus] = useState(null);
   const [obsSummary, setObsSummary] = useState(null);
+  const [healMsg, setHealMsg] = useState(null);
 
   useEffect(() => {
     if (!pipelineName) {
@@ -145,6 +147,24 @@ export default function ExecutionHistoryPanel({ token, pipelineName, domain, ref
               {open && (
                 <div className="execution-run-detail">
                   <PvdmFlowDiagram verdict={r.vrpVerdict} proofGated={r.proofGated} compact />
+                  {r.vrpVerdict === "FAIL" && (
+                    <button
+                      type="button"
+                      className="deploy-btn compact"
+                      onClick={async () => {
+                        setHealMsg(null);
+                        try {
+                          const result = await selfHealPipeline(token, { domain, pipelineName });
+                          setHealMsg(result.message || result.reason || (result.healed ? "Self-heal succeeded" : "Self-heal failed"));
+                        } catch (e) {
+                          setHealMsg(e.message);
+                        }
+                      }}
+                    >
+                      Attempt self-heal
+                    </button>
+                  )}
+                  {healMsg && <p className="properties-hint">{healMsg}</p>}
                   {r.message && <p className="run-message">{r.message}</p>}
                   <dl className="proof-dl">
                     <dt>Quality policy</dt>

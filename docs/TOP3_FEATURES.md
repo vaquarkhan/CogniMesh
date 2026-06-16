@@ -63,13 +63,19 @@ Without these, deploy still compiles + registers catalog + records **local VRP p
 
 ---
 
-## Tier 2 (not started)
+## Tier 2 (partial → shipped MVP+)
 
-- Data quality dashboard over time (partial: drop trend in run observability)
-- Domain pattern packs (partial: finance/healthcare/retail patterns exist)
-- Deploy approval workflow (PR-style)
-- Contract diff / version compare
-- Import existing Glue/SFN
+| Item | Status | Where |
+|------|--------|--------|
+| Data quality dashboard over time | Partial | Run observability drop trends |
+| Domain pattern packs | Partial | finance/healthcare/retail patterns |
+| Deploy approval workflow | **Shipped** | `DEPLOY_APPROVAL_REQUIRED=true` · Approvals panel |
+| Contract diff / version compare | **Shipped** | Operations → Versions → Diff |
+| Import existing Glue/SFN | Not started | — |
+| Persistent version store | **Shipped** | `data/pipeline-versions.json` |
+| Live S3 data preview | **Shipped** | `DATA_PREVIEW_LIVE=true` |
+| Self-heal from Run History | **Shipped** | VRP FAIL → Attempt self-heal |
+| Audit report download | **Shipped** | Operations → Audit → Download .md |
 
 ---
 
