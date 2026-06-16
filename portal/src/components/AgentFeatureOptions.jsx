@@ -16,6 +16,7 @@ export default function AgentFeatureOptions({ features, onChange, compact = fals
           <label key={feat.id} className="agent-feature-check" title={feat.description}>
             <input
               type="checkbox"
+              data-testid={`agent-feature-${feat.id}`}
               checked={features[feat.id] !== false}
               onChange={(e) => toggle(feat.id, e.target.checked)}
             />

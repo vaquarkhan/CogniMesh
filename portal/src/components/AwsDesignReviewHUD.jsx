@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import AwsScoreRing from "./AwsScoreRing";
 import AwsTopologyMap from "./AwsTopologyMap";
 import { getDesignReviewFixHelp } from "../lib/api";
@@ -38,6 +38,8 @@ function FindingRow({
   edges,
   pipelineMeta,
   isActive,
+  autoLoadFixForId,
+  onAutoLoadFixHandled,
 }) {
   const [fixPlan, setFixPlan] = useState(null);
   const [fixLoading, setFixLoading] = useState(false);
@@ -49,6 +51,12 @@ function FindingRow({
   useEffect(() => {
     if (isActive) setShowSteps(true);
   }, [isActive]);
+
+  useEffect(() => {
+    if (autoLoadFixForId !== f.id || fixPlan || fixLoading || !token) return;
+    loadFixHelp();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- auto-load once when opened from Properties
+  }, [autoLoadFixForId, f.id, token]);
 
   const loadFixHelp = async () => {
     setFixLoading(true);
@@ -66,6 +74,7 @@ function FindingRow({
       setFixPlan(plan);
       setShowSteps(true);
       if (!expanded) onToggle?.();
+      onAutoLoadFixHandled?.();
     } catch (err) {
       setFixError(err.message);
     } finally {
@@ -140,6 +149,7 @@ function FindingRow({
             <button
               type="button"
               className="deploy-btn compact aws-ai-fix-btn"
+              data-testid={`aws-fix-guide-${f.id}`}
               onClick={loadFixHelp}
               disabled={fixLoading || !token}
             >
@@ -175,6 +185,10 @@ export default function AwsDesignReviewHUD({
   onFocusNode,
   onRunReview,
   onApplyNodeFix,
+  focusFindingId,
+  autoLoadFixForId,
+  onFocusFindingHandled,
+  onAutoLoadFixHandled,
   token,
   nodes,
   edges,
@@ -241,6 +255,39 @@ export default function AwsDesignReviewHUD({
     document.getElementById(`aws-finding-${f.id}`)?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   };
 
+  const focusFindingById = useCallback(
+    (findingId) => {
+      if (!findingId || !review?.findings?.length) return;
+      const f = review.findings.find((item) => item.id === findingId);
+      if (!f) return;
+
+      const actionIdx = actionable.findIndex((item) => item.id === findingId);
+      if (actionIdx >= 0) {
+        setActiveIdx(actionIdx);
+        setTab("action");
+      } else if (f.category === "security" || String(f.id).startsWith("sec.")) {
+        setTab("security");
+      } else if (f.category === "architecture" || String(f.id).startsWith("arch.")) {
+        setTab("architecture");
+      } else {
+        setTab("all");
+      }
+
+      setExpandedIds((prev) => new Set(prev).add(findingId));
+      if (f.nodeIds?.[0]) onFocusNode?.(f.nodeIds[0]);
+      requestAnimationFrame(() => {
+        document.getElementById(`aws-finding-${findingId}`)?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      });
+    },
+    [review?.findings, actionable, onFocusNode]
+  );
+
+  useEffect(() => {
+    if (!focusFindingId || !review) return;
+    focusFindingById(focusFindingId);
+    onFocusFindingHandled?.();
+  }, [focusFindingId, review?.reviewedAt, focusFindingById, onFocusFindingHandled]);
+
   if (!review && !loading && !reviewError) {
     return (
       <div className="aws-review-hud aws-review-empty">
@@ -258,6 +305,7 @@ export default function AwsDesignReviewHUD({
       className={`aws-review-hud ${expanded ? "expanded" : "collapsed"} ${reviewError ? "aws-review-error-state" : ""} ${deployBlocked ? "aws-review-blocked" : ""} ${allClear ? "aws-review-pass" : ""}`}
       role="region"
       aria-label="AWS Design Review"
+      data-testid="aws-review-hud"
     >
       <button type="button" className="aws-review-header" onClick={onToggleExpand} aria-expanded={expanded}>
         <div className="aws-review-scores">
@@ -413,6 +461,8 @@ export default function AwsDesignReviewHUD({
                 edges={edges}
                 pipelineMeta={pipelineMeta}
                 isActive={tab === "action" && actionable[activeIdx]?.id === f.id}
+                autoLoadFixForId={autoLoadFixForId}
+                onAutoLoadFixHandled={onAutoLoadFixHandled}
               />
             ))}
           </ul>

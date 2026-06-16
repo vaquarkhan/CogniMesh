@@ -113,6 +113,8 @@ export default function App() {
   const [awsReviewError, setAwsReviewError] = useState(null);
   const [awsReviewLoading, setAwsReviewLoading] = useState(false);
   const [awsReviewExpanded, setAwsReviewExpanded] = useState(true);
+  const [awsFocusFindingId, setAwsFocusFindingId] = useState(null);
+  const [awsAutoLoadFixForId, setAwsAutoLoadFixForId] = useState(null);
   const [designerMode, setDesignerMode] = useState("pipeline");
   const [agentBootstrap, setAgentBootstrap] = useState(null);
   const reactFlowInstance = useRef(null);
@@ -159,6 +161,8 @@ export default function App() {
     }
     setAwsReviewLoading(true);
     setAwsReviewError(null);
+    setAwsFocusFindingId(null);
+    setAwsAutoLoadFixForId(null);
     try {
       const meta = { ...pipelineMeta, ownerEmail: userEmail };
       const result = await runAwsDesignReview({ nodes, edges, pipelineMeta: meta, token });
@@ -657,6 +661,10 @@ export default function App() {
               onToggleExpand={() => setAwsReviewExpanded((v) => !v)}
               onFocusNode={focusCanvasNode}
               onRunReview={runDesignReviewScan}
+              focusFindingId={awsFocusFindingId}
+              autoLoadFixForId={awsAutoLoadFixForId}
+              onFocusFindingHandled={() => setAwsFocusFindingId(null)}
+              onAutoLoadFixHandled={() => setAwsAutoLoadFixForId(null)}
               onApplyNodeFix={(nodeId, patch) => {
                 updateNode(nodeId, patch);
                 success("Applied suggested fix — re-scanning AWS review…");
@@ -677,6 +685,11 @@ export default function App() {
           onMetaChange={setPipelineMeta}
           awsFindings={selectedId ? awsReview?.findingsByNode?.[selectedId] : null}
           onOpenAwsReview={() => setAwsReviewExpanded(true)}
+          onOpenAwsReviewFinding={(findingId) => {
+            setAwsReviewExpanded(true);
+            setAwsFocusFindingId(findingId);
+            setAwsAutoLoadFixForId(findingId);
+          }}
           token={token}
           nodes={nodes}
           edges={edges}

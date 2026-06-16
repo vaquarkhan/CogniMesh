@@ -30,6 +30,7 @@ export default function PropertiesPanel({
   onMetaChange,
   awsFindings,
   onOpenAwsReview,
+  onOpenAwsReviewFinding,
   token,
   nodes,
   edges,
@@ -133,24 +134,37 @@ export default function PropertiesPanel({
         </div>
       )}
       {awsFindings?.length > 0 && (
-        <div className="props-aws-findings">
+        <div className="props-aws-findings" data-testid="props-aws-findings">
           <div className="props-aws-findings-head">
             <strong>AWS issues on this block ({awsFindings.length})</strong>
-            {onOpenAwsReview && (
-              <button type="button" className="btn-ghost compact" onClick={onOpenAwsReview}>
-                Open fix guide →
-              </button>
-            )}
           </div>
-          <ul>
+          <p className="props-aws-findings-hint">
+            Fix directly below — opens the design review guide with steps for encryption, Lake Formation, integrity gate, and more.
+          </p>
+          <ul className="props-aws-findings-list">
             {awsFindings.map((f) => (
-              <li key={f.id} className={`sev-${f.severity}`}>
-                <span className="props-aws-finding-title">{f.title}</span>
+              <li key={f.id} className={`props-aws-finding-item sev-${f.severity}`} data-testid={`props-aws-finding-${f.id}`}>
+                <div className="props-aws-finding-head">
+                  <span className={`sev-pill sev-${f.severity}`}>{f.severity}</span>
+                  <span className="props-aws-finding-title">{f.title}</span>
+                </div>
                 <small className="props-aws-finding-msg">{f.message}</small>
                 {f.fix && (
                   <small className="props-aws-finding-fix">
-                    <strong>Fix:</strong> {f.fix}
+                    <strong>Quick fix:</strong> {f.fix}
                   </small>
+                )}
+                {(onOpenAwsReviewFinding || onOpenAwsReview) && (
+                  <button
+                    type="button"
+                    className="deploy-btn compact props-aws-fix-btn"
+                    data-testid={`props-aws-fix-${f.id}`}
+                    onClick={() =>
+                      onOpenAwsReviewFinding ? onOpenAwsReviewFinding(f.id) : onOpenAwsReview?.()
+                    }
+                  >
+                    Fix this →
+                  </button>
                 )}
               </li>
             ))}
