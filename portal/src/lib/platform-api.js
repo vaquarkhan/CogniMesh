@@ -120,3 +120,18 @@ export async function downloadAuditMarkdown(token, domain) {
   if (!res.ok) throw new Error("Audit report unavailable");
   return res.text();
 }
+
+export async function downloadAuditHtml(token, domain) {
+  const qs = domain ? `?domain=${encodeURIComponent(domain)}&format=html` : "?format=html";
+  const res = await apiFetch(`/api/v1/platform/audit-report${qs}`, { token });
+  if (!res.ok) throw new Error("Audit report unavailable");
+  return res.text();
+}
+
+export async function importFromStateMachine(token, { stateMachineArn, domain, name }) {
+  return platformPost("/api/v1/platform/import/sfn", { stateMachineArn, domain, name }, token);
+}
+
+export async function importFromGlueJob(token, { jobName, domain, name }) {
+  return platformPost("/api/v1/platform/import/glue", { jobName, domain, name }, token);
+}

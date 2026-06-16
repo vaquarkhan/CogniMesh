@@ -377,6 +377,19 @@ export default function App() {
     success(data.message || "Rolled back to saved version");
   }, [setNodes, setEdges, pushHistory, success]);
 
+  const handleAwsImport = useCallback((data) => {
+    if (data.nodes?.length) {
+      nodeId = data.nodes.length;
+      setNodes(data.nodes);
+      setEdges(data.edges || []);
+      pushHistory(data.nodes, data.edges || []);
+    }
+    if (data.pipelineMeta) {
+      setPipelineMeta((m) => ({ ...m, ...data.pipelineMeta }));
+    }
+    success(data.message || `Imported ${data.nodes?.length || 0} blocks from AWS`);
+  }, [setNodes, setEdges, pushHistory, success]);
+
   const confirmDeploy = async () => {
     setShowDeployConfirm(false);
     setLoading(true);
@@ -636,6 +649,7 @@ export default function App() {
             nodes={nodes}
             edges={edges}
             onRollback={handleVersionRollback}
+            onImport={handleAwsImport}
             onClose={() => setShowPlatformOps(false)}
           />
         )}

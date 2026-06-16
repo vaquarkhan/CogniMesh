@@ -75,9 +75,9 @@ All 20 roadmap items have **MVP implementations** under `lib/platform/` and port
 
 ```
 ✅ Persistent version store (file) · Contract diff · Deploy approval workflow
-✅ Live S3/local file preview · Self-heal UI · Audit markdown download
-JDBC/Athena sampling · Real Bedrock KB/guardrails/tools · PDF audit export
-Copilot with LLM backend · Plugin sandbox · Cross-org billing
+✅ Live S3/local/Athena preview · Self-heal UI · Audit markdown + HTML/PDF
+✅ LLM copilot (Bedrock) · AWS SFN/Glue import · Agent KB/guardrail association
+Plugin sandbox · Cross-org billing · Open spec publication site
 ```
 
 ### Technical anchors

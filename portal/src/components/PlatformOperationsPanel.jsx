@@ -16,6 +16,9 @@ import {
   getColumnLineage,
   diffPipelineVersions,
   downloadAuditMarkdown,
+  downloadAuditHtml,
+  importFromStateMachine,
+  importFromGlueJob,
 } from "../lib/platform-api";
 
 const TABS = [
@@ -30,6 +33,7 @@ const TABS = [
   { id: "plugins", label: "Plugins", tier: 4 },
   { id: "copilot", label: "Copilot", tier: 4 },
   { id: "spec", label: "Open spec", tier: 4 },
+  { id: "import", label: "Import", tier: 2 },
   { id: "notifications", label: "Alerts", tier: 1 },
 ];
 
@@ -39,6 +43,7 @@ export default function PlatformOperationsPanel({
   nodes,
   edges,
   onRollback,
+  onImport,
   onClose,
 }) {
   const [tab, setTab] = useState("dashboard");
@@ -61,6 +66,9 @@ export default function PlatformOperationsPanel({
   const [diffResult, setDiffResult] = useState(null);
   const [diffLeft, setDiffLeft] = useState("");
   const [diffRight, setDiffRight] = useState("");
+  const [importArn, setImportArn] = useState("");
+  const [importGlueJob, setImportGlueJob] = useState("");
+  const [importResult, setImportResult] = useState(null);
 
   const load = useCallback(async () => {
     if (!token) return;
@@ -308,6 +316,18 @@ export default function PlatformOperationsPanel({
           >
             Download audit report (.md)
           </button>
+          <button
+            type="button"
+            className="btn-secondary"
+            onClick={async () => {
+              const html = await downloadAuditHtml(token, pipelineMeta?.domain);
+              const blob = new Blob([html], { type: "text/html" });
+              const url = URL.createObjectURL(blob);
+              window.open(url, "_blank");
+            }}
+          >
+            Open printable HTML (Save as PDF)
+          </button>
           <pre className="deploy-yaml agent-yaml">{audit.markdown?.slice(0, 2000)}</pre>
         </div>
       )}
@@ -356,6 +376,7 @@ export default function PlatformOperationsPanel({
           <button type="button" className="deploy-btn" onClick={handleCopilot}>Ask</button>
           {copilotReply && (
             <div className="copilot-reply">
+              <p className="properties-hint">Mode: {copilotReply.mode || "rules"}</p>
               <p>{copilotReply.reply}</p>
               {copilotReply.suggestions?.map((s) => (
                 <button key={s} type="button" className="btn-secondary" onClick={() => setCopilotMsg(s)}>
@@ -381,6 +402,58 @@ export default function PlatformOperationsPanel({
           <li>Teams: {notif.teams ? "configured" : "not set"}</li>
           <li>PagerDuty: {notif.pagerduty ? "configured" : "not set"}</li>
         </ul>
+      )}
+
+      {tab === "import" && (
+        <div className="platform-ops-body">
+          <p className="properties-hint">Import existing AWS Step Functions or Glue jobs onto the canvas.</p>
+          <input
+            placeholder="State machine ARN"
+            value={importArn}
+            onChange={(e) => setImportArn(e.target.value)}
+          />
+          <button
+            type="button"
+            className="btn-secondary"
+            disabled={!importArn}
+            onClick={async () => {
+              const data = await importFromStateMachine(token, {
+                stateMachineArn: importArn,
+                domain: pipelineMeta?.domain,
+                name: pipelineMeta?.name,
+              });
+              setImportResult(data);
+              if (data.success && onImport) onImport(data);
+            }}
+          >
+            Import SFN
+          </button>
+          <input
+            placeholder="Glue job name"
+            value={importGlueJob}
+            onChange={(e) => setImportGlueJob(e.target.value)}
+          />
+          <button
+            type="button"
+            className="btn-secondary"
+            disabled={!importGlueJob}
+            onClick={async () => {
+              const data = await importFromGlueJob(token, {
+                jobName: importGlueJob,
+                domain: pipelineMeta?.domain,
+              });
+              setImportResult(data);
+              if (data.success && onImport) onImport(data);
+            }}
+          >
+            Import Glue job
+          </button>
+          {importResult && (
+            <p className="properties-hint">
+              {importResult.message || (importResult.success ? `Loaded ${importResult.nodes?.length} blocks` : importResult.errors?.[0])}
+            </p>
+          )}
+        </div>
       )}
     </aside>
   );

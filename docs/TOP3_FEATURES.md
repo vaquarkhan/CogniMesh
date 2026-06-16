@@ -71,7 +71,11 @@ Without these, deploy still compiles + registers catalog + records **local VRP p
 | Domain pattern packs | Partial | finance/healthcare/retail patterns |
 | Deploy approval workflow | **Shipped** | `DEPLOY_APPROVAL_REQUIRED=true` · Approvals panel |
 | Contract diff / version compare | **Shipped** | Operations → Versions → Diff |
-| Import existing Glue/SFN | Not started | — |
+| Import existing Glue/SFN | **Shipped** | Operations → Import · `AWS_IMPORT_ENABLED=true` |
+| LLM copilot (Bedrock) | **Shipped** | `COPILOT_LLM_ENABLED=true` · Operations → Copilot |
+| Athena live preview | **Shipped** | `DATA_PREVIEW_ATHENA=true` + `ATHENA_OUTPUT_LOCATION` |
+| Audit HTML/PDF export | **Shipped** | Operations → Audit → printable HTML |
+| Agent KB/guardrail deploy | **Shipped** | `agent-deploy.js` associates resources when IDs set |
 | Persistent version store | **Shipped** | `data/pipeline-versions.json` |
 | Live S3 data preview | **Shipped** | `DATA_PREVIEW_LIVE=true` |
 | Self-heal from Run History | **Shipped** | VRP FAIL → Attempt self-heal |
