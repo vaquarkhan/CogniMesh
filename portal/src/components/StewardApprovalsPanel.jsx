@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { listPendingAccessRequests, approveAccessRequest, rejectAccessRequest } from "../lib/api";
 import { listDeployApprovals, approveDeployRequest, rejectDeployRequest } from "../lib/platform-api";
 
-export default function StewardApprovalsPanel({ token, refreshKey }) {
+export default function StewardApprovalsPanel({ token, refreshKey, onCatalogRefresh }) {
   const [requests, setRequests] = useState([]);
   const [deployApprovals, setDeployApprovals] = useState([]);
   const [msg, setMsg] = useState(null);
@@ -55,6 +55,7 @@ export default function StewardApprovalsPanel({ token, refreshKey }) {
                         ? `Deployed ${r.pipelineName} after approval`
                         : data.errors?.[0] || "Deploy failed after approval"
                     );
+                    if (data.status === "success") onCatalogRefresh?.();
                   } catch (e) {
                     setMsg(e.message);
                   }

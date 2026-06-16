@@ -40,15 +40,27 @@ export default function AwsDeployStatusBanner({ aws, token, onStatusChange }) {
     };
   }, [arn, token, status?.status, onStatusChange]);
 
-  if (!aws?.deployed && !aws?.executionStatus && !aws?.reason) return null;
+  if (!aws) return null;
+  if (aws.deployed === undefined && !aws.reason && !aws.error) return null;
+
+  const isWarning = !aws.deployed;
 
   return (
-    <div className={`aws-deploy-banner ${status?.status ? `aws-banner-${status.status}` : ""}`}>
-      <strong>AWS deploy</strong>
-      {!aws?.deployed && (
-        <p className="properties-hint">{aws?.reason || aws?.error || "Local compile only - set AWS_DEPLOY_ENABLED=true"}</p>
+    <div
+      className={`aws-deploy-banner ${isWarning ? "aws-deploy-banner-warn" : ""} ${status?.status ? `aws-banner-${status.status}` : ""}`}
+    >
+      <strong>{aws.deployed ? "AWS deploy" : "AWS deploy skipped"}</strong>
+      {isWarning && (
+        <>
+          <p className="aws-deploy-banner-msg">{aws.error || aws.reason || "Local compile only"}</p>
+          {aws.hint && (
+            <p className="properties-hint">
+              Fix: <code>{aws.hint}</code>
+            </p>
+          )}
+        </>
       )}
-      {aws?.deployed && (
+      {aws.deployed && (
         <>
           <p>
             State machine: <code>{aws.stateMachineName || "deployed"}</code>
@@ -64,7 +76,7 @@ export default function AwsDeployStatusBanner({ aws, token, onStatusChange }) {
               Open in AWS Step Functions Console ↗
             </a>
           )}
-          {!arn && aws.deployed && (
+          {!arn && (
             <p className="properties-hint">Set AWS_DEPLOY_EXECUTE=true to start an execution and poll live status.</p>
           )}
         </>

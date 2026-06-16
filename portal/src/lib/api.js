@@ -207,10 +207,14 @@ export async function rejectAccessRequest({ token, requestId, reason }) {
 }
 
 /** Quick check - avoids firing design-review against HTML error pages. */
+export async function getApiHealth() {
+  const res = await apiFetch("/health");
+  return parseJsonResponse(res, "Health");
+}
+
 export async function isApiReachable() {
   try {
-    const res = await apiFetch("/health");
-    const data = await safeJson(res, "Health");
+    const data = await getApiHealth();
     if (!data) return false;
     return data.status === "ok" || data.status === "degraded";
   } catch {

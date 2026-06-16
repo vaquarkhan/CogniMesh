@@ -9,7 +9,7 @@ import MeshSwimlanes from "./components/MeshSwimlanes";
 import ToastStack, { useToast } from "./components/Toast";
 import MobileWarning from "./components/MobileWarning";
 import LoadingOverlay from "./components/LoadingOverlay";
-import { deployPipeline, previewPipeline, runAwsDesignReview, isApiReachable } from "./lib/api";
+import { deployPipeline, previewPipeline, runAwsDesignReview, isApiReachable, getApiHealth } from "./lib/api";
 import { analyzeImpact } from "./lib/platform-api";
 import AwsDesignReviewHUD from "./components/AwsDesignReviewHUD";
 import { validateBlocks, isWorkflowGraph } from "./lib/validate-blocks";
@@ -107,6 +107,7 @@ export default function App() {
   const [showPlatformOps, setShowPlatformOps] = useState(false);
   const [deployImpact, setDeployImpact] = useState(null);
   const [deployImpactLoading, setDeployImpactLoading] = useState(false);
+  const [apiHealth, setApiHealth] = useState(null);
   const [tipDismissed, setTipDismissed] = useState(false);
   const [awsReview, setAwsReview] = useState(null);
   const [awsReviewLoading, setAwsReviewLoading] = useState(false);
@@ -166,6 +167,21 @@ export default function App() {
     const t = setTimeout(runDesignReviewScan, 500);
     return () => clearTimeout(t);
   }, [runDesignReviewScan]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const health = await getApiHealth();
+        if (!cancelled) setApiHealth(health);
+      } catch {
+        if (!cancelled) setApiHealth(null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [token]);
 
   const focusCanvasNode = useCallback((nodeId) => {
     setSelectedId(nodeId);
@@ -407,6 +423,17 @@ export default function App() {
         setShowExecutionHistory(true);
         setShowMarketplace(true);
         success(deploySuccessToast(data));
+        if (data?.aws && !data.aws.deployed) {
+          const msg =
+            data.aws.error ||
+            data.aws.reason ||
+            "Pipeline compiled locally — Step Functions was not pushed to AWS.";
+          toastError(
+            data.aws.hint
+              ? `${msg} (${data.aws.hint})`
+              : msg
+          );
+        }
       } else {
         const errs = data.errors || data.validation?.errors || data.integrityGate?.errors || ["Deploy failed"];
         setDeployError(errs);
@@ -455,6 +482,7 @@ export default function App() {
         open={showDeployConfirm}
         pipelineName={pipelineMeta.name}
         awsReview={awsReview}
+        awsDeployCheck={apiHealth?.checks?.aws_deploy}
         impact={deployImpact}
         impactLoading={deployImpactLoading}
         onConfirm={confirmDeploy}
@@ -626,6 +654,7 @@ export default function App() {
         {showPlatformOps && (
           <Suspense fallback={<PanelFallback />}>
             <PlatformOperationsPanel
+              key={`ops-${catalogRefresh}`}
               token={token}
               pipelineMeta={pipelineMeta}
               nodes={nodes}
@@ -640,7 +669,11 @@ export default function App() {
 
         {showStewardApprovals && (
           <Suspense fallback={<PanelFallback />}>
-            <StewardApprovalsPanel token={token} refreshKey={catalogRefresh} />
+            <StewardApprovalsPanel
+              token={token}
+              refreshKey={catalogRefresh}
+              onCatalogRefresh={() => setCatalogRefresh((k) => k + 1)}
+            />
           </Suspense>
         )}
 

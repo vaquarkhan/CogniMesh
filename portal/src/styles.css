@@ -1795,6 +1795,30 @@ body {
   margin-bottom: 0.75rem;
   font-size: 0.82rem;
 }
+.aws-deploy-banner-warn {
+  background: #422006;
+  border-color: #ea580c;
+}
+.aws-deploy-banner-msg {
+  margin: 0.35rem 0 0;
+  color: #fdba74;
+}
+.deploy-aws-readiness {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 0.65rem 0.75rem;
+  margin: 0.75rem 0;
+  font-size: 0.85rem;
+}
+.deploy-aws-readiness-warn {
+  background: #422006;
+  border-color: #ea580c;
+}
+.platform-ops-header-actions {
+  display: flex;
+  gap: 0.5rem;
+}
 .aws-deploy-banner.aws-banner-SUCCEEDED { border-color: #059669; }
 .aws-deploy-banner.aws-banner-RUNNING { border-color: #2563eb; }
 .aws-deploy-banner.aws-banner-FAILED { border-color: #dc2626; }

@@ -2,6 +2,7 @@ export default function DeployConfirmModal({
   open,
   pipelineName,
   awsReview,
+  awsDeployCheck,
   impact,
   impactLoading,
   onConfirm,
@@ -11,6 +12,7 @@ export default function DeployConfirmModal({
 
   const blocked = awsReview?.overall?.deployBlocked || impact?.deployBlocked;
   const critical = awsReview?.overall?.criticalCount || 0;
+  const awsMisconfigured = awsDeployCheck?.enabled && !awsDeployCheck?.roleConfigured;
 
   return (
     <div className="modal-backdrop" role="presentation" onClick={onCancel}>
@@ -25,6 +27,28 @@ export default function DeployConfirmModal({
           This will compile <strong>{pipelineName || "your pipeline"}</strong>, run the integrity gate,
           and register a data product in the marketplace.
         </p>
+
+        {awsDeployCheck && (
+          <div className={`deploy-aws-readiness ${awsMisconfigured ? "deploy-aws-readiness-warn" : ""}`}>
+            <p>
+              <strong>AWS Step Functions:</strong>{" "}
+              {awsDeployCheck.enabled
+                ? awsDeployCheck.roleConfigured
+                  ? "enabled — state machine will be created or updated"
+                  : "misconfigured on API server"
+                : "local compile only (AWS deploy off)"}
+            </p>
+            <p className="properties-hint">
+              {awsDeployCheck.message}
+              {awsDeployCheck.hint && (
+                <>
+                  {" "}
+                  <code>{awsDeployCheck.hint}</code>
+                </>
+              )}
+            </p>
+          </div>
+        )}
 
         {awsReview && (
           <div className="deploy-review-summary">
@@ -65,10 +89,20 @@ export default function DeployConfirmModal({
           </p>
         )}
 
-        <p className="modal-warning">
-          When <code>AWS_DEPLOY_ENABLED=true</code>, this also creates or updates AWS resources
-          (Step Functions, Glue jobs).
-        </p>
+        {!awsDeployCheck?.enabled && (
+          <p className="modal-warning">
+            Without <code>AWS_DEPLOY_ENABLED=true</code> and <code>AWS_STEP_FUNCTIONS_ROLE_ARN</code> on the API
+            server, deploy compiles locally and does not create a Step Functions state machine in AWS.
+          </p>
+        )}
+
+        {awsMisconfigured && (
+          <p className="modal-warning modal-error">
+            AWS deploy is enabled but <code>AWS_STEP_FUNCTIONS_ROLE_ARN</code> is missing. Set it from{" "}
+            <code>terraform output pipeline_orchestrator_role_arn</code> (dev) before expecting SFN in AWS.
+          </p>
+        )}
+
         <div className="modal-actions">
           <button type="button" className="btn-secondary" onClick={onCancel}>
             Cancel

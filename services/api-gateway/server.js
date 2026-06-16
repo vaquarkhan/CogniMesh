@@ -1,7 +1,7 @@
 "use strict";
 
 const path = require("path");
-require("dotenv").config({ path: path.join(__dirname, "../../.env") });
+require("../../lib/load-env").loadRepoEnv({ root: path.join(__dirname, "../..") });
 require("../../lib/tracing-otel").initOtel();
 
 const express = require("express");
@@ -86,7 +86,17 @@ async function deepHealth() {
       mode: catalogUp ? "remote" : embedded ? catalogStorageMode() : "unavailable",
     },
     auth: { ok: authDisabled || cognitoConfigured, mode: authDisabled ? "disabled" : cognitoConfigured ? "cognito" : "misconfigured" },
-    aws_deploy: { ok: !awsDeploy || awsRole, enabled: awsDeploy },
+    aws_deploy: {
+      ok: !awsDeploy || awsRole,
+      enabled: awsDeploy,
+      roleConfigured: awsRole,
+      message: awsDeploy && !awsRole
+        ? "AWS_DEPLOY_ENABLED=true but AWS_STEP_FUNCTIONS_ROLE_ARN is unset — deploy compiles locally only"
+        : awsDeploy
+          ? "Step Functions deploy enabled"
+          : "Set AWS_DEPLOY_ENABLED=true and AWS_STEP_FUNCTIONS_ROLE_ARN after terraform apply",
+      hint: "terraform -chdir=infra/terraform/environments/dev output -raw pipeline_orchestrator_role_arn",
+    },
     lineage_catalog: { ok: true, products: lineageCatalogSummary().totalProducts },
     execution_history: { ok: true, ...executionStats() },
     platform_ops: {

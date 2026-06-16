@@ -80,6 +80,11 @@ export default function PlatformOperationsPanel({
   const [pluginMsg, setPluginMsg] = useState(null);
   const [specSiteUrl, setSpecSiteUrl] = useState("");
 
+  useEffect(() => {
+    setDashboard(null);
+    setVersions([]);
+  }, [refreshKey]);
+
   const load = useCallback(async () => {
     if (!token) {
       setLoading(false);
@@ -180,7 +185,12 @@ export default function PlatformOperationsPanel({
     <aside className="deploy-panel platform-ops-panel">
       <div className="deploy-panel-header">
         <h2>Operations</h2>
-        <button type="button" className="btn-secondary" onClick={onClose}>Close</button>
+        <div className="platform-ops-header-actions">
+          <button type="button" className="btn-secondary" onClick={() => load()} disabled={loading}>
+            Refresh
+          </button>
+          <button type="button" className="btn-secondary" onClick={onClose}>Close</button>
+        </div>
       </div>
 
       <div className="platform-ops-tabs">

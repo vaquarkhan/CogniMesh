@@ -20,7 +20,7 @@ npm ci
 npm run dev:minimal    # API :4000 + portal :3000
 ```
 
-Portal dev server runs on **http://localhost:3000** (see `portal/vite.config.js`). The API loads `.env` from the repo root.
+Portal dev server runs on **http://localhost:3000** (see `portal/vite.config.js`). The API loads `.env` from the repo root; if `.env` is missing it falls back to `.env.example`.
 
 ## Running tests
 
@@ -59,7 +59,18 @@ npm run format:check
 
 ## AWS deploy (optional)
 
-Local deploy compiles contracts and runs PVDM simulation without AWS. For real Step Functions / Bedrock deploy, set variables from `.env.example` after `terraform apply` in `infra/terraform/environments/prod` or `dev`.
+Local deploy compiles contracts and runs PVDM simulation without AWS. For real Step Functions / Bedrock deploy:
+
+```bash
+cd infra/terraform/environments/dev
+terraform apply
+terraform output -json aws_deploy_env    # Step Functions + Vaquar buckets/Lambdas
+terraform output -json platform_env      # Bedrock agent role, Athena, DynamoDB
+```
+
+Copy values into `.env`, set `AWS_DEPLOY_ENABLED=true`, restart `npm run dev:api`. Without `AWS_STEP_FUNCTIONS_ROLE_ARN`, deploy succeeds locally but the portal shows an explicit warning that SFN was not pushed.
+
+**Live source preview:** set `DATA_PREVIEW_LIVE=true` on the API server (see `docs/PLATFORM_OPS.md`).
 
 ## Questions
 
