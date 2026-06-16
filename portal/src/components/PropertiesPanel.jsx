@@ -2,6 +2,8 @@ import { PIPELINE_META_TIPS, tipFor } from "../lib/field-tips";
 import { QUALITY_POLICIES, SCHEMA_EVOLUTION_POLICIES } from "../lib/data-quality-presets";
 import { AWS_SERVICES, PROCESSING_MODES } from "../lib/aws-services";
 import { applyProcessingTemplate } from "../lib/processing-templates";
+import DataPreviewButton from "./DataPreviewButton";
+import BusinessRulesEditor from "./BusinessRulesEditor";
 
 const SOURCE_TYPES = ["rds", "mysql", "s3", "kafka", "kinesis", "media_url", "api"];
 const TRANSFORM_TYPES = ["spark_sql", "glue_etl", "glue_streaming", "agentic", "passthrough"];
@@ -21,7 +23,16 @@ function Field({ label, tip, children }) {
   );
 }
 
-export default function PropertiesPanel({ node, onChange, pipelineMeta, onMetaChange, awsFindings }) {
+export default function PropertiesPanel({
+  node,
+  onChange,
+  pipelineMeta,
+  onMetaChange,
+  awsFindings,
+  token,
+  nodes,
+  edges,
+}) {
   if (!node) {
     return (
       <aside className="properties">
@@ -96,6 +107,9 @@ export default function PropertiesPanel({ node, onChange, pipelineMeta, onMetaCh
             <li>Connect branches like AWS Step Functions</li>
           </ul>
         </div>
+        {token && nodes?.length > 0 && (
+          <DataPreviewButton token={token} nodes={nodes} edges={edges} pipelineMeta={pipelineMeta} />
+        )}
       </aside>
     );
   }
@@ -215,6 +229,9 @@ export default function PropertiesPanel({ node, onChange, pipelineMeta, onMetaCh
               />
             </Field>
           )}
+          {token && nodes?.length > 0 && (
+            <DataPreviewButton token={token} nodes={nodes} edges={edges} pipelineMeta={pipelineMeta} />
+          )}
         </>
       )}
 
@@ -304,6 +321,10 @@ export default function PropertiesPanel({ node, onChange, pipelineMeta, onMetaCh
                     onChange={(e) => update({ maxNullPct: Number(e.target.value) })}
                   />
                 </Field>
+                <BusinessRulesEditor
+                  rules={d.businessRules || []}
+                  onChange={(businessRules) => update({ businessRules })}
+                />
               </div>
             </>
           )}

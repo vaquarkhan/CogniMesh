@@ -25,7 +25,7 @@ const {
 const { listRuns, stats: executionStats, recordRun } = require("../../lib/execution-history");
 const metrics = require("../../lib/metrics");
 const { startSpan } = require("../../lib/tracing");
-const { alertDeployFailure } = require("../../lib/alerting");
+const { mountPlatformRoutes, savePipelineVersion } = require("../../lib/platform");
 
 const PORT = process.env.PORT || 4000;
 const CATALOG_URL = process.env.CATALOG_URL || "http://localhost:8080";
@@ -49,6 +49,8 @@ app.use(express.json({ limit: BODY_LIMIT }));
 app.use(requestLogger);
 app.use("/api/v1", rateLimit);
 app.use("/api/v1", csrfProtection);
+
+mountPlatformRoutes(app, { requireAuth });
 
 async function deepHealth() {
   const embedded = fallbackEnabled();
@@ -345,9 +347,18 @@ app.post("/api/v1/pipelines/deploy", requireAuth, async (req, res) => {
   if (result.status === "success") {
     metrics.inc("deploy_success");
     if (result.lineage) metrics.inc("lineage_registered");
+    savePipelineVersion({
+      contract: result.contract,
+      manifestYaml: result.manifestYaml,
+      nodes,
+      edges: edges || [],
+      aws: result.aws,
+      userEmail: req.auth?.userEmail || req.auth?.email,
+    });
   } else {
     metrics.inc("deploy_failed");
-    await alertDeployFailure({
+    const { notifyPipelineFailure } = require("../../lib/platform/notifications");
+    await notifyPipelineFailure({
       pipelineName: result.contract?.metadata?.name || pipelineMeta?.name,
       domain: result.contract?.metadata?.domain || pipelineMeta?.domain,
       errors: result.errors,

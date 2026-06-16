@@ -1000,6 +1000,111 @@ body {
   border: 2px solid #0f1419 !important;
 }
 
+.platform-ops-panel {
+  max-width: 360px;
+  overflow-y: auto;
+}
+
+.platform-ops-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
+}
+
+.platform-ops-tabs button {
+  font-size: 0.7rem;
+  padding: 0.25rem 0.45rem;
+  border-radius: 4px;
+  border: 1px solid #334155;
+  background: #1e293b;
+  color: #e2e8f0;
+  cursor: pointer;
+}
+
+.platform-ops-tabs button.active {
+  background: #2563eb;
+  border-color: #3b82f6;
+}
+
+.platform-ops-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 0.8rem;
+}
+
+.platform-ops-list li {
+  padding: 0.35rem 0;
+  border-bottom: 1px solid #243044;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.badge-running {
+  color: #34d399;
+  font-size: 0.65rem;
+  font-weight: 700;
+}
+
+.data-preview-block {
+  margin-top: 1rem;
+}
+
+.data-preview-table {
+  width: 100%;
+  font-size: 0.65rem;
+  border-collapse: collapse;
+  margin-top: 0.5rem;
+}
+
+.data-preview-table th,
+.data-preview-table td {
+  border: 1px solid #334155;
+  padding: 0.2rem 0.35rem;
+  text-align: left;
+}
+
+.dq-rules-editor {
+  margin-top: 0.75rem;
+}
+
+.dq-rule-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 0.35rem;
+}
+
+.dq-rule-row input,
+.dq-rule-row select {
+  flex: 1;
+  min-width: 4rem;
+}
+
+.deploy-impact-summary {
+  background: #1e293b;
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  margin: 0.5rem 0;
+}
+
+.impact-consumer-list {
+  font-size: 0.75rem;
+  margin: 0.25rem 0 0 1rem;
+}
+
+.copilot-input {
+  width: 100%;
+  margin-bottom: 0.5rem;
+}
+
+.copilot-reply {
+  margin-top: 0.5rem;
+}
+
 @media (max-width: 1200px) {
   .main {
     grid-template-columns: 160px 1fr 220px;

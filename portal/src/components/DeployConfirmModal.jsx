@@ -1,7 +1,15 @@
-export default function DeployConfirmModal({ open, pipelineName, awsReview, onConfirm, onCancel }) {
+export default function DeployConfirmModal({
+  open,
+  pipelineName,
+  awsReview,
+  impact,
+  impactLoading,
+  onConfirm,
+  onCancel,
+}) {
   if (!open) return null;
 
-  const blocked = awsReview?.overall?.deployBlocked;
+  const blocked = awsReview?.overall?.deployBlocked || impact?.deployBlocked;
   const critical = awsReview?.overall?.criticalCount || 0;
 
   return (
@@ -31,9 +39,29 @@ export default function DeployConfirmModal({ open, pipelineName, awsReview, onCo
           </div>
         )}
 
+        {impactLoading && <p className="properties-hint">Analyzing deploy impact…</p>}
+
+        {impact && !impactLoading && (
+          <div className="deploy-impact-summary">
+            <p>
+              Impact analysis: <strong>{impact.blastRadius}</strong> blast radius
+            </p>
+            <p className="properties-hint">{impact.recommendation}</p>
+            {impact.affectedConsumers?.length > 0 && (
+              <ul className="impact-consumer-list">
+                {impact.affectedConsumers.slice(0, 4).map((c) => (
+                  <li key={c.consumerId}>
+                    {c.consumerId} ({c.risk}) — {c.reason}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+
         {blocked && (
           <p className="modal-warning modal-error">
-            Deploy is blocked until critical AWS security/architecture issues are resolved on the canvas.
+            Deploy is blocked until critical AWS issues or strict-schema impact review is resolved.
           </p>
         )}
 
@@ -45,8 +73,8 @@ export default function DeployConfirmModal({ open, pipelineName, awsReview, onCo
           <button type="button" className="btn-secondary" onClick={onCancel}>
             Cancel
           </button>
-          <button type="button" className="deploy-btn" onClick={onConfirm} disabled={blocked}>
-            {blocked ? "Fix AWS review first" : "Yes, deploy"}
+          <button type="button" className="deploy-btn" onClick={onConfirm} disabled={blocked || impactLoading}>
+            {blocked ? "Fix issues first" : "Yes, deploy"}
           </button>
         </div>
       </div>

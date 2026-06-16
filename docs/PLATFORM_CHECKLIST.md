@@ -55,6 +55,12 @@ Vaquar evaluation tracker.
 | 23 | Data freshness badge | ✅ | `MarketplacePanel.jsx` |
 | 24 | Backfill trigger | ✅ | `ExecutionHistoryPanel`, `/backfill` |
 | 25 | Execution history panel | ✅ | `ExecutionHistoryPanel.jsx` |
+| 32 | Operations panel (roadmap MVP) | ✅ | `PlatformOperationsPanel.jsx`, `lib/platform/` |
+| 33 | Deploy impact analysis | ✅ | `DeployConfirmModal.jsx`, `/api/v1/platform/impact` |
+| 34 | Source data preview | ✅ | `DataPreviewButton.jsx`, `/api/v1/platform/preview-source` |
+| 35 | Pipeline version rollback | ✅ | Operations → Versions, `/api/v1/platform/versions` |
+| 36 | Business DQ rules editor | ✅ | `BusinessRulesEditor.jsx`, `/api/v1/platform/dq/validate` |
+| 37 | Agent Deploy to AWS | ✅ | `AgentBuilderView.jsx`, `/api/v1/agents/deploy` |
 
 ## Documentation
 
@@ -89,7 +95,7 @@ Vaquar evaluation tracker.
 
 ```bash
 npm run start:dev        # API + portal, embedded catalog
-npm run test:unit        # lib + API gateway (30 tests)
+npm run test:unit        # lib + API gateway (57 tests)
 npm run test:portal-unit # portal vitest
 npm run test:portal      # vite production build
 npm test                 # integration suite

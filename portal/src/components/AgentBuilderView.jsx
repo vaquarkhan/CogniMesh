@@ -16,6 +16,7 @@ import AgentPreviewPanel from "./AgentPreviewPanel";
 import { useToast } from "./Toast";
 import { validateAgentBlocks } from "../lib/validate-agent-blocks";
 import { exportAgentManifest, downloadAgentManifest } from "../lib/agent-export";
+import { deployAgentManifest } from "../lib/platform-api";
 import { instantiateAgentTemplate, getAgentTemplateById } from "../lib/agent-templates";
 
 const nodeTypes = { agent: AgentNode };
@@ -27,7 +28,7 @@ function snapshot(nodes, edges) {
   return { nodes: JSON.parse(JSON.stringify(nodes)), edges: JSON.parse(JSON.stringify(edges)) };
 }
 
-export default function AgentBuilderView({ userEmail, authDisabled, onLogout, bootstrap, onBootstrapApplied }) {
+export default function AgentBuilderView({ userEmail, authDisabled, onLogout, token, bootstrap, onBootstrapApplied }) {
   const { success, error: toastError } = useToast();
   const reactFlowWrapper = useRef(null);
   const reactFlowInstance = useRef(null);
@@ -48,6 +49,7 @@ export default function AgentBuilderView({ userEmail, authDisabled, onLogout, bo
   const [previewError, setPreviewError] = useState(null);
   const [showPreview, setShowPreview] = useState(false);
   const [deployMessage, setDeployMessage] = useState(null);
+  const [deployLoading, setDeployLoading] = useState(false);
 
   const validation = useMemo(() => validateAgentBlocks(nodes, edges), [nodes, edges]);
 
@@ -197,6 +199,35 @@ export default function AgentBuilderView({ userEmail, authDisabled, onLogout, bo
     success("AgentCore manifest ready");
   };
 
+  const handleDeployToAws = async () => {
+    if (!validation.valid) {
+      toastError(validation.errors[0] || "Fix validation errors before deploy");
+      return;
+    }
+    const result = exportAgentManifest({ nodes, edges, agentMeta });
+    setDeployLoading(true);
+    setDeployMessage(null);
+    try {
+      const data = await deployAgentManifest(token, result.manifest);
+      setDeployMessage({
+        status: data.deployed ? "deployed" : data.simulated ? "simulated" : "failed",
+        agentName: agentMeta.name,
+        agentId: data.agentId,
+        message: data.message || data.reason || (data.errors?.[0]) || "Deploy finished",
+        plan: data.plan,
+      });
+      if (data.deployed || data.simulated) {
+        success(data.deployed ? `Agent deployed: ${data.agentId}` : "Agent deploy simulated — see banner");
+      } else {
+        toastError(data.errors?.[0] || "Agent deploy failed");
+      }
+    } catch (err) {
+      toastError(err.message || "Deploy API unavailable");
+    } finally {
+      setDeployLoading(false);
+    }
+  };
+
   const handleExportManifest = () => {
     if (!validation.valid) {
       toastError(validation.errors[0] || "Fix validation errors before export");
@@ -210,7 +241,7 @@ export default function AgentBuilderView({ userEmail, authDisabled, onLogout, bo
       runtime: result.manifest?.spec?.runtime?.framework,
       guardrails: result.manifest?.spec?.guardrails?.length || 0,
       message:
-        "Manifest downloaded. Agent Builder is design-only - it does not call AWS Bedrock Agent APIs yet. Deploy with aws bedrock-agent create-agent, Terraform, or a future CogniMesh agent-deploy API.",
+        "Manifest downloaded. Use Deploy to AWS for Bedrock CreateAgent (simulated locally unless AWS_AGENT_DEPLOY_ENABLED=true).",
     });
     success(`Manifest exported for "${agentMeta.name}"`);
   };
@@ -232,6 +263,14 @@ export default function AgentBuilderView({ userEmail, authDisabled, onLogout, bo
         </button>
         <button className="deploy-btn agent-deploy-btn" type="button" onClick={handleExportManifest} disabled={!nodes.length}>
           Export manifest
+        </button>
+        <button
+          className="deploy-btn agent-deploy-btn"
+          type="button"
+          onClick={handleDeployToAws}
+          disabled={!nodes.length || deployLoading}
+        >
+          {deployLoading ? "Deploying…" : "Deploy to AWS"}
         </button>
         {!authDisabled && onLogout && (
           <button className="btn-secondary" type="button" onClick={onLogout}>

@@ -82,26 +82,20 @@ Selected features are stored in `agentMeta.features` on the canvas instance.
 
 ## Step 6 - Validate and export
 
-Validation warns when guardrails are missing (production best practice). **Export manifest** downloads AgentCore YAML - the canvas is a **design tool**, not a live AWS provisioner.
+Validation warns when guardrails are missing (production best practice). **Export manifest** downloads AgentCore YAML, or use **Deploy to AWS** to call Bedrock CreateAgent (simulated locally unless `AWS_AGENT_DEPLOY_ENABLED=true`).
 
 ## Design tool vs AWS deploy
 
 | Capability | Data pipeline designer | Agent Builder |
 |------------|------------------------|---------------|
 | Canvas → artifact | DataContract YAML + Step Functions ASL | AgentCore manifest YAML |
-| CogniMesh **Deploy** button | **Wired** - integrity gate → catalog → optional Step Functions (`AWS_DEPLOY_ENABLED`) | **Not wired** - export manifest only |
-| AWS APIs called | Step Functions create/update (when enabled) | None (by design today) |
-| Natural next step | Run pipeline in AWS | `aws bedrock-agent create-agent`, Terraform module, or future agent-deploy API |
+| CogniMesh **Deploy** button | **Wired** - integrity gate → catalog → optional Step Functions (`AWS_DEPLOY_ENABLED`) | **Wired** - `POST /api/v1/agents/deploy` → Bedrock CreateAgent when enabled |
+| AWS APIs called | Step Functions create/update (when enabled) | Bedrock Agent create + alias (when `AWS_AGENT_DEPLOY_ENABLED=true`) |
+| Natural next step | Run pipeline in AWS | Guardrails, KB, and action groups via manifest follow-up APIs |
 
-Agent Builder is **working correctly** as a design + manifest generator. Zero bugs in that scope. One-click deploy to real Bedrock agents requires separate integration:
+Agent Builder is a **design + manifest + optional deploy** tool. Full resource provisioning (KB, guardrails, Lambda action groups) may require additional AWS API calls after CreateAgent — see `lib/platform/agent-deploy.js`.
 
-- Bedrock agent IAM execution role
-- Knowledge base creation (OpenSearch Serverless / AOSS)
-- Lambda action group registration
-- Guardrail creation in Bedrock
-- Agent alias and runtime association
-
-The exported manifest is **ready** for those tools - see `portal/src/lib/agent-export.js` and the cognitive runtime in `services/cognitive-runtime/`.
+The exported manifest is **ready** for Terraform/CLI — see `portal/src/lib/agent-export.js` and the cognitive runtime in `services/cognitive-runtime/`.
 
 **Pipeline deploy** (for comparison): `portal/src/App.jsx` → `deployPipeline()` → `lib/contract-builder/index.js` → `lib/aws/stepfunctions-deploy.js`.
 
@@ -116,6 +110,8 @@ The exported manifest is **ready** for those tools - see `portal/src/lib/agent-e
 | `portal/src/lib/agent-blocks.js` | Drag palette block defaults |
 | `portal/src/lib/agent-export.js` | Manifest YAML generation |
 | `portal/src/lib/validate-agent-blocks.js` | Pre-deploy graph validation |
+| `lib/platform/agent-deploy.js` | Bedrock CreateAgent deploy API |
+| `portal/src/lib/platform-api.js` | Portal client for platform routes |
 
 ## Related docs
 

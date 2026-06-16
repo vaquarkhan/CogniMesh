@@ -20,12 +20,14 @@ import ExecutionHistoryPanel from "./components/ExecutionHistoryPanel";
 import DeployConfirmModal from "./components/DeployConfirmModal";
 import WelcomeModal from "./components/WelcomeModal";
 import StewardApprovalsPanel from "./components/StewardApprovalsPanel";
+import PlatformOperationsPanel from "./components/PlatformOperationsPanel";
 import CanvasTipBar from "./components/CanvasTipBar";
 import MeshSwimlanes from "./components/MeshSwimlanes";
 import ToastStack, { useToast } from "./components/Toast";
 import MobileWarning from "./components/MobileWarning";
 import LoadingOverlay from "./components/LoadingOverlay";
 import { deployPipeline, previewPipeline, runAwsDesignReview, isApiReachable } from "./lib/api";
+import { analyzeImpact } from "./lib/platform-api";
 import AwsDesignReviewHUD from "./components/AwsDesignReviewHUD";
 import { validateBlocks, isWorkflowGraph } from "./lib/validate-blocks";
 import { formatApiErrors } from "./lib/format-api-errors";
@@ -96,6 +98,9 @@ export default function App() {
   const [catalogRefresh, setCatalogRefresh] = useState(0);
   const [showDeployConfirm, setShowDeployConfirm] = useState(false);
   const [showStewardApprovals, setShowStewardApprovals] = useState(false);
+  const [showPlatformOps, setShowPlatformOps] = useState(false);
+  const [deployImpact, setDeployImpact] = useState(null);
+  const [deployImpactLoading, setDeployImpactLoading] = useState(false);
   const [tipDismissed, setTipDismissed] = useState(false);
   const [awsReview, setAwsReview] = useState(null);
   const [awsReviewLoading, setAwsReviewLoading] = useState(false);
@@ -336,8 +341,41 @@ export default function App() {
       toastError(`${awsReview.overall.criticalCount} critical AWS issue(s) - fix in Design Review`);
       return;
     }
+    setDeployImpact(null);
+    setDeployImpactLoading(true);
     setShowDeployConfirm(true);
+    try {
+      const meta = { ...pipelineMeta, ownerEmail: userEmail };
+      const impact = await analyzeImpact(token, {
+        nodes,
+        edges,
+        pipelineMeta: meta,
+        changedColumns: [],
+      });
+      setDeployImpact(impact);
+    } catch {
+      setDeployImpact(null);
+    } finally {
+      setDeployImpactLoading(false);
+    }
   };
+
+  const handleVersionRollback = useCallback((data) => {
+    if (data.nodes?.length) {
+      setNodes(data.nodes);
+      setEdges(data.edges || []);
+      pushHistory(data.nodes, data.edges || []);
+    }
+    if (data.contract?.metadata) {
+      setPipelineMeta((m) => ({
+        ...m,
+        name: data.contract.metadata.name || m.name,
+        domain: data.contract.metadata.domain || m.domain,
+        version: data.contract.metadata.version || m.version,
+      }));
+    }
+    success(data.message || "Rolled back to saved version");
+  }, [setNodes, setEdges, pushHistory, success]);
 
   const confirmDeploy = async () => {
     setShowDeployConfirm(false);
@@ -403,6 +441,8 @@ export default function App() {
         open={showDeployConfirm}
         pipelineName={pipelineMeta.name}
         awsReview={awsReview}
+        impact={deployImpact}
+        impactLoading={deployImpactLoading}
         onConfirm={confirmDeploy}
         onCancel={() => setShowDeployConfirm(false)}
       />
@@ -452,6 +492,9 @@ export default function App() {
               </span>
             )}
           </button>
+          <button className="btn-secondary" type="button" onClick={() => setShowPlatformOps((v) => !v)}>
+            Operations
+          </button>
           <button className="btn-secondary" type="button" onClick={() => setShowExecutionHistory((v) => !v)}>
             Run History
           </button>
@@ -481,6 +524,7 @@ export default function App() {
           userEmail={userEmail}
           authDisabled={authDisabled}
           onLogout={logout}
+          token={token}
           bootstrap={agentBootstrap}
           onBootstrapApplied={() => setAgentBootstrap(null)}
         />
@@ -574,7 +618,21 @@ export default function App() {
           pipelineMeta={pipelineMeta}
           onMetaChange={setPipelineMeta}
           awsFindings={selectedId ? awsReview?.findingsByNode?.[selectedId] : null}
+          token={token}
+          nodes={nodes}
+          edges={edges}
         />
+
+        {showPlatformOps && (
+          <PlatformOperationsPanel
+            token={token}
+            pipelineMeta={pipelineMeta}
+            nodes={nodes}
+            edges={edges}
+            onRollback={handleVersionRollback}
+            onClose={() => setShowPlatformOps(false)}
+          />
+        )}
 
         {showStewardApprovals && <StewardApprovalsPanel token={token} refreshKey={catalogRefresh} />}
 
