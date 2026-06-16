@@ -10,9 +10,11 @@
 </p>
 
 <p align="center">
-  <a href="docs/DISTRIBUTION.md#docker-recommended-for-local-full-stack"><img src="https://img.shields.io/badge/Docker-Compose-2496ED?style=flat-square&logo=docker&logoColor=white" alt="Docker" /></a>
+  <a href="https://pypi.org/project/cognimesh/"><img alt="PyPI version" src="https://img.shields.io/pypi/v/cognimesh?style=flat-square&logo=pypi&logoColor=white" /></a>
+  <a href="https://pypi.org/project/cognimesh/"><img alt="PyPI downloads" src="https://img.shields.io/pypi/dm/cognimesh?style=flat-square&logo=pypi&logoColor=white" /></a>
+  <a href="https://github.com/vaquarkhan/CogniMesh/pkgs/container/cognimesh-api"><img alt="Docker on GHCR" src="https://img.shields.io/badge/ghcr.io-cognimesh-2496ED?style=flat-square&logo=docker&logoColor=white" /></a>
+  <a href="https://github.com/vaquarkhan/CogniMesh/actions/workflows/publish.yml"><img alt="Publish CI" src="https://github.com/vaquarkhan/CogniMesh/actions/workflows/publish.yml/badge.svg" /></a>
   <a href="docs/DISTRIBUTION.md#npm-nodejs"><img src="https://img.shields.io/badge/npm-1.0.0-CB3837?style=flat-square&logo=npm&logoColor=white" alt="npm" /></a>
-  <a href="https://pypi.org/project/cognimesh/"><img src="https://img.shields.io/pypi/v/cognimesh?style=flat-square&logo=pypi&logoColor=white&label=PyPI" alt="PyPI cognimesh" /></a>
   <a href="docs/DISTRIBUTION.md#maven-java-catalog"><img src="https://img.shields.io/badge/Maven-catalog-ED8B00?style=flat-square&logo=apachemaven&logoColor=white" alt="Maven" /></a>
   <a href="docs/DISTRIBUTION.md#go-cognitive-runtime"><img src="https://img.shields.io/badge/Go-runtime-00ADD8?style=flat-square&logo=go&logoColor=white" alt="Go" /></a>
 </p>
@@ -37,6 +39,16 @@
 
 <p align="center">
   Zero-code pipelines · Proof-gated publication · Agentic AI · Fine-grained governance
+</p>
+
+<p align="center">
+  <a href="docs/assets/cognimesh-portal-demo.mp4">
+    <img src="docs/assets/cognimesh-portal-demo.gif" alt="CogniMesh portal demo: pick a Data Mesh pattern, use AI Builder, review on canvas, preview YAML, open Marketplace and Operations, switch to Agent Builder" width="960" />
+  </a>
+  <br />
+  <em>End-to-end UI walkthrough (click for HD MP4) · patterns → AI Builder → deploy preview → Operations</em>
+  <br />
+  <code>npm run docs:demo</code> to regenerate · needs portal build + Playwright · optional ffmpeg for MP4/GIF
 </p>
 
 <p align="center">
@@ -83,7 +95,7 @@ Built on **[The Vaquar Pattern](docs/vaquar-pattern.md)** by [Vaquarkhan](https:
 
 **Design data products visually. Prove them before publish. Operate them in production. Let consumers discover and access governed datasets on AWS, with contracts instead of tribal knowledge.**
 
-CogniMesh is a full **data mesh control plane**: zero-code portal, proof-gated writes ([Vaquar Pattern](docs/vaquar-pattern.md)), marketplace, and an **Operations** layer for live ops, cost, lineage, and steward workflows. **v1.0.0** ships on [Docker](docs/DISTRIBUTION.md), [PyPI](https://pypi.org/project/cognimesh/1.0.0/), and Terraform.
+CogniMesh is a full **data mesh control plane**: zero-code portal, proof-gated writes ([Vaquar Pattern](docs/vaquar-pattern.md)), marketplace, and an **Operations** layer for live ops, cost, lineage, and steward workflows. **v1.0.0** ships on [Docker (GHCR)](https://github.com/vaquarkhan/CogniMesh/pkgs/container/cognimesh-api), [PyPI](https://pypi.org/project/cognimesh/), and Terraform.
 
 ### Design & build (zero code)
 
@@ -394,6 +406,8 @@ Data pipeline (preview plan + natural-language explanation) · AI agent → Agen
 
 Regenerate all UI images: `npm run docs:screenshots` (builds portal, starts API + preview, writes `docs/assets/` and `docs/images/`).
 
+Regenerate the README demo GIF/MP4: `npm run docs:demo` (Playwright records a ~25s walkthrough; install [ffmpeg](https://ffmpeg.org/) for MP4/GIF export).
+
 **Agent Builder:** use feature checkboxes (guardrails, memory, KB, tools) when creating agents - see **[docs/AGENT_BUILDER.md](docs/AGENT_BUILDER.md)**.
 
 <details>
@@ -529,9 +543,9 @@ Install and run CogniMesh via Docker, npm, PyPI, Maven, or Go. Full details: **[
 
 | Channel | Install | Use case |
 |---------|---------|----------|
-| **Docker** | `docker compose up --build` | Full stack - no local Java/Maven |
+| **Docker** | [`docker compose up --build`](docs/DISTRIBUTION.md#docker-recommended-for-local-full-stack) · [pull from GHCR](https://github.com/vaquarkhan/CogniMesh/pkgs/container/cognimesh-api) | Full stack - no local Java/Maven |
 | **npm** | `npm install && npm start` | Monorepo dev - API, portal, contract compiler |
-| **PyPI** | `pip install cognimesh` | Python SDK + CLI for contracts & API |
+| **PyPI** | [`pip install cognimesh`](https://pypi.org/project/cognimesh/) | Python SDK + CLI for contracts & API |
 | **Maven** | `cd services/catalog && mvn spring-boot:run` | Marketplace catalog service |
 | **Go** | `cd services/cognitive-runtime && go run ./cmd/controller` | Cognitive epoch runtime |
 
@@ -544,9 +558,9 @@ docker compose up --build
 
 | Image | Tag |
 |-------|-----|
-| `ghcr.io/vaquarkhan/cognimesh-api` | `1.0.0` |
-| `ghcr.io/vaquarkhan/cognimesh-portal` | `1.0.0` |
-| `ghcr.io/vaquarkhan/cognimesh-catalog` | `1.0.0` |
+| [`ghcr.io/vaquarkhan/cognimesh-api`](https://github.com/vaquarkhan/CogniMesh/pkgs/container/cognimesh-api) | `1.0.0` |
+| [`ghcr.io/vaquarkhan/cognimesh-portal`](https://github.com/vaquarkhan/CogniMesh/pkgs/container/cognimesh-portal) | `1.0.0` |
+| [`ghcr.io/vaquarkhan/cognimesh-catalog`](https://github.com/vaquarkhan/CogniMesh/pkgs/container/cognimesh-catalog) | `1.0.0` |
 
 ### PyPI
 

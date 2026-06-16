@@ -28,6 +28,8 @@ coverage/
 test-results/
 playwright-report/
 playwright/.cache/
+docs/assets/.demo-video-tmp/
+docs/assets/*.webm
 
 # Portal local overrides
 portal/.env.local

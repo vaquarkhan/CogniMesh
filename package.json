@@ -21,6 +21,7 @@
     "test:portal-unit": "npm test --prefix portal",
     "test:portal-e2e": "node scripts/test-portal-e2e.js",
     "docs:screenshots": "node scripts/capture-portal-screenshots.js",
+    "docs:demo": "node scripts/capture-portal-demo.js",
     "docs:tutorials": "npm test --prefix portal -- src/scripts/generate-tutorial-docs.test.js",
     "start:dev": "node scripts/start-dev.js",
     "lint": "eslint lib services scripts portal/src services/api-gateway --ext .js,.jsx",
