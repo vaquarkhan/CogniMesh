@@ -31,13 +31,32 @@ const vitest = spawnSync(npm, ["exec", "vitest", "--version"], {
 });
 
 if (vitest.status !== 0) {
-  console.error("Portal vitest is not available after npm install.");
-  process.exit(1);
-}
-
-const version = (vitest.stdout || "").trim();
-if (version) {
-  console.log(`Portal vitest ${version} ready`);
+  console.warn("Portal vitest missing — retrying portal npm install once…");
+  const retry = spawnSync(npm, ["install"], {
+    cwd: portalDir,
+    stdio: "inherit",
+    env: { ...process.env, COGNIMESH_SKIP_PORTAL_INSTALL: "1" },
+  });
+  if (retry.status !== 0) {
+    process.exit(retry.status ?? 1);
+  }
+  const vitest2 = spawnSync(npm, ["exec", "vitest", "--version"], {
+    cwd: portalDir,
+    stdio: "pipe",
+    encoding: "utf8",
+    env: { ...process.env, COGNIMESH_SKIP_PORTAL_INSTALL: "1" },
+  });
+  if (vitest2.status !== 0) {
+    console.error("Portal vitest is not available after npm install.");
+    process.exit(1);
+  }
+  const version2 = (vitest2.stdout || "").trim();
+  if (version2) console.log(`Portal vitest ${version2} ready`);
+} else {
+  const version = (vitest.stdout || "").trim();
+  if (version) {
+    console.log(`Portal vitest ${version} ready`);
+  }
 }
 
 // Optional: run portal unit tests during CI npm ci (skipped locally unless forced)

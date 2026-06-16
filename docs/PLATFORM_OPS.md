@@ -37,7 +37,8 @@ Portal entry: header **Operations** panel
 | `DATA_PREVIEW_LIVE=true` | S3 + local file live sampling |
 | `DATA_PREVIEW_ATHENA=true` | Athena `SELECT` preview (`ATHENA_OUTPUT_LOCATION` required) |
 | `DATA_PREVIEW_JDBC=true` | JDBC / RDS Data API preview |
-| `DEPLOY_APPROVAL_REQUIRED=true` | Deploy queues for steward approval |
+| `DEPLOY_APPROVAL_REQUIRED=true` | Deploy queues for steward approval (Steward → **Approvals** panel) |
+| `AWS_DEPLOY_ENABLED=true` | Create/update Step Functions on deploy (`AWS_STEP_FUNCTIONS_ROLE_ARN` required) |
 | `COPILOT_LLM_ENABLED=true` | Bedrock LLM copilot (`COPILOT_BEDROCK_MODEL_ID`) |
 | `AWS_IMPORT_ENABLED=true` | Live Step Functions describe for import |
 | `AWS_AGENT_DEPLOY_ENABLED=true` | Bedrock CreateAgent + KB/guardrail association |

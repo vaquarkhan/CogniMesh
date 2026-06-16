@@ -1920,6 +1920,24 @@ body {
   color: #c7d2fe;
 }
 
+.agent-deploy-banner.agent-deploy-deployed {
+  background: #14532d;
+  border-color: #22c55e;
+  color: #bbf7d0;
+}
+
+.agent-deploy-banner.agent-deploy-simulated {
+  background: #422006;
+  border-color: #f59e0b;
+  color: #fde68a;
+}
+
+.agent-deploy-banner.agent-deploy-failed {
+  background: #450a0a;
+  border-color: #ef4444;
+  color: #fecaca;
+}
+
 .agent-preview-panel {
   max-width: 420px;
 }

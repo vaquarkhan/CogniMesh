@@ -19,12 +19,20 @@ export default defineConfig(({ mode }) => {
           target: apiTarget,
           changeOrigin: true,
         },
+        "/health": {
+          target: apiTarget,
+          changeOrigin: true,
+        },
       },
     },
     preview: {
       port: 4173,
       proxy: {
         "/api": {
+          target: apiTarget,
+          changeOrigin: true,
+        },
+        "/health": {
           target: apiTarget,
           changeOrigin: true,
         },

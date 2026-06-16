@@ -1,13 +1,14 @@
 "use strict";
 
-require("dotenv").config();
+const path = require("path");
+require("dotenv").config({ path: path.join(__dirname, "../../.env") });
 
 const express = require("express");
 const cors = require("cors");
-const path = require("path");
 const { deployPipeline, previewPipeline } = require("../../lib/contract-builder");
 const { requireAuth } = require("./middleware/auth");
 const { csrfProtection } = require("./middleware/csrf");
+const { securityHeaders } = require("./middleware/security-headers");
 const { rateLimit } = require("./middleware/rate-limit");
 const { requestLogger, structuredLog } = require("./middleware/logger");
 const {
@@ -33,6 +34,7 @@ const CATALOG_URL = process.env.CATALOG_URL || "http://localhost:8080";
 const ALLOWED_ORIGINS = (process.env.CORS_ORIGINS || "http://localhost:3000").split(",");
 
 const app = express();
+app.use(securityHeaders);
 app.use(
   cors({
     origin: ALLOWED_ORIGINS,
@@ -517,6 +519,14 @@ app.get("/api/v1/products/:id", requireAuth, (req, res) => {
 });
 
 if (require.main === module) {
+  process.on("uncaughtException", (err) => {
+    console.error(JSON.stringify({ ts: new Date().toISOString(), event: "uncaught_exception", message: err.message, stack: err.stack }));
+  });
+  process.on("unhandledRejection", (reason) => {
+    const message = reason instanceof Error ? reason.message : String(reason);
+    console.error(JSON.stringify({ ts: new Date().toISOString(), event: "unhandled_rejection", message }));
+  });
+
   const { bootstrapPlatformStores } = require("../../lib/platform/bootstrap-stores");
   bootstrapPlatformStores()
     .then((info) => {

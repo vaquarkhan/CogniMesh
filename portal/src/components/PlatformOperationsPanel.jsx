@@ -47,6 +47,7 @@ export default function PlatformOperationsPanel({
   pipelineMeta,
   nodes,
   edges,
+  refreshKey = 0,
   onRollback,
   onImport,
   onClose,
@@ -148,14 +149,14 @@ export default function PlatformOperationsPanel({
     } finally {
       setLoading(false);
     }
-  }, [tab, token, pipelineMeta, nodes, edges]);
+  }, [tab, token, pipelineMeta, nodes, edges, refreshKey]);
 
   useEffect(() => {
     load();
     if (tab !== "dashboard") return undefined;
     const id = setInterval(load, 15000);
     return () => clearInterval(id);
-  }, [load, tab]);
+  }, [load, tab, refreshKey]);
 
   const handleRollback = async (versionId) => {
     try {

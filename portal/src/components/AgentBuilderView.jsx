@@ -288,8 +288,21 @@ export default function AgentBuilderView({ userEmail, authDisabled, onLogout, to
 
         <div className="canvas-column">
           {deployMessage && (
-            <div className="agent-deploy-banner">
-              <strong>{deployMessage.agentName}</strong> · {deployMessage.runtime} · {deployMessage.guardrails} guardrail(s) · {deployMessage.message}
+            <div className={`agent-deploy-banner agent-deploy-${deployMessage.status}`}>
+              <strong>
+                {deployMessage.status === "deployed"
+                  ? "Deployed to Bedrock"
+                  : deployMessage.status === "simulated"
+                    ? "Local simulation (not on AWS)"
+                    : deployMessage.status === "exported"
+                      ? "Manifest exported"
+                      : "Deploy failed"}
+              </strong>
+              <span>
+                {deployMessage.agentName}
+                {deployMessage.agentId ? ` · ${deployMessage.agentId}` : ""}
+              </span>
+              <p className="properties-hint">{deployMessage.message}</p>
             </div>
           )}
 

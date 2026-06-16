@@ -110,6 +110,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "checkpoint" {
   rule {
     id     = "expire-checkpoints"
     status = "Enabled"
+    filter {}
     expiration { days = var.checkpoint_retention_days }
   }
 }
@@ -119,6 +120,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "proof" {
   rule {
     id     = "expire-proofs"
     status = "Enabled"
+    filter {}
     expiration { days = var.proof_retention_days }
   }
 }

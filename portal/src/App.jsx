@@ -34,6 +34,14 @@ import { formatApiErrors } from "./lib/format-api-errors";
 import { useAuth } from "./auth/AuthContext";
 import { instantiatePattern, getPatternById } from "./lib/pipeline-patterns";
 
+function deploySuccessToast(data) {
+  if (data?.aws?.deployed) return "Pipeline deployed to AWS Step Functions";
+  if (data?.status === "success") {
+    return "Pipeline compiled locally (PVDM + catalog). AWS Step Functions not deployed - see Deploy panel.";
+  }
+  return "Pipeline deployed successfully";
+}
+
 const nodeTypes = { pipeline: PipelineNode };
 
 let nodeId = 0;
@@ -411,7 +419,7 @@ export default function App() {
         setCatalogRefresh((k) => k + 1);
         setShowExecutionHistory(true);
         setShowMarketplace(true);
-        success("Pipeline deployed successfully");
+        success(deploySuccessToast(data));
       } else {
         const errs = data.errors || data.validation?.errors || data.integrityGate?.errors || ["Deploy failed"];
         setDeployError(errs);
@@ -648,6 +656,7 @@ export default function App() {
             pipelineMeta={pipelineMeta}
             nodes={nodes}
             edges={edges}
+            refreshKey={catalogRefresh}
             onRollback={handleVersionRollback}
             onImport={handleAwsImport}
             onClose={() => setShowPlatformOps(false)}

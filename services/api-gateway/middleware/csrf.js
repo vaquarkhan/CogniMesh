@@ -1,6 +1,9 @@
 "use strict";
 
-const ALLOWED = (process.env.CORS_ORIGINS || "http://localhost:3000")
+const ALLOWED = (
+  process.env.CORS_ORIGINS ||
+  "http://localhost:3000,http://localhost:5173,http://localhost:4173"
+)
   .split(",")
   .map((o) => o.trim())
   .filter(Boolean);
