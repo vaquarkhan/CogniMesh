@@ -67,10 +67,120 @@ Built on **[The Vaquar Pattern](docs/vaquar-pattern.md)** by [Vaquarkhan](https:
 
 ---
 
+## Why CogniMesh — everything in one place
+
+**Design data products visually. Prove them before publish. Operate them in production. Let consumers discover and access governed datasets — on AWS, with contracts, not tribal knowledge.**
+
+CogniMesh is a full **data mesh control plane**: zero-code portal, proof-gated writes ([Vaquar Pattern](docs/vaquar-pattern.md)), marketplace, and an **Operations** layer for live ops, cost, lineage, and steward workflows. **v1.0.0** ships on [Docker](docs/DISTRIBUTION.md), [PyPI](https://pypi.org/project/cognimesh/1.0.0/), and Terraform.
+
+### Design & build (zero code)
+
+| You get | What it means |
+|---------|----------------|
+| **Visual pipeline designer** | Drag Source → Transform → Sink on React Flow — no YAML hand-editing required |
+| **28+ architecture patterns** | Data Mesh, Lakehouse, Kappa, Lambda λ, medallion, CDC, fraud, healthcare FHIR, GenAI RAG, and more |
+| **AWS-native blocks** | Glue, Kinesis, MSK, DMS, Firehose, Step Functions Parallel/Choice/Map |
+| **AI Pipeline Designer** | Describe a pipeline in English → auto-load pattern + blocks + explanation |
+| **Agent Builder** | Bedrock AgentCore canvas — templates, guardrails, KB, tools, manifest export |
+| **AI Agent Generator** | Natural language → agent graph in Agent Builder |
+| **AWS Design Review** | Live security/architecture score before deploy |
+| **DataContract compiler** | Graph → `cognimesh.io/v1` YAML + Step Functions ASL + Vaquar mesh artifacts |
+| **Business rules editor** | DQ rules on transform blocks → Spark SQL expressions |
+| **Undo / redo · toasts · mobile-aware** | Production-grade portal UX |
+
+→ [Pattern catalog](docs/PORTAL_UI.md) · [26 pipeline + 8 agent tutorials](docs/tutorials/README.md) · [Developer customization](docs/developer/README.md)
+
+### Trust & proof (Vaquar Pattern)
+
+| You get | What it means |
+|---------|----------------|
+| **Integrity gate** | Design-time policy checks before anything hits AWS |
+| **PVDM runtime** | Physical → Verify → Durable → Metadata — proof before Iceberg commit |
+| **VRP verification** | Cryptographic row proof — PASS/FAIL per run |
+| **IceGuard checkpoints** | Durable rollback on failed commits |
+| **Run History + observability** | VRP badges, drop trends, pass rate, S3 proof/console deep links |
+| **Deploy Vaquar tab** | Full proof panel at deploy time |
+
+→ [The Vaquar Pattern](docs/vaquar-pattern.md) · [Top 3 product loop](docs/TOP3_FEATURES.md)
+
+### Deploy & run on AWS
+
+| You get | What it means |
+|---------|----------------|
+| **One-click deploy** | Integrity gate → catalog register → SFN compile → optional live execution |
+| **Live Step Functions status** | Running / Succeeded / Failed with AWS Console links |
+| **Deploy impact analysis** | Blast radius before you confirm |
+| **Deploy approval workflow** | Steward gate when `DEPLOY_APPROVAL_REQUIRED=true` |
+| **Pipeline versioning & rollback** | Snapshots per deploy — diff versions, roll back canvas |
+| **Import existing assets** | Pull Glue jobs or Step Functions into the canvas |
+| **Agent deploy to Bedrock** | CreateAgent + KB/guardrail association |
+| **Multi-cloud compile targets** | AWS-first with extension points |
+
+### Operations panel (platform ops)
+
+Open **Operations** in the portal header — your control tower after deploy:
+
+| Tab | Capability |
+|-----|------------|
+| **Live ops** | Dashboard of pipelines, status, running jobs |
+| **Versions** | History, side-by-side contract diff, rollback |
+| **Health** | Per-product health scores + SLA subscriptions |
+| **Cost** | Domain cost attribution dashboard |
+| **Columns** | Column-level lineage from canvas schema |
+| **Federated** | Cross-org mesh product catalog |
+| **Billing** | Cross-org usage and rate-card billing |
+| **Audit** | Compliance report — JSON, Markdown, printable HTML |
+| **Multi-cloud** | Deploy target registry |
+| **Plugins** | Custom source/transform/sink blocks (sandboxed registry) |
+| **Copilot** | Rule-based + optional **Bedrock LLM** ops assistant |
+| **Open spec** | Machine-readable contract spec + public HTML site |
+| **Import** | SFN ARN or Glue job → canvas |
+| **Alerts** | Notification channel config |
+
+**Live data preview:** sample rows from S3, **Athena**, or **JDBC/RDS Data API** on source blocks.
+
+→ [Platform Operations API](docs/PLATFORM_OPS.md)
+
+### Govern & consume (marketplace)
+
+| You get | What it means |
+|---------|----------------|
+| **Data product marketplace** | Producers publish; consumers discover schema + samples |
+| **Request access workflow** | Consumer requests → steward **Approvals** panel |
+| **Lake Formation grants** | SELECT on approve (real AWS or local simulation) |
+| **Lineage catalog** | Medallion graph, schema evolution, freshness badges |
+| **PII & row/column policies** | `piiClassification`, `rowFilters`, `columnMasks` on contracts |
+| **Athena consumer links** | Pre-filled query from product detail |
+
+### Production & platform engineering
+
+| You get | What it means |
+|---------|----------------|
+| **Production Terraform** | VPC, S3 medallion, Cognito (invite-only), Lambda, SFN, EKS, CloudFront |
+| **Platform-ops module** | DynamoDB platform state, Athena workgroup, Bedrock/RDS Data API IAM |
+| **DynamoDB persistence** | Versions, approvals, plugins, billing — `PLATFORM_STORE=dynamodb` |
+| **Docker images (GHCR)** | `cognimesh-api`, `cognimesh-portal`, `cognimesh-catalog` @ **1.0.0** |
+| **Python SDK (PyPI)** | `pip install cognimesh==1.0.0` — validate contracts, health, lineage CLI |
+| **CI + tests** | Unit, portal E2E (Playwright), integration, Terraform validate |
+| **OpenAPI** | `docs/openapi.yaml` + `/schemas/data-contract-v1.schema.json` |
+| **Structured logs · metrics · audit API** | `/health`, `/metrics`, `/api/v1/audit` |
+
+### Cognitive & agentic pipelines
+
+| You get | What it means |
+|---------|----------------|
+| **Bedrock agent transforms** | Agentic blocks with compensation handlers |
+| **Go cognitive runtime** | Epoch, frontier, compensation on EKS |
+| **Bedrock Agent MCP** | Tooling surface for agent workflows |
+| **Media / document cognitive patterns** | URL → agent → enriched Iceberg gold |
+
+---
+
 ## Table of contents
 
 | | Section |
 |---|---------|
+| ✨ | [Why CogniMesh — feature list](#why-cognimesh--everything-in-one-place) |
 | 🏗️ | [System architecture](#system-architecture) |
 | 📐 | [Pipeline E2E diagram](docs/PIPELINE_E2E_DIAGRAM.md) |
 | 🔄 | [End-to-end journey](#end-to-end-journey) |
@@ -80,7 +190,6 @@ Built on **[The Vaquar Pattern](docs/vaquar-pattern.md)** by [Vaquarkhan](https:
 | 🔀 | [Dual pipeline model](#dual-pipeline-model) |
 | 🏪 | [Marketplace](#marketplace--governance) |
 | ☁️ | [Terraform](#aws-infrastructure-terraform) |
-| ✅ | [Feature matrix](#feature-matrix) |
 | 📦 | [Distribution](#distribution) |
 | 🚀 | [Quick start](#quick-start) |
 | 📚 | [Documentation](#documentation) |
@@ -362,32 +471,9 @@ flowchart TB
 | `orchestration` | Step Functions |
 | `eks` | Cognitive runtime |
 | `portal-cdn` | CloudFront + S3 portal |
+| `platform-ops` | DynamoDB state · Athena · Bedrock/RDS IAM |
 
 → [Terraform guide](infra/terraform/README.md)
-
----
-
-## Feature matrix
-
-<details open>
-<summary><b>All features implemented</b></summary>
-
-| Feature | Location |
-|---------|----------|
-| Zero-code portal | `portal/` |
-| DataContract schema | `schemas/` |
-| Graph → contract compiler | `lib/contract-builder/` |
-| **[Vaquar Pattern](docs/vaquar-pattern.md)** | `docs/vaquar-pattern.md`, `lib/vaquar/` |
-| PVDM runtime (IceGuard · VRP) | `services/pvdm-runtime/` |
-| Integrity gate | `lib/integrity-gate/`, `rules/` |
-| API + JWT | `services/api-gateway/` |
-| Marketplace catalog | `services/catalog/` |
-| Bedrock Agent MCP | `services/agent-mcp/` |
-| Cognitive runtime | `services/cognitive-runtime/` |
-| Production Terraform | `infra/terraform/` |
-| CI + tests | `.github/workflows/`, `scripts/test-*.js` |
-
-</details>
 
 ---
 
@@ -455,10 +541,12 @@ npm start
 ### Tests
 
 ```bash
-npm test                 # offline unit/e2e (no servers)
-npm run dev:api          # API only - embedded catalog, no Java
-npm run dev:minimal      # API + portal (no catalog)
-npm run test:api         # SKIPs marketplace when catalog offline
+npm run test:unit         # 74+ unit tests (platform, API, compiler, gate)
+npm run test:portal-e2e   # Playwright — Operations panel + approvals
+npm test                  # offline integration (no servers)
+npm run dev:api           # API only — embedded catalog, no Java
+npm run dev:minimal       # API + portal (no catalog)
+npm run test:api          # SKIPs marketplace when catalog offline
 ```
 
 ### Docker Compose (full stack, no local Java/Maven)
@@ -497,7 +585,8 @@ CogniMesh/
 ├── lib/
 │   ├── vaquar/             # contract → mesh · PVDM SFN
 │   ├── contract-builder/   # Graph → deploy orchestration
-│   └── integrity-gate/     # Design-time rules
+│   ├── integrity-gate/     # Design-time rules
+│   └── platform/           # Operations APIs · store · copilot · plugins
 ├── docs/
 │   └── vaquar-pattern.md   # ⭐ The Vaquar Pattern (author: Vaquarkhan)
 ├── infra/terraform/          # Production IaC
