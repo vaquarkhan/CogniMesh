@@ -3,7 +3,7 @@
 
 /**
  * HTTP E2E: health -> preview -> deploy -> marketplace list
- * Requires API on :4000. Catalog (Spring Boot :8080) is optional — tests SKIP when offline.
+ * Requires API on :4000. Catalog (Spring Boot :8080) is optional - tests SKIP when offline.
  */
 require("dotenv").config();
 
@@ -86,7 +86,7 @@ async function run() {
   } else {
     console.log(`   ${products.length} product(s)`);
     if (products.length === 0 && !(await catalogRemoteUp())) {
-      console.log("   (embedded fallback active — deploy may register on next run)");
+      console.log("   (embedded fallback active - deploy may register on next run)");
     }
   }
 

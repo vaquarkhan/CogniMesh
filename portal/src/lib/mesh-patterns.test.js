@@ -13,7 +13,7 @@ describe("datamesh patterns", () => {
     expect(branches.has("inventory")).toBe(true);
     expect(branches.has("customers")).toBe(true);
 
-    expect(inst.nodes.find((n) => n.data.label === "Orders RDS")?.data.meshAccount).toBe(
+    expect(inst.nodes.find((n) => n.data.label === "Commerce RDS")?.data.meshAccount).toBe(
       MESH_DOMAIN_BRANCHES.orders.accountId
     );
     expect(inst.nodes.find((n) => n.data.label === "Inventory Kafka")?.data.meshRegion).toBe(

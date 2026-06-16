@@ -7,15 +7,39 @@ function authHeaders(token) {
 }
 
 async function apiFetch(path, options = {}) {
+  const { token, headers: extraHeaders, ...fetchOptions } = options;
   const res = await fetch(`${API_BASE}${path}`, {
     credentials: "include",
-    ...options,
+    ...fetchOptions,
     headers: {
-      ...authHeaders(options.token),
-      ...options.headers,
+      ...authHeaders(token),
+      ...extraHeaders,
     },
   });
   return res;
+}
+
+/** Never throws SyntaxError - returns null when body is HTML/plain text or API is down. */
+export async function parseJsonResponse(res, context = "API") {
+  const text = await res.text();
+  if (!text || !text.trim()) {
+    return null;
+  }
+  const trimmed = text.trim();
+  if (trimmed.startsWith("<") || trimmed.startsWith("<!")) {
+    console.warn(`${context}: received HTML instead of JSON (${res.status})`);
+    return null;
+  }
+  try {
+    return JSON.parse(text);
+  } catch {
+    console.warn(`${context}: invalid JSON (${res.status})`, trimmed.slice(0, 80));
+    return null;
+  }
+}
+
+async function safeJson(res, context) {
+  return parseJsonResponse(res, context);
 }
 
 export async function previewPipeline({ nodes, edges, pipelineMeta, token }) {
@@ -24,7 +48,11 @@ export async function previewPipeline({ nodes, edges, pipelineMeta, token }) {
     token,
     body: JSON.stringify({ nodes, edges, pipelineMeta }),
   });
-  return res.json();
+  const data = await safeJson(res, "Preview");
+  if (!data) {
+    return { status: "error", errors: ["API unavailable - run npm run start:dev (port 4000) for preview."] };
+  }
+  return data;
 }
 
 export async function deployPipeline({ nodes, edges, pipelineMeta, token }) {
@@ -33,7 +61,10 @@ export async function deployPipeline({ nodes, edges, pipelineMeta, token }) {
     token,
     body: JSON.stringify({ nodes, edges, pipelineMeta }),
   });
-  const data = await res.json();
+  const data = await safeJson(res, "Deploy");
+  if (!data) {
+    return { ok: false, data: { errors: ["API unavailable - run npm run start:dev for deploy."] } };
+  }
   return { ok: res.ok, data };
 }
 
@@ -41,34 +72,44 @@ export async function listProducts({ token, domain } = {}) {
   const qs = domain ? `?domain=${encodeURIComponent(domain)}` : "";
   const res = await apiFetch(`/api/v1/products${qs}`, { token });
   if (!res.ok) throw new Error("Failed to load marketplace");
-  return res.json();
+  const data = await safeJson(res, "Products");
+  if (!data) throw new Error("Marketplace API unavailable");
+  return data;
 }
 
 export async function listLineageCatalog({ token, domain } = {}) {
   const qs = domain ? `?domain=${encodeURIComponent(domain)}` : "";
   const res = await apiFetch(`/api/v1/lineage/catalog${qs}`, { token });
   if (!res.ok) throw new Error("Failed to load lineage catalog");
-  return res.json();
+  const data = await safeJson(res, "Lineage");
+  if (!data) throw new Error("Lineage API unavailable");
+  return data;
 }
 
 export async function getProductLineage({ token, productId }) {
   const res = await apiFetch(`/api/v1/products/${encodeURIComponent(productId)}/lineage`, { token });
   if (!res.ok) throw new Error("Lineage not found");
-  return res.json();
+  const data = await safeJson(res, "Product lineage");
+  if (!data) throw new Error("Lineage API unavailable");
+  return data;
 }
 
 export async function getPipelineHistory({ token, name, domain }) {
   const qs = domain ? `?domain=${encodeURIComponent(domain)}` : "";
   const res = await apiFetch(`/api/v1/pipelines/${encodeURIComponent(name)}/history${qs}`, { token });
   if (!res.ok) throw new Error("Failed to load pipeline history");
-  return res.json();
+  const data = await safeJson(res, "History");
+  if (!data) throw new Error("History API unavailable");
+  return data;
 }
 
 export async function getPipelineObservability({ token, name, domain }) {
   const qs = domain ? `?domain=${encodeURIComponent(domain)}` : "";
   const res = await apiFetch(`/api/v1/pipelines/${encodeURIComponent(name)}/observability${qs}`, { token });
   if (!res.ok) throw new Error("Failed to load observability");
-  return res.json();
+  const data = await safeJson(res, "Observability");
+  if (!data) throw new Error("Observability API unavailable");
+  return data;
 }
 
 export async function requestProductAccess({ token, productId, reason, productName, domain }) {
@@ -81,8 +122,8 @@ export async function requestProductAccess({ token, productId, reason, productNa
       domain,
     }),
   });
-  const data = await res.json();
-  return { ok: res.ok, data };
+  const data = await safeJson(res, "Access request");
+  return { ok: res.ok, data: data || { errors: ["API unavailable"] } };
 }
 
 export async function triggerBackfill({ token, pipelineName, domain, startDate, endDate }) {
@@ -91,8 +132,8 @@ export async function triggerBackfill({ token, pipelineName, domain, startDate, 
     token,
     body: JSON.stringify({ domain, startDate, endDate }),
   });
-  const data = await res.json();
-  return { ok: res.ok, data };
+  const data = await safeJson(res, "Backfill");
+  return { ok: res.ok, data: data || { errors: ["API unavailable"] } };
 }
 
 export async function designPipelineFromAi({ message, token }) {
@@ -101,7 +142,14 @@ export async function designPipelineFromAi({ message, token }) {
     token,
     body: JSON.stringify({ message }),
   });
-  return res.json();
+  const data = await safeJson(res, "AI design");
+  if (!data) {
+    return {
+      success: false,
+      errors: ["API unavailable - AI matching runs locally in the sidebar (no gateway required)."],
+    };
+  }
+  return data;
 }
 
 export async function runAwsDesignReview({ nodes, edges, pipelineMeta, token }) {
@@ -110,26 +158,30 @@ export async function runAwsDesignReview({ nodes, edges, pipelineMeta, token }) 
     token,
     body: JSON.stringify({ nodes, edges, pipelineMeta }),
   });
-  if (!res.ok) throw new Error("Design review failed");
-  return res.json();
+  if (!res.ok) return null;
+  return safeJson(res, "Design review");
 }
 
 export async function getExecutionStatus({ token, executionArn }) {
   const qs = `?arn=${encodeURIComponent(executionArn)}`;
   const res = await apiFetch(`/api/v1/executions/status${qs}`, { token });
-  return res.json();
+  return safeJson(res, "Execution status");
 }
 
 export async function getProductConsumerDetail({ token, productId }) {
   const res = await apiFetch(`/api/v1/products/${encodeURIComponent(productId)}/consumer-detail`, { token });
   if (!res.ok) throw new Error("Product detail unavailable");
-  return res.json();
+  const data = await safeJson(res, "Consumer detail");
+  if (!data) throw new Error("Product API unavailable");
+  return data;
 }
 
 export async function listPendingAccessRequests({ token }) {
   const res = await apiFetch("/api/v1/access-requests/pending", { token });
   if (!res.ok) throw new Error("Failed to load access requests");
-  return res.json();
+  const data = await safeJson(res, "Access requests");
+  if (!data) throw new Error("Access requests API unavailable");
+  return data;
 }
 
 export async function approveAccessRequest({ token, requestId }) {
@@ -137,8 +189,8 @@ export async function approveAccessRequest({ token, requestId }) {
     method: "POST",
     token,
   });
-  const data = await res.json();
-  return { ok: res.ok, data };
+  const data = await safeJson(res, "Approve");
+  return { ok: res.ok, data: data || {} };
 }
 
 export async function rejectAccessRequest({ token, requestId, reason }) {
@@ -147,6 +199,17 @@ export async function rejectAccessRequest({ token, requestId, reason }) {
     token,
     body: JSON.stringify({ reason }),
   });
-  const data = await res.json();
-  return { ok: res.ok, data };
+  const data = await safeJson(res, "Reject");
+  return { ok: res.ok, data: data || {} };
+}
+
+/** Quick check - avoids firing design-review against HTML error pages. */
+export async function isApiReachable() {
+  try {
+    const res = await apiFetch("/health");
+    const data = await safeJson(res, "Health");
+    return data?.status === "ok";
+  } catch {
+    return false;
+  }
 }

@@ -2,7 +2,7 @@
 
 **Current overall score: 10/10**
 
-Vaquar evaluation tracker — all items addressed.
+Vaquar evaluation tracker - all items addressed.
 
 ## Bugs (fixed)
 
@@ -32,7 +32,7 @@ Vaquar evaluation tracker — all items addressed.
 | 12 | Schema v2 / migration test | ✅ | `lib/schema-migration.js`, `lib/__tests__/schema-migration.test.js` |
 | 13 | Vite build in CI | ✅ | `npm run test:portal` in `ci.yml` |
 | 14 | Full CI workflow | ✅ | `.github/workflows/ci.yml` |
-| 15 | Terraform plan in CI | ✅ | `ci.yml` — plan when AWS secrets configured, skip otherwise |
+| 15 | Terraform plan in CI | ✅ | `ci.yml` - plan when AWS secrets configured, skip otherwise |
 | 16 | Docker build + smoke in CI | ✅ | `ci.yml` docker-compose job |
 
 ## Portal UX
@@ -57,7 +57,7 @@ Vaquar evaluation tracker — all items addressed.
 | 26 | API reference (OpenAPI) | ✅ | `docs/openapi.yaml` |
 | 27 | Portal dev guide | ✅ | `docs/PORTAL_DEV.md` |
 | 28 | Troubleshooting | ✅ | `docs/TROUBLESHOOTING.md` |
-| — | E2E AWS diagram (draw.io) | ✅ | `docs/diagrams/cognimesh-pipeline-e2e.drawio` |
+| - | E2E AWS diagram (draw.io) | ✅ | `docs/diagrams/cognimesh-pipeline-e2e.drawio` |
 
 ## Observability
 

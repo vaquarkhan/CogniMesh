@@ -48,7 +48,7 @@ export default function PatternLibrary({ activePatternId, onApplyPattern }) {
       <div className="pattern-library-sticky">
         <h2>Pattern library</h2>
         <p className="pattern-library-intro">
-          {PIPELINE_PATTERNS.filter((p) => p.id !== "blank").length} data architectures — Data Mesh, Lakehouse, Kappa, Lambda λ, Glue, Kinesis, ETL/ELT.
+          {PIPELINE_PATTERNS.filter((p) => p.id !== "blank").length} data architectures - Data Mesh, Lakehouse, Kappa, Lambda λ, Glue, Kinesis, ETL/ELT.
         </p>
 
         <input
@@ -145,6 +145,14 @@ export default function PatternLibrary({ activePatternId, onApplyPattern }) {
                   {pattern.architectureDiagram && (
                     <pre className="pattern-diagram">{pattern.architectureDiagram}</pre>
                   )}
+                  {pattern.diagramReference && (
+                    <p className="pattern-diagram-ref">
+                      <strong>Reference diagram:</strong>{" "}
+                      <a href={pattern.diagramReference} target="_blank" rel="noopener noreferrer">
+                        {pattern.diagramReference}
+                      </a>
+                    </p>
+                  )}
                   {pattern.awsServices?.length > 0 && (
                     <p className="pattern-aws">
                       <strong>AWS:</strong>{" "}
@@ -175,7 +183,7 @@ export default function PatternLibrary({ activePatternId, onApplyPattern }) {
       </ul>
 
       {filtered.length === 0 && (
-        <p className="properties-hint">No patterns match — try another architecture filter.</p>
+        <p className="properties-hint">No patterns match - try another architecture filter.</p>
       )}
 
       <div className="pattern-blank">

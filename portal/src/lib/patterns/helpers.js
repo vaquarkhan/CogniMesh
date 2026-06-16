@@ -55,15 +55,15 @@ export function medallionPattern({
 }
 
 export const ARCHITECTURE_LABELS = {
-  datamesh: "Data Mesh — domain data products · Lake Formation · federated governance",
-  datalake: "Data Lake — raw / curated / consumption zones · schema-on-read",
-  lakehouse: "Lakehouse — Iceberg ACID · medallion · open table format",
-  kappa: "Kappa (κ) — stream-only · replay from log · no batch layer",
-  lambda_arch: "Lambda (λ) — batch layer + speed layer · merge at query",
-  streaming: "Streaming — Kinesis · MSK · Flink · real-time",
-  medallion: "Medallion — Bronze → Silver → Gold curation",
-  workflow: "Step Functions — Parallel · Choice · Merge orchestration",
+  datamesh: "Data Mesh - domain data products · Lake Formation · federated governance",
+  datalake: "Data Lake - raw / curated / consumption zones · schema-on-read",
+  lakehouse: "Lakehouse - Iceberg ACID · medallion · open table format",
+  kappa: "Kappa (κ) - stream-only · replay from log · no batch layer",
+  lambda_arch: "Lambda (λ) - batch layer + speed layer · merge at query",
+  streaming: "Streaming - Kinesis · MSK · Flink · real-time",
+  medallion: "Medallion - Bronze → Silver → Gold curation",
+  workflow: "Step Functions - Parallel · Choice · Merge orchestration",
   cognitive: "AI / Bedrock agentic pipeline",
-  warehouse: "ELT warehouse — Redshift / Snowflake-style marts",
+  warehouse: "ELT warehouse - Redshift / Snowflake-style marts",
   compliance: "Governance-first with integrity gates",
 };

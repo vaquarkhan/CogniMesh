@@ -5,9 +5,10 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "cognimesh"
 version = "0.1.0"
-description = "CogniMesh Python SDK — DataContract validation and Vaquar mesh client"
+description = "CogniMesh Python SDK - DataContract validation and Vaquar mesh client"
 readme = "README.md"
-license = { text = "Proprietary" }
+license = "LicenseRef-Proprietary"
+license-files = ["LICENSE"]
 requires-python = ">=3.10"
 authors = [{ name = "Vaquarkhan", email = "security@vaquarkhan.dev" }]
 keywords = ["data-mesh", "datacontract", "vaquar", "pvdm", "iceberg"]

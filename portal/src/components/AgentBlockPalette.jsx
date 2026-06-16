@@ -13,7 +13,7 @@ export default function AgentBlockPalette() {
       <h2>AgentCore blocks</h2>
       <p className="palette-hint">
         Drag <strong>Runtime, Gateway, Guardrails, KB, Memory, Tools</strong> onto the canvas.
-        Wire blocks to Runtime or Gateway — guardrails attach to Runtime.
+        Wire blocks to Runtime or Gateway - guardrails attach to Runtime.
       </p>
 
       {categories.map((cat) => (

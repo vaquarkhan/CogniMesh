@@ -32,7 +32,7 @@ async function probe(name, url, validate) {
     await new Promise((r) => setTimeout(r, INTERVAL_MS));
   }
 
-  throw new Error(`Smoke test failed — ${lastErr}`);
+  throw new Error(`Smoke test failed - ${lastErr}`);
 }
 
 async function main() {

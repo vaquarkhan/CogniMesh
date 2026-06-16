@@ -2,10 +2,13 @@
  * Pre-built Amazon Bedrock AgentCore agent templates with guardrails configured.
  */
 
+import { applyAgentFeatures } from "./agent-feature-options";
+
 export const AGENT_TEMPLATE_CATEGORIES = [
   "Customer Experience",
   "Enterprise",
   "Data & Analytics",
+  "DevOps",
   "Security",
   "Developer",
   "CogniMesh",
@@ -23,7 +26,7 @@ export const AGENT_TEMPLATES = [
     framework: "strands",
     description:
       "Production support agent with Bedrock Knowledge Base for FAQs, Lambda order lookup, and strict PII guardrails on inputs/outputs.",
-    whenToUse: "Tier-1 support, order status, returns — needs session isolation and PII filtering.",
+    whenToUse: "Tier-1 support, order status, returns - needs session isolation and PII filtering.",
     awsServices: ["AgentCore Runtime", "Bedrock", "Knowledge Base", "Lambda", "Guardrails"],
     agentMeta: {
       name: "customer-support-agent",
@@ -52,7 +55,7 @@ export const AGENT_TEMPLATES = [
     ],
     customizeTips: [
       "Point Knowledge Base to your S3 FAQ corpus and sync with Bedrock.",
-      "Wire Lambda to your order API — Gateway handles auth per user session.",
+      "Wire Lambda to your order API - Gateway handles auth per user session.",
       "Keep PII guardrail on ANONYMIZE for support transcripts stored in logs.",
     ],
   },
@@ -65,7 +68,7 @@ export const AGENT_TEMPLATES = [
     icon: "📄",
     framework: "langchain",
     description: "Document Q&A agent using Bedrock Knowledge Base with hybrid retrieval and content/topic guardrails.",
-    whenToUse: "Internal docs, policies, runbooks — answers must cite sources and block harmful content.",
+    whenToUse: "Internal docs, policies, runbooks - answers must cite sources and block harmful content.",
     awsServices: ["AgentCore Runtime", "Bedrock KB", "Guardrails", "OpenSearch"],
     agentMeta: { name: "rag-doc-qa", domain: "knowledge", version: "1.0.0", description: "RAG over enterprise documents" },
     nodes: [
@@ -128,7 +131,7 @@ export const AGENT_TEMPLATES = [
     icon: "🔍",
     framework: "strands",
     description: "Fraud analyst agent with session isolation, long-term memory for case history, human-in-the-loop for high-risk actions.",
-    whenToUse: "Transaction review, case investigation — Firecracker isolation per customer session.",
+    whenToUse: "Transaction review, case investigation - Firecracker isolation per customer session.",
     awsServices: ["AgentCore Runtime", "Memory", "Guardrails", "Human-in-the-Loop"],
     agentMeta: { name: "fraud-investigation", domain: "risk", version: "1.0.0", description: "Fraud case investigation agent" },
     nodes: [
@@ -155,7 +158,7 @@ export const AGENT_TEMPLATES = [
     customizeTips: [
       "Set BEDROCK_GUARDRAIL_ID env on runtime deploy.",
       "Route block/escalate actions through human_loop.",
-      "Long-term memory stores case summaries — not raw PAN data.",
+      "Long-term memory stores case summaries - not raw PAN data.",
     ],
   },
   {
@@ -183,7 +186,7 @@ export const AGENT_TEMPLATES = [
       { id: "e3", source: "rt", target: "api" },
       { id: "e4", source: "rt", target: "gr" },
     ],
-    customizeTips: ["Sandbox Code Interpreter — no network egress.", "Deny topics include credential patterns.", "Connect GitHub via Gateway OAuth."],
+    customizeTips: ["Sandbox Code Interpreter - no network egress.", "Deny topics include credential patterns.", "Connect GitHub via Gateway OAuth."],
   },
   {
     id: "hr-policy",
@@ -194,7 +197,7 @@ export const AGENT_TEMPLATES = [
     icon: "🏢",
     framework: "langchain",
     description: "HR policy Q&A with employee-scoped identity, handbook KB, and strict topic guardrails for legal/compensation advice.",
-    whenToUse: "Employee self-service on benefits, PTO, policies — must not give legal advice.",
+    whenToUse: "Employee self-service on benefits, PTO, policies - must not give legal advice.",
     awsServices: ["AgentCore Runtime", "KB", "Identity", "Guardrails"],
     agentMeta: { name: "hr-policy-assistant", domain: "hr", version: "1.0.0", description: "HR handbook assistant" },
     nodes: [
@@ -210,7 +213,7 @@ export const AGENT_TEMPLATES = [
       { id: "e3", source: "rt", target: "id" },
       { id: "e4", source: "rt", target: "gr" },
     ],
-    customizeTips: ["Scope KB to public handbook only — not personnel files.", "Identity maps to department for localized policies."],
+    customizeTips: ["Scope KB to public handbook only - not personnel files.", "Identity maps to department for localized policies."],
   },
   {
     id: "multi-agent-supervisor",
@@ -221,7 +224,7 @@ export const AGENT_TEMPLATES = [
     badge: "Multi-agent",
     icon: "🧩",
     framework: "crewai",
-    description: "Supervisor routes requests to specialist agents — research, writing, and tool execution — with shared guardrails.",
+    description: "Supervisor routes requests to specialist agents - research, writing, and tool execution - with shared guardrails.",
     whenToUse: "Complex workflows needing specialized sub-agents under one runtime.",
     awsServices: ["AgentCore Runtime", "Supervisor", "Gateway", "Guardrails"],
     agentMeta: { name: "multi-agent-supervisor", domain: "orchestration", version: "1.0.0", description: "Supervisor + specialists" },
@@ -281,6 +284,103 @@ export const AGENT_TEMPLATES = [
     ],
   },
   {
+    id: "devops-sre",
+    name: "DevOps / SRE Agent",
+    subtitle: "Runbooks KB · CI/CD · CloudWatch · prod HITL",
+    category: "DevOps",
+    difficulty: "Intermediate",
+    badge: "DevOps",
+    icon: "⚙",
+    framework: "strands",
+    description:
+      "Site reliability agent with runbook Knowledge Base, Gateway tools for CloudWatch alarms, ECS/EKS status, Terraform plan summaries, and human approval before production changes.",
+    whenToUse: "On-call triage, deployment assistance, incident runbooks, infra Q&A - needs guardrails on destructive actions.",
+    awsServices: ["AgentCore Runtime", "Bedrock", "Knowledge Base", "Lambda", "CloudWatch", "Guardrails", "Step Functions"],
+    agentMeta: {
+      name: "devops-sre-agent",
+      domain: "platform",
+      version: "1.0.0",
+      description: "DevOps SRE assistant with runbooks and safe deploy tools",
+    },
+    nodes: [
+      { id: "rt", type: "agent", position: { x: 40, y: 200 }, data: { label: "SRE Runtime", blockType: "runtime", framework: "strands", sessionIsolation: true, maxDurationHours: 4, detail: "⚡ Runtime" } },
+      { id: "model", type: "agent", position: { x: 280, y: 100 }, data: { label: "Claude", blockType: "foundation_model", modelId: "anthropic.claude-3-5-sonnet-20241022-v2:0", temperature: 0.1, detail: "🤖 Claude" } },
+      { id: "kb", type: "agent", position: { x: 280, y: 260 }, data: { label: "Runbooks KB", blockType: "knowledge_base", kbId: "kb-sre-runbooks", retrievalMode: "hybrid", detail: "📚 Runbooks" } },
+      { id: "gw", type: "agent", position: { x: 520, y: 200 }, data: { label: "Gateway", blockType: "gateway", authMode: "dual", protocols: ["lambda", "mcp"], detail: "🌐 Gateway" } },
+      { id: "lambda-cw", type: "agent", position: { x: 760, y: 100 }, data: { label: "CloudWatch Tool", blockType: "tool_lambda", functionName: "sre-cloudwatch-query", description: "Query alarms and metrics", detail: "λ CloudWatch" } },
+      { id: "lambda-deploy", type: "agent", position: { x: 760, y: 260 }, data: { label: "Deploy Tool", blockType: "tool_lambda", functionName: "sre-trigger-deploy", description: "Trigger CI/CD pipeline", detail: "λ Deploy" } },
+      { id: "mcp", type: "agent", position: { x: 760, y: 400 }, data: { label: "Terraform MCP", blockType: "tool_mcp", serverUrl: "http://localhost:3100/mcp", tools: ["terraform_plan_summary", "list_eks_clusters"], detail: "🔌 Infra MCP" } },
+      { id: "gr-ops", type: "agent", position: { x: 520, y: 360 }, data: { label: "Ops Guardrail", blockType: "guardrail", guardrailId: "gr-devops-ops", deniedTopics: ["delete production", "drop database", "force push main", "disable security"], detail: "🛡 Destructive ops" } },
+      { id: "gr-pii", type: "agent", position: { x: 280, y: 400 }, data: { label: "Secrets Guardrail", blockType: "guardrail", guardrailId: "gr-devops-secrets", deniedTopics: ["API keys", "passwords", "private keys", "kubeconfig"], detail: "🔒 Secrets" } },
+      { id: "hitl", type: "agent", position: { x: 520, y: 80 }, data: { label: "Prod Approval", blockType: "human_loop", approvalThreshold: "production_change", timeoutMinutes: 15, detail: "👤 Prod HITL" } },
+      { id: "obs", type: "agent", position: { x: 40, y: 80 }, data: { label: "Observability", blockType: "observability", traces: true, cloudWatch: true, xray: true, detail: "📊 Traces" } },
+      { id: "mem", type: "agent", position: { x: 40, y: 320 }, data: { label: "Incident Memory", blockType: "memory_session", ttlMinutes: 120, maxTurns: 30, detail: "🧠 Incident ctx" } },
+    ],
+    edges: [
+      { id: "e1", source: "rt", target: "model" },
+      { id: "e2", source: "rt", target: "kb" },
+      { id: "e3", source: "rt", target: "gw" },
+      { id: "e4", source: "gw", target: "lambda-cw" },
+      { id: "e5", source: "gw", target: "lambda-deploy" },
+      { id: "e6", source: "gw", target: "mcp" },
+      { id: "e7", source: "gw", target: "hitl" },
+      { id: "e8", source: "rt", target: "gr-ops" },
+      { id: "e9", source: "rt", target: "gr-pii" },
+      { id: "e10", source: "rt", target: "obs" },
+      { id: "e11", source: "rt", target: "mem" },
+    ],
+    customizeTips: [
+      "Load runbooks KB from S3 (Confluence export, markdown on-call docs).",
+      "Wire deploy Lambda to CodePipeline / GitHub Actions trigger with approval token.",
+      "Human-in-the-loop required before production deploy tool fires.",
+      "Denied topics block destructive CLI suggestions in guardrail.",
+    ],
+  },
+  {
+    id: "custom-agent-starter",
+    name: "Custom Agent Starter",
+    subtitle: "Model + guardrails + gateway - you wire tools",
+    category: "Developer",
+    difficulty: "Starter",
+    badge: "Build your own",
+    icon: "🧩",
+    framework: "strands",
+    description:
+      "Blueprint for a custom AgentCore agent: Runtime, Bedrock model, content guardrail, Gateway shell, and observability - add your own Lambda, MCP, KB, or browser tools on the canvas.",
+    whenToUse: "Starting a bespoke agent when no template fits; faster than blank canvas with safe defaults.",
+    awsServices: ["AgentCore Runtime", "Bedrock", "Gateway", "Guardrails", "CloudWatch"],
+    agentMeta: {
+      name: "my-custom-agent",
+      domain: "custom",
+      version: "1.0.0",
+      description: "Custom agent - rename and add your tools",
+    },
+    nodes: [
+      { id: "rt", type: "agent", position: { x: 60, y: 200 }, data: { label: "Custom Runtime", blockType: "runtime", framework: "strands", sessionIsolation: true, detail: "⚡ Runtime" } },
+      { id: "model", type: "agent", position: { x: 300, y: 120 }, data: { label: "Claude Sonnet", blockType: "foundation_model", modelId: "anthropic.claude-3-5-sonnet-20241022-v2:0", temperature: 0.3, detail: "🤖 Claude" } },
+      { id: "gr", type: "agent", position: { x: 300, y: 300 }, data: { label: "Content Guardrail", blockType: "guardrail", guardrailId: "gr-custom-content", version: "1", deniedTopics: [], detail: "🛡 Edit topics" } },
+      { id: "gw", type: "agent", position: { x: 540, y: 200 }, data: { label: "Gateway", blockType: "gateway", authMode: "dual", protocols: ["lambda", "mcp", "openapi"], detail: "🌐 Add tools here" } },
+      { id: "lambda-slot", type: "agent", position: { x: 780, y: 140 }, data: { label: "Your Lambda Tool", blockType: "tool_lambda", functionName: "my-agent-action", description: "Replace with your function", detail: "λ Your tool" } },
+      { id: "obs", type: "agent", position: { x: 540, y: 360 }, data: { label: "Observability", blockType: "observability", traces: true, cloudWatch: true, detail: "📊 Traces" } },
+      { id: "mem", type: "agent", position: { x: 300, y: 420 }, data: { label: "Session Memory", blockType: "memory_session", ttlMinutes: 60, detail: "🧠 Optional" } },
+    ],
+    edges: [
+      { id: "e1", source: "rt", target: "model" },
+      { id: "e2", source: "rt", target: "gr" },
+      { id: "e3", source: "rt", target: "gw" },
+      { id: "e4", source: "gw", target: "lambda-slot" },
+      { id: "e5", source: "rt", target: "obs" },
+      { id: "e6", source: "rt", target: "mem" },
+    ],
+    customizeTips: [
+      "Rename agent in properties: name, domain, description.",
+      "Drag MCP, KB, browser, or code interpreter blocks from the Blocks tab.",
+      "Connect new tools to Gateway; connect guardrails and memory to Runtime.",
+      "Use feature checkboxes when loading to strip blocks you do not need.",
+      "See docs/developer/CUSTOMIZE_AGENTS.md for step-by-step customization.",
+    ],
+  },
+  {
     id: "blank-agent",
     name: "Blank Agent",
     subtitle: "Start from scratch",
@@ -288,7 +388,7 @@ export const AGENT_TEMPLATES = [
     difficulty: "Starter",
     icon: "✨",
     framework: "strands",
-    description: "Empty canvas with only AgentCore Runtime — drag blocks to build your agent.",
+    description: "Empty canvas with only AgentCore Runtime - drag blocks to build your agent.",
     whenToUse: "Custom agent architecture from scratch.",
     awsServices: ["AgentCore Runtime"],
     agentMeta: { name: "my-agent", domain: "default", version: "1.0.0", description: "Custom agent" },
@@ -300,7 +400,7 @@ export const AGENT_TEMPLATES = [
   },
 ];
 
-export function instantiateAgentTemplate(template) {
+export function instantiateAgentTemplate(template, features) {
   const idMap = {};
   let seq = 0;
   const nodes = template.nodes.map((n) => {
@@ -314,13 +414,14 @@ export function instantiateAgentTemplate(template) {
     target: idMap[e.target],
     animated: true,
   }));
-  return {
+  const base = {
     nodes,
     edges,
     agentMeta: { ...template.agentMeta },
     templateId: template.id,
     tips: template.customizeTips || [],
   };
+  return features ? applyAgentFeatures(base, features) : base;
 }
 
 export function getAgentTemplateById(id) {

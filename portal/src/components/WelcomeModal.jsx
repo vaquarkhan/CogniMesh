@@ -19,21 +19,21 @@ export default function WelcomeModal({ open, onClose, onApplyPattern }) {
       <div className="modal-dialog welcome-dialog" role="dialog" aria-labelledby="welcome-title">
         <h2 id="welcome-title">Welcome to CogniMesh</h2>
         <p className="welcome-lead">
-          Build Step Functions–style workflows visually — many sources, parallel branches, choice routes, multiple sinks.
+          Build Step Functions–style workflows visually - many sources, parallel branches, choice routes, multiple sinks.
         </p>
 
         <ol className="welcome-steps">
           <li>
-            <strong>Pick a pattern</strong> — multi-source mesh, RDS CDC, AI media, and more in the left library.
+            <strong>Pick a pattern</strong> - multi-source mesh, RDS CDC, AI media, and more in the left library.
           </li>
           <li>
-            <strong>Drag flow blocks</strong> — Parallel, Choice, Merge from the Blocks tab (like AWS Step Functions).
+            <strong>Drag flow blocks</strong> - Parallel, Choice, Merge from the Blocks tab (like AWS Step Functions).
           </li>
           <li>
-            <strong>Preview YAML</strong> — see the generated contract before deploy.
+            <strong>Preview YAML</strong> - see the generated contract before deploy.
           </li>
           <li>
-            <strong>Deploy</strong> — register in the marketplace (and AWS when enabled).
+            <strong>Deploy</strong> - register in the marketplace (and AWS when enabled).
           </li>
         </ol>
 

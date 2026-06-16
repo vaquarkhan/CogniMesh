@@ -9,11 +9,16 @@ const TABS = [
 ];
 
 const GUIDE_STEPS = [
-  { title: "Pick a template", detail: "Start from Customer Support, RAG, Data Analyst, or Fraud Investigation — guardrails pre-configured." },
+  { title: "Choose features", detail: "Before creating an agent, check Guardrails, Memory, Knowledge base, Gateway tools, Identity, Observability, and Human-in-the-loop." },
+  { title: "Pick a template", detail: "Start from Customer Support, RAG, Data Analyst, or Fraud Investigation - only checked features are included." },
   { title: "Customize blocks", detail: "Drag AgentCore Runtime, Gateway, Guardrails, KB, Memory, and Tools onto the canvas." },
   { title: "Wire connections", detail: "Connect tools to Gateway; connect model, guardrails, KB, and memory to Runtime." },
   { title: "Preview manifest", detail: "Review AgentCore deployment YAML with guardrail IDs and environment variables." },
-  { title: "Deploy", detail: "Deploy to AgentCore Runtime with session isolation and observability." },
+  {
+    title: "Export manifest",
+    detail:
+      "Download deployable YAML. Design tool only - does not call AWS Bedrock APIs. Use aws bedrock-agent create-agent or Terraform to provision IAM, KB, guardrails, and action groups.",
+  },
 ];
 
 export default function AgentDesignerSidebar({ activeTemplateId, templateTips, onApplyTemplate }) {
@@ -52,7 +57,7 @@ export default function AgentDesignerSidebar({ activeTemplateId, templateTips, o
           <div className="workflow-guide agent-guide">
             <h2>Agent Builder guide</h2>
             <p className="palette-hint">
-              Build production agents on <strong>Amazon Bedrock AgentCore</strong> — Runtime, Gateway, Memory, Identity, and Guardrails.
+              Build production agents on <strong>Amazon Bedrock AgentCore</strong> - Runtime, Gateway, Memory, Identity, and Guardrails.
             </p>
             <ol className="guide-steps">
               {GUIDE_STEPS.map((s, i) => (
@@ -72,6 +77,9 @@ export default function AgentDesignerSidebar({ activeTemplateId, templateTips, o
                 </ul>
               </div>
             )}
+            <p className="properties-hint workflow-tutorial-link">
+              Customize agents: <code>docs/developer/CUSTOMIZE_AGENTS.md</code> · Hub: <code>docs/developer/README.md</code>
+            </p>
           </div>
         )}
       </div>

@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ReactFlow, {
   Background,
   Controls,
@@ -15,7 +15,7 @@ import AgentPropertiesPanel from "./AgentPropertiesPanel";
 import AgentPreviewPanel from "./AgentPreviewPanel";
 import { useToast } from "./Toast";
 import { validateAgentBlocks } from "../lib/validate-agent-blocks";
-import { exportAgentManifest } from "../lib/agent-export";
+import { exportAgentManifest, downloadAgentManifest } from "../lib/agent-export";
 import { instantiateAgentTemplate, getAgentTemplateById } from "../lib/agent-templates";
 
 const nodeTypes = { agent: AgentNode };
@@ -27,7 +27,7 @@ function snapshot(nodes, edges) {
   return { nodes: JSON.parse(JSON.stringify(nodes)), edges: JSON.parse(JSON.stringify(edges)) };
 }
 
-export default function AgentBuilderView({ userEmail, authDisabled, onLogout }) {
+export default function AgentBuilderView({ userEmail, authDisabled, onLogout, bootstrap, onBootstrapApplied }) {
   const { success, error: toastError } = useToast();
   const reactFlowWrapper = useRef(null);
   const reactFlowInstance = useRef(null);
@@ -94,6 +94,13 @@ export default function AgentBuilderView({ userEmail, authDisabled, onLogout }) 
     },
     [setNodes, setEdges, success]
   );
+
+  useEffect(() => {
+    if (bootstrap?.nodes?.length) {
+      applyTemplate(bootstrap);
+      onBootstrapApplied?.();
+    }
+  }, [bootstrap, applyTemplate, onBootstrapApplied]);
 
   const undo = () => {
     if (historyIndex <= 0) return;
@@ -190,20 +197,22 @@ export default function AgentBuilderView({ userEmail, authDisabled, onLogout }) 
     success("AgentCore manifest ready");
   };
 
-  const handleDeploy = () => {
+  const handleExportManifest = () => {
     if (!validation.valid) {
-      toastError(validation.errors[0] || "Fix validation errors before deploy");
+      toastError(validation.errors[0] || "Fix validation errors before export");
       return;
     }
     const result = exportAgentManifest({ nodes, edges, agentMeta });
+    downloadAgentManifest(result.yaml, agentMeta.name);
     setDeployMessage({
-      status: "simulated",
+      status: "exported",
       agentName: agentMeta.name,
       runtime: result.manifest?.spec?.runtime?.framework,
       guardrails: result.manifest?.spec?.guardrails?.length || 0,
-      message: "AgentCore deploy simulated locally. Set AWS_AGENTCORE_ENABLED=true for real deployment.",
+      message:
+        "Manifest downloaded. Agent Builder is design-only - it does not call AWS Bedrock Agent APIs yet. Deploy with aws bedrock-agent create-agent, Terraform, or a future CogniMesh agent-deploy API.",
     });
-    success(`Agent "${agentMeta.name}" deploy recorded (local simulation)`);
+    success(`Manifest exported for "${agentMeta.name}"`);
   };
 
   const selectedNode = nodesWithValidation.find((n) => n.id === selectedId) || null;
@@ -221,8 +230,8 @@ export default function AgentBuilderView({ userEmail, authDisabled, onLogout }) 
         <button className="btn-secondary" type="button" onClick={handlePreview}>
           Preview manifest
         </button>
-        <button className="deploy-btn agent-deploy-btn" type="button" onClick={handleDeploy} disabled={!nodes.length}>
-          Deploy Agent
+        <button className="deploy-btn agent-deploy-btn" type="button" onClick={handleExportManifest} disabled={!nodes.length}>
+          Export manifest
         </button>
         {!authDisabled && onLogout && (
           <button className="btn-secondary" type="button" onClick={onLogout}>

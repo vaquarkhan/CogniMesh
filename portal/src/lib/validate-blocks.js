@@ -1,5 +1,5 @@
 /**
- * Client-side workflow validation — mirrors lib/contract-builder/graph-to-workflow.js
+ * Client-side workflow validation - mirrors lib/contract-builder/graph-to-workflow.js
  */
 
 const FLOW_TYPES = new Set(["start", "parallel", "choice", "merge", "map", "pass", "integrity_gate"]);
@@ -97,7 +97,7 @@ function validateWorkflowGraph(nodes, edges) {
 
   const { outgoing, incoming } = buildAdjacency(nodes, edges);
   const starts = findStartNodes(nodes, incoming);
-  if (!starts.length) errors.push("Workflow has no entry point — add a Start block or connect sources");
+  if (!starts.length) errors.push("Workflow has no entry point - add a Start block or connect sources");
 
   const reachable = new Set();
   const stack = starts.map((n) => n.id);

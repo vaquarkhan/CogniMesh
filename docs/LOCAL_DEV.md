@@ -45,7 +45,7 @@ npm run test:docker-smoke
 ```bash
 npm test                    # offline unit/e2e (no servers)
 npm run dev:api             # terminal 1
-npm run test:api            # terminal 2 — SKIPs marketplace if catalog offline
+npm run test:api            # terminal 2 - SKIPs marketplace if catalog offline
 ```
 
 `test:api` never fails solely because Spring catalog is down. Deploy + preview always run against the API; marketplace checks SKIP when the catalog is unreachable and embedded fallback has no products yet.

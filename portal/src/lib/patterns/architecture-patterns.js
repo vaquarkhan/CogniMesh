@@ -1,5 +1,5 @@
 /**
- * Data architecture pattern catalog — Mesh, Lake, Lakehouse, Kappa, Lambda, Streaming.
+ * Data architecture pattern catalog - Mesh, Lake, Lakehouse, Kappa, Lambda, Streaming.
  * Each pattern is a full multi-block canvas graph with AWS services labeled on nodes.
  */
 import { medallionPattern } from "./helpers";
@@ -13,7 +13,7 @@ export const ARCHITECTURE_PATTERNS = [
   // ── DATA MESH ─────────────────────────────────────────────────
   {
     id: "arch-datamesh-domain-product",
-    name: "Data Mesh — Domain Data Product",
+    name: "Data Mesh - Domain Data Product",
     subtitle: "Self-serve · Lake Formation · marketplace publish",
     category: "Data Mesh",
     architecture: "datamesh",
@@ -24,12 +24,11 @@ export const ARCHITECTURE_PATTERNS = [
     description:
       "Domain team owns end-to-end pipeline: ingest → bronze → silver → gold Iceberg product → integrity gate → catalog registration → Lake Formation share to consumers.",
     whenToUse: "Federated data mesh where each domain publishes a versioned data product with contracts and SLAs.",
-    exampleScenario: "Commerce domain publishes orders_daily v1.0 — analysts request access via marketplace, stewards grant LF SELECT.",
+    exampleScenario: "Commerce domain publishes orders_daily v1.0 - analysts request access via marketplace, stewards grant LF SELECT.",
     exampleFlow: "RDS CDC → Bronze → Silver ETL → Gold Iceberg → PVDM Gate → Glue Catalog → LF Tag → Marketplace",
     architectureDiagram:
       "Producer AC → Bronze → Silver → Gold\nSteward AC → PVDM Gate (VRP)\nPublisher AC → Iceberg product → LF → Marketplace",
-    awsServices: ["RDS", "Glue", "Iceberg", "Lake Formation", "Step Functions", "Lambda", "Athena"],
-    meshSwimlanes: false,
+    diagramReference: "https://docs.aws.amazon.com/whitepapers/latest/building-data-mesh-on-aws/data-mesh-patterns.html",
     ...wf(
       [
         { id: "st", type: "pipeline", position: { x: 40, y: 200 }, data: { label: "Start", blockType: "start", detail: "Domain pipeline" } },
@@ -122,7 +121,7 @@ export const ARCHITECTURE_PATTERNS = [
   },
   {
     id: "arch-datamesh-multi-domain",
-    name: "Data Mesh — Multi-Domain Parallel",
+    name: "Data Mesh - Multi-Domain Parallel",
     subtitle: "3 domain ACs → merge → federated gold",
     category: "Data Mesh",
     architecture: "datamesh",
@@ -131,14 +130,13 @@ export const ARCHITECTURE_PATTERNS = [
     badge: "Multi-Domain",
     icon: "🕸",
     description:
-      "Three domain pipelines run in parallel (orders, inventory, customers) — each in its own producer AWS account and region — merge into a federated customer-360 gold product in the publisher account.",
+      "Three domain pipelines run in parallel (orders, inventory, customers) - each in its own producer AWS account and region - merge into a federated customer-360 gold product in the publisher account.",
     whenToUse: "Cross-domain analytics product built from multiple domain-owned pipelines without central ETL team bottleneck.",
     exampleScenario: "Retail mesh: orders (commerce AC) + inventory (supply AC) + customers (CRM AC) parallel ingest, merge on customer_id, publish 360 view to publisher AC.",
     exampleFlow: "Start → Parallel(orders|inventory|customers) → Merge → Enrichment → Steward Gate → Publisher Gold",
     architectureDiagram:
       "AC-1111 orders/us-east-1 ──┐\nAC-2222 inventory/us-west-2 ─┼→ Merge → Enrich → Gate → AC-3456 gold\nAC-3333 customers/eu-west-1 ──┘",
-    awsServices: ["Glue", "Step Functions", "Iceberg", "Lake Formation", "MSK"],
-    meshSwimlanes: true,
+    diagramReference: "https://github.com/vaquarkhan/aws-serverless-datamesh-framework/blob/main/docs/vaquar-pattern.md",
     nodes: [
       { id: "st", type: "pipeline", position: { x: 40, y: 220 }, data: { label: "Start", blockType: "start", detail: "Federated mesh" } },
       { id: "par", type: "pipeline", position: { x: 160, y: 220 }, data: { label: "Parallel", blockType: "parallel", branchCount: 3, detail: "3 domain ACs" } },
@@ -147,7 +145,7 @@ export const ARCHITECTURE_PATTERNS = [
         type: "pipeline",
         position: { x: 360, y: 60 },
         data: withMeshContext(
-          { label: "Orders RDS", blockType: "source", sourceType: "rds", awsService: "rds", database: "orders", table: "orders", cdcEnabled: true, primaryKey: "order_id" },
+          { label: "Commerce RDS", blockType: "source", sourceType: "rds", awsService: "rds", database: "commerce", table: "orders", cdcEnabled: true, primaryKey: "order_id" },
           "orders"
         ),
       },
@@ -174,7 +172,7 @@ export const ARCHITECTURE_PATTERNS = [
         type: "pipeline",
         position: { x: 560, y: 220 },
         data: withMeshContext(
-          { label: "Inventory Stream", blockType: "transform", transformType: "glue_etl", awsService: "glue", processingMode: "stream_window", executionMode: "stream", sparkSql: "SELECT sku, qty, window FROM stream.inventory" },
+          { label: "Stock Stream", blockType: "transform", transformType: "glue_etl", awsService: "glue", processingMode: "stream_window", executionMode: "stream", sparkSql: "SELECT sku, qty, window FROM stream.inventory" },
           "inventory"
         ),
       },
@@ -183,7 +181,7 @@ export const ARCHITECTURE_PATTERNS = [
         type: "pipeline",
         position: { x: 360, y: 380 },
         data: withMeshContext(
-          { label: "Customers S3", blockType: "source", sourceType: "s3", awsService: "s3", endpoint: "s3://crm-landing/contacts/" },
+          { label: "CRM S3", blockType: "source", sourceType: "s3", awsService: "s3", endpoint: "s3://crm-landing/contacts/" },
           "customers"
         ),
       },
@@ -192,7 +190,7 @@ export const ARCHITECTURE_PATTERNS = [
         type: "pipeline",
         position: { x: 560, y: 380 },
         data: withMeshContext(
-          { label: "Customers ELT", blockType: "transform", transformType: "spark_sql", awsService: "glue", processingMode: "elt", sparkSql: "SELECT customer_id, segment, region FROM bronze.crm" },
+          { label: "CRM ELT", blockType: "transform", transformType: "spark_sql", awsService: "glue", processingMode: "elt", sparkSql: "SELECT customer_id, segment, region FROM bronze.crm" },
           "customers"
         ),
       },
@@ -237,7 +235,7 @@ export const ARCHITECTURE_PATTERNS = [
     pipelineMeta: meshAccountsForPipelineMeta({ name: "customer-360-mesh", domain: "federated", version: "1.0.0", meshLayout: "three-domain-parallel" }),
     customizeTips: [
       "Each parallel branch = one domain producer AC + region (orders · inventory · customers).",
-      "Merge / enrich / gold sink run in publisher AC — steward AC hosts VRP gate.",
+      "Merge / enrich / gold sink run in publisher AC - steward AC hosts VRP gate.",
       "Matches Vaquar SDM mesh accounts: producer / steward / publisher.",
     ],
   },
@@ -245,7 +243,7 @@ export const ARCHITECTURE_PATTERNS = [
   // ── DATA LAKE ─────────────────────────────────────────────────
   {
     id: "arch-datalake-zones",
-    name: "Data Lake — Raw / Curated / Consumption Zones",
+    name: "Data Lake - Raw / Curated / Consumption Zones",
     subtitle: "Schema-on-read · S3 zones · Glue crawler",
     category: "Data Lake",
     architecture: "datalake",
@@ -253,7 +251,7 @@ export const ARCHITECTURE_PATTERNS = [
     difficulty: "Intermediate",
     badge: "Data Lake",
     icon: "🏞",
-    description: "Classic data lake: land everything raw (raw zone), curate with Glue ETL (curated zone), expose for Athena (consumption). No Iceberg required — Parquet on S3.",
+    description: "Classic data lake: land everything raw (raw zone), curate with Glue ETL (curated zone), expose for Athena (consumption). No Iceberg required - Parquet on S3.",
     whenToUse: "Exploratory analytics, data science sandboxes, or pre-lakehouse migration path.",
     exampleScenario: "IoT sensors + app logs land raw, daily Glue job curates Parquet, analysts query via Athena external tables.",
     exampleFlow: "S3 raw → Glue Crawler → ELT bronze → ETL curated Parquet → Athena view",
@@ -281,7 +279,7 @@ export const ARCHITECTURE_PATTERNS = [
   // ── LAKEHOUSE ─────────────────────────────────────────────────
   {
     id: "arch-lakehouse-iceberg",
-    name: "Lakehouse — Iceberg Medallion + ACID",
+    name: "Lakehouse - Iceberg Medallion + ACID",
     subtitle: "Open table format · time travel · schema evolution",
     category: "Lakehouse",
     architecture: "lakehouse",
@@ -311,7 +309,7 @@ export const ARCHITECTURE_PATTERNS = [
   // ── KAPPA ─────────────────────────────────────────────────────
   {
     id: "arch-kappa-stream-only",
-    name: "Kappa Architecture — Stream-Only",
+    name: "Kappa Architecture - Stream-Only",
     subtitle: "No batch layer · replay from log · κ",
     category: "Kappa",
     architecture: "kappa",
@@ -347,7 +345,7 @@ export const ARCHITECTURE_PATTERNS = [
   // ── LAMBDA ARCHITECTURE ───────────────────────────────────────
   {
     id: "arch-lambda-batch-speed",
-    name: "Lambda Architecture (λ) — Batch + Speed Layers",
+    name: "Lambda Architecture (λ) - Batch + Speed Layers",
     subtitle: "Batch view + real-time speed layer · merge at query",
     category: "Lambda Architecture",
     architecture: "lambda_arch",
@@ -356,7 +354,7 @@ export const ARCHITECTURE_PATTERNS = [
     badge: "Lambda λ",
     icon: "λ",
     description: "Lambda architecture: batch layer (Glue daily ETL to Iceberg serving layer) + speed layer (Kinesis/Flink real-time aggregates) merged at query time in Athena/Redshift.",
-    whenToUse: "Need both accurate batch history and low-latency recent data — classic λ before full Kappa migration.",
+    whenToUse: "Need both accurate batch history and low-latency recent data - classic λ before full Kappa migration.",
     exampleScenario: "E-commerce: nightly batch revenue + Kinesis speed layer last-hour sales → Athena UNION view.",
     exampleFlow: "Parallel[Batch: S3→Glue→Iceberg | Speed: Kinesis→Flink→Iceberg] → Merge → Athena serving",
     architectureDiagram:
@@ -463,7 +461,7 @@ export const ARCHITECTURE_PATTERNS = [
   // ── ETL / ELT FACTORY ─────────────────────────────────────────
   {
     id: "arch-glue-etl-factory",
-    name: "Glue ETL Factory — Multi-Stage Pipeline",
+    name: "Glue ETL Factory - Multi-Stage Pipeline",
     subtitle: "ETL · enrichment · DQ · aggregate chain",
     category: "ETL / ELT",
     architecture: "lakehouse",
@@ -472,7 +470,7 @@ export const ARCHITECTURE_PATTERNS = [
     badge: "Glue ETL",
     icon: "🧊",
     description: "Enterprise ETL chain entirely on AWS Glue: extract (DMS) → ELT bronze → ETL cleanse → enrichment joins → DQ quarantine → aggregate gold. Shows full transform richness.",
-    whenToUse: "Complex batch pipeline with multiple transform stages — typical data engineer workflow on Glue.",
+    whenToUse: "Complex batch pipeline with multiple transform stages - typical data engineer workflow on Glue.",
     exampleScenario: "SAP extract via DMS → bronze Parquet → typed silver → enrich with MDM → quarantine bad rows → gold star schema.",
     exampleFlow: "DMS → ELT → ETL → Enrich → DQ → Aggregate → Gate → Iceberg",
     architectureDiagram: "DMS → ELT → ETL → Enrich → DQ → Agg → VRP → Iceberg",
@@ -501,7 +499,7 @@ export const ARCHITECTURE_PATTERNS = [
   },
   {
     id: "arch-elt-redshift",
-    name: "ELT — Load First → Redshift Transform",
+    name: "ELT - Load First → Redshift Transform",
     subtitle: "S3 copy → Redshift SQL → marts",
     category: "ETL / ELT",
     architecture: "warehouse",

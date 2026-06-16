@@ -22,13 +22,13 @@ export function validateAgentBlocks(nodes, edges) {
     errors.push("Agent graph needs an AgentCore Runtime or Supervisor block.");
   }
   if (runtimes.length > 1 && !nodes.some((n) => n.data?.blockType === "supervisor")) {
-    warnings.push("Multiple runtime blocks — consider using a Supervisor for multi-agent routing.");
+    warnings.push("Multiple runtime blocks - consider using a Supervisor for multi-agent routing.");
   }
   if (models.length === 0) {
     errors.push("Connect at least one Foundation Model (Bedrock) to the runtime.");
   }
   if (guardrails.length === 0) {
-    warnings.push("No Guardrail block — production agents should include content/PII safeguards.");
+    warnings.push("No Guardrail block - production agents should include content/PII safeguards.");
   }
 
   const connected = new Set();
@@ -53,7 +53,7 @@ export function validateAgentBlocks(nodes, edges) {
     }
     if (RUNTIME_TYPES.has(bt)) return;
     if (edges.length > 0 && !connected.has(n.id)) {
-      byNode[n.id] = byNode[n.id] || "Block is not connected — wire to Runtime or Gateway.";
+      byNode[n.id] = byNode[n.id] || "Block is not connected - wire to Runtime or Gateway.";
     }
   });
 

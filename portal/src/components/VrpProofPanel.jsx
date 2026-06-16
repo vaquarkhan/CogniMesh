@@ -22,17 +22,17 @@ export default function VrpProofPanel({ pvdmSummary, vaquar, aws }) {
 
       <dl className="proof-dl vrp-proof-dl">
         <dt>PVDM outcome</dt>
-        <dd>{summary.pvdmOutcome || summary.message || "—"}</dd>
+        <dd>{summary.pvdmOutcome || summary.message || "-"}</dd>
         <dt>Quality policy</dt>
-        <dd>{summary.qualityPolicyId || "—"}</dd>
+        <dd>{summary.qualityPolicyId || "-"}</dd>
         <dt>Rows processed</dt>
-        <dd>{summary.rowsProcessed ?? "—"}</dd>
+        <dd>{summary.rowsProcessed ?? "-"}</dd>
         <dt>Rows written</dt>
-        <dd>{summary.rowsWritten ?? "—"}</dd>
+        <dd>{summary.rowsWritten ?? "-"}</dd>
         <dt>Rows dropped (SparkRules)</dt>
         <dd className={summary.rowsDropped > 0 ? "rows-dropped" : ""}>{summary.rowsDropped ?? 0}</dd>
         <dt>Iceberg snapshot</dt>
-        <dd><code>{summary.icebergSnapshotId || "—"}</code></dd>
+        <dd><code>{summary.icebergSnapshotId || "-"}</code></dd>
         <dt>Proof artifact (S3)</dt>
         <dd>
           {summary.proofS3Uri ? (
@@ -44,7 +44,7 @@ export default function VrpProofPanel({ pvdmSummary, vaquar, aws }) {
                 </a>
               )}
             </>
-          ) : "—"}
+          ) : "-"}
         </dd>
         <dt>Checkpoint (S3)</dt>
         <dd>
@@ -57,7 +57,7 @@ export default function VrpProofPanel({ pvdmSummary, vaquar, aws }) {
                 </a>
               )}
             </>
-          ) : "—"}
+          ) : "-"}
         </dd>
       </dl>
 

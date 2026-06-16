@@ -74,7 +74,7 @@ Implementation: `services/cognitive-runtime/`
 
 | Document | Description |
 |----------|-------------|
-| [PIPELINE_E2E_DIAGRAM.md](PIPELINE_E2E_DIAGRAM.md) | **AWS E2E diagram** — structured + cognitive pipelines |
+| [PIPELINE_E2E_DIAGRAM.md](PIPELINE_E2E_DIAGRAM.md) | **AWS E2E diagram** - structured + cognitive pipelines |
 | [vaquar-pattern.md](vaquar-pattern.md) | The Vaquar Pattern (PVDM) |
 | [drag-drop-pipeline-flow.md](drag-drop-pipeline-flow.md) | Portal E2E |
 | [data-contract-spec.md](data-contract-spec.md) | DataContract spec |

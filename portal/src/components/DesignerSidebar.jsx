@@ -2,10 +2,10 @@ import { useRef, useState } from "react";
 import PatternLibrary from "./PatternLibrary";
 import BlockPalette from "./BlockPalette";
 import WorkflowGuide from "./WorkflowGuide";
-import AiPipelineBuilder from "./AiPipelineBuilder";
+import AiBuilderHub from "./AiBuilderHub";
 
 const TABS = [
-  { id: "ai", label: "AI Builder", hint: "Describe your pipeline in English" },
+  { id: "ai", label: "AI Builder", hint: "AI pipeline + AgentCore agent generator" },
   { id: "patterns", label: "Architectures", hint: "Data Mesh, Lakehouse, Kappa, Lambda, Glue, Kinesis" },
   { id: "blocks", label: "AWS Blocks", hint: "Glue, Kinesis, MSK, DMS, ETL/ELT transforms" },
   { id: "guide", label: "Guide", hint: "Help" },
@@ -16,6 +16,7 @@ export default function DesignerSidebar({
   workflowStep,
   patternTips,
   onApplyPattern,
+  onLaunchAgent,
   token,
 }) {
   const [tab, setTab] = useState("ai");
@@ -45,7 +46,9 @@ export default function DesignerSidebar({
       </div>
 
       <div className="sidebar-panel" ref={panelRef}>
-        {tab === "ai" && <AiPipelineBuilder token={token} onApplyPattern={onApplyPattern} />}
+        {tab === "ai" && (
+          <AiBuilderHub onApplyPattern={onApplyPattern} onLaunchAgent={onLaunchAgent} />
+        )}
         {tab === "patterns" && (
           <PatternLibrary activePatternId={activePatternId} onApplyPattern={onApplyPattern} />
         )}

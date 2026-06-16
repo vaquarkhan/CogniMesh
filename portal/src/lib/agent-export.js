@@ -122,6 +122,18 @@ export function exportAgentManifest({ nodes, edges, agentMeta }) {
   return { manifest, yaml, status: "success" };
 }
 
+/** Download manifest YAML (design-time export - does not call AWS Bedrock APIs). */
+export function downloadAgentManifest(yaml, agentName = "agent") {
+  const safe = String(agentName).replace(/[^\w.-]+/g, "-").replace(/^-+|-+$/g, "") || "agent";
+  const blob = new Blob([yaml], { type: "text/yaml;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `${safe}-agentcore.yaml`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
 function manifestToYaml(obj, indent = 0) {
   const pad = "  ".repeat(indent);
   if (obj === null || obj === undefined) return `${pad}null\n`;

@@ -12,7 +12,7 @@ export default function BlockPalette() {
     <aside className="palette workflow-palette">
       <h2>Workflow blocks</h2>
       <p className="palette-hint">
-        Drag AWS blocks: <strong>Kinesis, Glue, MSK, DMS, Firehose</strong> — ETL, ELT, enrichment, dedupe, streaming.
+        Drag AWS blocks: <strong>Kinesis, Glue, MSK, DMS, Firehose</strong> - ETL, ELT, enrichment, dedupe, streaming.
         Use Parallel / Choice / Merge for complex multi-domain pipelines.
       </p>
 

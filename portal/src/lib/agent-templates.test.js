@@ -36,6 +36,21 @@ describe("validate-agent-blocks", () => {
     expect(result.valid).toBe(true);
     expect(result.summary.guardrailCount).toBeGreaterThanOrEqual(2);
   });
+
+  it("validates devops and custom starter templates", () => {
+    const devops = validateAgentBlocks(
+      instantiateAgentTemplate(getAgentTemplateById("devops-sre")).nodes,
+      instantiateAgentTemplate(getAgentTemplateById("devops-sre")).edges
+    );
+    expect(devops.valid).toBe(true);
+    expect(devops.summary.guardrailCount).toBeGreaterThanOrEqual(2);
+
+    const custom = validateAgentBlocks(
+      instantiateAgentTemplate(getAgentTemplateById("custom-agent-starter")).nodes,
+      instantiateAgentTemplate(getAgentTemplateById("custom-agent-starter")).edges
+    );
+    expect(custom.valid).toBe(true);
+  });
 });
 
 describe("agent-export", () => {

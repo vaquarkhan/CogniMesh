@@ -1,5 +1,5 @@
 /**
- * Pre-built pipeline patterns — users pick one, then customize blocks & properties.
+ * Pre-built pipeline patterns - users pick one, then customize blocks & properties.
  * Each pattern includes nodes, edges, metadata, and guided tips.
  */
 
@@ -38,7 +38,7 @@ const CORE_PATTERNS = [
     badge: "Workflow",
     icon: "🔀",
     description:
-      "Ingest from RDS and S3 in parallel, merge, then route to Iceberg gold or S3 archive based on a Choice state — like AWS Step Functions.",
+      "Ingest from RDS and S3 in parallel, merge, then route to Iceberg gold or S3 archive based on a Choice state - like AWS Step Functions.",
     whenToUse: "Multiple upstream systems feeding one mesh product with conditional routing.",
     exampleScenario: "RDS orders + S3 partner files run in parallel, merge, route high-value orders to gold Iceberg and others to archive.",
     exampleFlow: "Start → Parallel(RDS, S3) → Merge → Integrity Gate → Choice → Gold | Archive",
@@ -542,7 +542,7 @@ const CORE_PATTERNS = [
     category: "Structured",
     difficulty: "Advanced",
     icon: "✨",
-    description: "Empty canvas — drag Source, Transform, and Sink blocks yourself.",
+    description: "Empty canvas - drag Source, Transform, and Sink blocks yourself.",
     whenToUse: "You already know the topology or need a custom layout.",
     awsServices: [],
     pipelineMeta: {
@@ -554,7 +554,7 @@ const CORE_PATTERNS = [
     edges: [],
     customizeTips: [
       "Drag Flow blocks (Start, Parallel, Choice, Merge) from the Blocks tab.",
-      "Add multiple Sources, Transforms, and Sinks — no limit.",
+      "Add multiple Sources, Transforms, and Sinks - no limit.",
       "Connect branches like AWS Step Functions.",
     ],
   },

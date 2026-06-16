@@ -2,7 +2,7 @@
 "use strict";
 
 /**
- * Cross-platform dev starter — loads .env and runs API + portal (no Java/Maven).
+ * Cross-platform dev starter - loads .env and runs API + portal (no Java/Maven).
  * Usage: npm run start:dev
  */
 require("dotenv").config();
@@ -28,7 +28,7 @@ const install = spawnSync(npm, ["install"], {
 });
 if (install.status !== 0) process.exit(install.status || 1);
 
-console.log("\nStarting API (:4000) + Portal (:3000) — embedded catalog, auth disabled\n");
+console.log("\nStarting API (:4000) + Portal (:3000) - embedded catalog, auth disabled\n");
 
 const child = spawn(
   npm,

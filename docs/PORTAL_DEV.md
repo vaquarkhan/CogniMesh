@@ -17,13 +17,13 @@ npm run start:dev
 
 ## Portal only
 
-Terminal 1 — API with embedded catalog:
+Terminal 1 - API with embedded catalog:
 
 ```bash
 npm run dev:api
 ```
 
-Terminal 2 — Vite dev server:
+Terminal 2 - Vite dev server:
 
 ```bash
 npm install --prefix portal   # first time only
@@ -43,7 +43,7 @@ npm run test:portal
 # equivalent: npm run build --prefix portal
 ```
 
-Output: `portal/dist/` — served in production via CloudFront + S3 (Terraform `portal-cdn` module).
+Output: `portal/dist/` - served in production via CloudFront + S3 (Terraform `portal-cdn` module).
 
 ## Keyboard shortcuts
 
@@ -63,6 +63,24 @@ Output: `portal/dist/` — served in production via CloudFront + S3 (Terraform `
 | `portal/src/components/BlockPalette.jsx` | Draggable blocks |
 | `portal/src/lib/api.js` | API client (CSRF via browser Origin) |
 | `portal/src/lib/validate-blocks.js` | Inline block validation |
+
+## Agent Builder
+
+→ Full tutorial: **[AGENT_BUILDER.md](AGENT_BUILDER.md)**  
+→ **Developer customization (images + code):** **[developer/README.md](developer/README.md)**
+
+| File | Role |
+|------|------|
+| `portal/src/components/AiAgentBuilder.jsx` | AI agent generator + feature checkboxes |
+| `portal/src/components/AgentTemplateLibrary.jsx` | Templates + shared feature checkboxes |
+| `portal/src/components/AgentFeatureOptions.jsx` | Guardrails, memory, KB, tools toggles |
+| `portal/src/lib/agent-feature-options.js` | `applyAgentFeatures()`, prompt inference |
+| `portal/src/lib/agent-templates.js` | AgentCore templates |
+| `portal/src/lib/agent-export.js` | Manifest YAML export |
+
+**Create agent flow:** AI Builder → AI agent (or Agent Builder → Templates) → check features → preview plan → customize canvas → preview manifest → deploy.
+
+**Per-agent tutorials:** [docs/tutorials/README.md](../docs/tutorials/README.md) (Customer Support, RAG, Data Analyst, Fraud, Steward, …)
 
 ## Troubleshooting
 

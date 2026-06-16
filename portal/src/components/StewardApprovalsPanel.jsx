@@ -19,7 +19,7 @@ export default function StewardApprovalsPanel({ token, refreshKey }) {
   return (
     <aside className="steward-panel">
       <h2>Steward approvals</h2>
-      <p className="properties-hint">Approve consumer access — Lake Formation SELECT grant applied on approve.</p>
+      <p className="properties-hint">Approve consumer access - Lake Formation SELECT grant applied on approve.</p>
       {msg && <p className="properties-hint">{msg}</p>}
       {requests.length === 0 && <p className="properties-hint">No pending access requests.</p>}
       <ul className="steward-list">
@@ -36,7 +36,7 @@ export default function StewardApprovalsPanel({ token, refreshKey }) {
                   const { ok, data } = await approveAccessRequest({ token, requestId: r.id });
                   setMsg(
                     ok
-                      ? `Approved ${r.productName} — LF ${data.record?.lakeFormationGrant?.permission || "SELECT"}: ${data.record?.lakeFormationGrant?.note || "granted"}`
+                      ? `Approved ${r.productName} - LF ${data.record?.lakeFormationGrant?.permission || "SELECT"}: ${data.record?.lakeFormationGrant?.note || "granted"}`
                       : data.error
                   );
                 }}

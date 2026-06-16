@@ -5,7 +5,7 @@ const fs = require("fs");
 const path = require("path");
 const yaml = require("js-yaml");
 
-/** SparkRules-style chunk filter — enforces data quality before PVDM write */
+/** SparkRules-style chunk filter - enforces data quality before PVDM write */
 function applySparkRules(records, options = {}) {
   const rulesPath = options.rulesPath;
   const file = rulesPath || path.join(__dirname, "..", "..", "rules", "default-policies.yaml");

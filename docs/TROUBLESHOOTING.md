@@ -18,7 +18,7 @@ Run `npm run test:portal` to catch this in CI before merge.
 
 ---
 
-## `npm start` fails — vite not found / portal deps missing
+## `npm start` fails - vite not found / portal deps missing
 
 **Symptom:** `Cannot find module 'vite'` or portal won't start.
 
@@ -51,7 +51,7 @@ npm run dev:api
 
 Health should return `200` with `catalog.storage: "embedded"`.
 
-**Do not** use PowerShell `set AUTH_DISABLED=true` — it does not apply to npm child processes. Use `.env` + npm scripts.
+**Do not** use PowerShell `set AUTH_DISABLED=true` - it does not apply to npm child processes. Use `.env` + npm scripts.
 
 ---
 

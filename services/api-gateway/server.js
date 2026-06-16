@@ -243,6 +243,13 @@ app.post("/api/v1/pipelines/ai-design", requireAuth, (req, res) => {
   res.status(result.success ? 200 : 400).json(result);
 });
 
+app.post("/api/v1/agents/ai-design", requireAuth, (req, res) => {
+  const { designAgentFromMessage } = require("../../lib/ai-agent-designer");
+  const { message } = req.body || {};
+  const result = designAgentFromMessage(message);
+  res.status(result.success ? 200 : 400).json(result);
+});
+
 app.post("/api/v1/pipelines/design-review", requireAuth, (req, res) => {
   const { runDesignReview } = require("../../lib/aws-design-review");
   const { graphToContractSmart } = require("../../lib/contract-builder");

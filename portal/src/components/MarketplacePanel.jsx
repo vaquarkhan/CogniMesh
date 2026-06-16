@@ -27,7 +27,7 @@ export default function MarketplacePanel({ token, refreshKey }) {
         const data = await listProducts({ token });
         setProducts(Array.isArray(data) ? data : []);
       } catch (err) {
-        setError(err.message || "Marketplace unavailable — is the API running?");
+        setError(err.message || "Marketplace unavailable - is the API running?");
       } finally {
         setLoading(false);
       }
@@ -123,7 +123,7 @@ export default function MarketplacePanel({ token, refreshKey }) {
                       productName: p.name,
                       domain: p.domain,
                     });
-                    setAccessMsg(ok ? `Access requested for ${p.name} — pending steward approval` : data.errors?.[0] || "Request failed");
+                    setAccessMsg(ok ? `Access requested for ${p.name} - pending steward approval` : data.errors?.[0] || "Request failed");
                     if (ok) openDetail(p);
                   } catch (err) {
                     setAccessMsg(err.message);

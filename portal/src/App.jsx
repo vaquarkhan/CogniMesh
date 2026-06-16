@@ -25,7 +25,7 @@ import MeshSwimlanes from "./components/MeshSwimlanes";
 import ToastStack, { useToast } from "./components/Toast";
 import MobileWarning from "./components/MobileWarning";
 import LoadingOverlay from "./components/LoadingOverlay";
-import { deployPipeline, previewPipeline, runAwsDesignReview } from "./lib/api";
+import { deployPipeline, previewPipeline, runAwsDesignReview, isApiReachable } from "./lib/api";
 import AwsDesignReviewHUD from "./components/AwsDesignReviewHUD";
 import { validateBlocks, isWorkflowGraph } from "./lib/validate-blocks";
 import { formatApiErrors } from "./lib/format-api-errors";
@@ -101,6 +101,7 @@ export default function App() {
   const [awsReviewLoading, setAwsReviewLoading] = useState(false);
   const [awsReviewExpanded, setAwsReviewExpanded] = useState(true);
   const [designerMode, setDesignerMode] = useState("pipeline");
+  const [agentBootstrap, setAgentBootstrap] = useState(null);
   const reactFlowInstance = useRef(null);
 
   const blockValidation = useMemo(() => validateBlocks(nodes, edges), [nodes, edges]);
@@ -133,11 +134,16 @@ export default function App() {
       setAwsReview(null);
       return;
     }
+    const apiUp = await isApiReachable();
+    if (!apiUp) {
+      setAwsReview(null);
+      return;
+    }
     setAwsReviewLoading(true);
     try {
       const meta = { ...pipelineMeta, ownerEmail: userEmail };
       const result = await runAwsDesignReview({ nodes, edges, pipelineMeta: meta, token });
-      setAwsReview(result);
+      setAwsReview(result?.status === "success" ? result : null);
     } catch {
       setAwsReview(null);
     } finally {
@@ -158,6 +164,12 @@ export default function App() {
       inst.setCenter(node.position.x + 80, node.position.y + 40, { zoom: 1.2, duration: 400 });
     }
   }, [nodes]);
+  const launchAgentBuilder = useCallback((instance, label) => {
+    setAgentBootstrap(instance);
+    setDesignerMode("agent");
+    success(`Opening Agent Builder: ${label || instance.agentMeta?.name || "agent"}`);
+  }, [success]);
+
   const applyPattern = useCallback(
     (instance) => {
       nodeId = instance.nodes.length;
@@ -294,7 +306,7 @@ export default function App() {
         setDeployResult({ ...result, status: "success", catalog: null });
         setDeployError(null);
         setHasPreviewed(true);
-        success("Preview ready — review YAML before deploy");
+        success("Preview ready - review YAML before deploy");
       } else {
         const errs = formatApiErrors(result);
         setDeployResult({ ...result, status: "error" });
@@ -321,7 +333,7 @@ export default function App() {
     }
     if (awsReview?.overall?.deployBlocked) {
       setAwsReviewExpanded(true);
-      toastError(`${awsReview.overall.criticalCount} critical AWS issue(s) — fix in Design Review`);
+      toastError(`${awsReview.overall.criticalCount} critical AWS issue(s) - fix in Design Review`);
       return;
     }
     setShowDeployConfirm(true);
@@ -347,7 +359,7 @@ export default function App() {
         const errs = data.errors || data.validation?.errors || data.integrityGate?.errors || ["Deploy failed"];
         setDeployError(errs);
         setDeployResult(data.contract ? data : null);
-        toastError("Deploy blocked — see panel for details");
+        toastError("Deploy blocked - see panel for details");
       }
     } catch (err) {
       setDeployError([err.message]);
@@ -465,7 +477,13 @@ export default function App() {
       </header>
 
       {designerMode === "agent" ? (
-        <AgentBuilderView userEmail={userEmail} authDisabled={authDisabled} onLogout={logout} />
+        <AgentBuilderView
+          userEmail={userEmail}
+          authDisabled={authDisabled}
+          onLogout={logout}
+          bootstrap={agentBootstrap}
+          onBootstrapApplied={() => setAgentBootstrap(null)}
+        />
       ) : (
       <div className="main">
         <DesignerSidebar
@@ -473,6 +491,7 @@ export default function App() {
           workflowStep={workflowStep}
           patternTips={patternTips}
           onApplyPattern={applyPattern}
+          onLaunchAgent={launchAgentBuilder}
           token={token}
         />
 

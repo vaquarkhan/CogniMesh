@@ -4,7 +4,7 @@
  */
 
 export const BLOCK_CATEGORIES = [
-  { id: "flow", label: "Flow control", hint: "Parallel, Choice, Merge — AWS Step Functions" },
+  { id: "flow", label: "Flow control", hint: "Parallel, Choice, Merge - AWS Step Functions" },
   { id: "aws-ingest", label: "AWS ingest", hint: "Kinesis, MSK, DMS, RDS, S3 sources" },
   { id: "aws-process", label: "Transforms", hint: "Glue ETL/ELT, enrichment, dedupe, streaming" },
   { id: "aws-serving", label: "AWS serving", hint: "Iceberg, Firehose, Redshift, Athena sinks" },

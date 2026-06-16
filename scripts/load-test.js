@@ -2,7 +2,7 @@
 "use strict";
 
 /**
- * Lightweight load test — concurrent preview requests against local API.
+ * Lightweight load test - concurrent preview requests against local API.
  * Usage: npm run dev:api (terminal 1) && npm run test:load (terminal 2)
  *        API_URL=http://host:4000 CONCURRENCY=50 npm run test:load
  */
@@ -72,7 +72,7 @@ async function run() {
   const max = times[times.length - 1] || 0;
 
   console.log(`\nResults: ${ok}/${REQUESTS} OK, ${fail} failed`);
-  console.log(`Latency ms — p50: ${p50}, p95: ${p95}, max: ${max}`);
+  console.log(`Latency ms - p50: ${p50}, p95: ${p95}, max: ${max}`);
   console.log(`Wall time: ${wallMs}ms (${(REQUESTS / (wallMs / 1000)).toFixed(1)} req/s)`);
 
   if (fail > 0) {

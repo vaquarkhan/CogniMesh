@@ -1,4 +1,4 @@
-# Top 3 product features — status
+# Top 3 product features - status
 
 CogniMesh’s highest-value loop: **prove → deploy → consume**.
 
@@ -47,7 +47,7 @@ Without these, deploy still compiles + registers catalog + records **local VRP p
 
 ## 3. Consumer mesh experience ✅
 
-**Outcome:** Two-sided marketplace — producers publish, consumers discover and query.
+**Outcome:** Two-sided marketplace - producers publish, consumers discover and query.
 
 | Requirement | Status | Where |
 |-------------|--------|--------|
@@ -75,10 +75,10 @@ Without these, deploy still compiles + registers catalog + records **local VRP p
 
 ## Quick validation (`npm run start:dev`)
 
-1. Load **Data Mesh — Domain Data Product** → Deploy  
-2. **Run History** — VRP PASS, rows, proof S3 links  
-3. **Deploy → Vaquar tab** — full proof panel  
-4. **Marketplace** — schema, Athena, request access  
-5. **Approvals** — steward approve → LF grant message  
+1. Load **Data Mesh - Domain Data Product** → Deploy  
+2. **Run History** - VRP PASS, rows, proof S3 links  
+3. **Deploy → Vaquar tab** - full proof panel  
+4. **Marketplace** - schema, Athena, request access  
+5. **Approvals** - steward approve → LF grant message  
 
 With AWS credentials + env vars above, step 2 also shows **live Step Functions status**.

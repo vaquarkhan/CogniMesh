@@ -8,7 +8,7 @@ Open in [diagrams.net](https://app.diagrams.net) or VS Code with the **Draw.io I
 
 | File | Description |
 |------|-------------|
-| [`diagrams/cognimesh-pipeline-e2e.drawio`](diagrams/cognimesh-pipeline-e2e.drawio) | Full E2E AWS diagram — editable |
+| [`diagrams/cognimesh-pipeline-e2e.drawio`](diagrams/cognimesh-pipeline-e2e.drawio) | Full E2E AWS diagram - editable |
 
 ```bash
 # VS Code / Cursor

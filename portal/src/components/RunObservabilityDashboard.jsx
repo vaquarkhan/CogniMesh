@@ -2,7 +2,7 @@ import SparkBars from "./SparkBars";
 import PvdmFlowDiagram from "./PvdmFlowDiagram";
 
 function pct(n) {
-  if (n == null || Number.isNaN(n)) return "—";
+  if (n == null || Number.isNaN(n)) return "-";
   return `${Math.round(n * 100)}%`;
 }
 

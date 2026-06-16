@@ -2,9 +2,25 @@ import { Amplify } from "aws-amplify";
 
 let configured = false;
 
+async function safeJson(res, fallback) {
+  try {
+    const text = await res.text();
+    if (!text?.trim()) return fallback;
+    const trimmed = text.trim();
+    if (trimmed.startsWith("<") || trimmed.startsWith("<!")) return fallback;
+    return JSON.parse(text);
+  } catch {
+    return fallback;
+  }
+}
+
 export async function loadAuthConfig() {
-  const res = await fetch("/api/v1/auth/config");
-  return res.json();
+  try {
+    const res = await fetch("/api/v1/auth/config");
+    return await safeJson(res, { authDisabled: true });
+  } catch {
+    return { authDisabled: true };
+  }
 }
 
 export async function configureAmplify() {

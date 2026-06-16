@@ -31,6 +31,10 @@ export default function WorkflowGuide({ currentStep, patternTips }) {
           </ul>
         </div>
       )}
+
+      <p className="properties-hint workflow-tutorial-link">
+        Customize pipelines: <code>docs/developer/CUSTOMIZE_PIPELINES.md</code> · Tutorials: <code>docs/tutorials/README.md</code>
+      </p>
     </div>
   );
 }

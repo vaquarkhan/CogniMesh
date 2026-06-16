@@ -36,8 +36,11 @@ docker build -f docker/api.Dockerfile -t cognimesh/api:0.1.0 .
 # Catalog (Spring Boot)
 docker build -f services/catalog/Dockerfile -t cognimesh/catalog:0.1.0 services/catalog
 
-# Portal (Vite dev)
+# Portal (Vite dev - local compose)
 docker build -f portal/Dockerfile -t cognimesh/portal:0.1.0 portal
+
+# Portal (production - nginx + static, for GHCR)
+docker build -f docker/portal.Dockerfile -t cognimesh/portal:0.1.0 .
 ```
 
 ### Published images (target registry)
@@ -50,7 +53,14 @@ docker build -f portal/Dockerfile -t cognimesh/portal:0.1.0 portal
 
 ```bash
 docker pull ghcr.io/vaquarkhan/cognimesh-api:0.1.0
+docker pull ghcr.io/vaquarkhan/cognimesh-portal:0.1.0
+docker pull ghcr.io/vaquarkhan/cognimesh-catalog:0.1.0
+
+# Run without building locally
+docker compose -f docker-compose.prod.yml up
 ```
+
+Maintainers: see [PUBLISHING.md](PUBLISHING.md) for GHCR + PyPI release workflow.
 
 ---
 

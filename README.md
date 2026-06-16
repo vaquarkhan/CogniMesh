@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/cognimesh-hero.png" alt="CogniMesh — Multimodal Cognitive Data Mesh &amp; Marketplace" width="720" />
+  <img src="docs/assets/cognimesh-hero.png" alt="CogniMesh - Multimodal Cognitive Data Mesh &amp; Marketplace" width="720" />
 </p>
 
 <p align="center">
@@ -74,7 +74,7 @@ Built on **[The Vaquar Pattern](docs/vaquar-pattern.md)** by [Vaquarkhan](https:
 | 🏗️ | [System architecture](#system-architecture) |
 | 📐 | [Pipeline E2E diagram](docs/PIPELINE_E2E_DIAGRAM.md) |
 | 🔄 | [End-to-end journey](#end-to-end-journey) |
-| 🖥️ | [Zero-code portal](#zero-code-portal) · [Pattern catalog](docs/PORTAL_UI.md) |
+| 🖥️ | [Zero-code portal](#zero-code-portal) · **[Tutorials](docs/tutorials/README.md)** · [Pattern catalog](docs/PORTAL_UI.md) · [Agent Builder](docs/AGENT_BUILDER.md) |
 | 🔐 | [Security](#security-cognito) |
 | ⭐ | [Vaquar Pattern](docs/vaquar-pattern.md) · [Top 3 features](docs/TOP3_FEATURES.md) |
 | 🔀 | [Dual pipeline model](#dual-pipeline-model) |
@@ -171,20 +171,27 @@ sequenceDiagram
 
 ## Zero-code portal
 
-Visual pipeline designer: **28+ architecture patterns**, AWS service blocks (Glue, Kinesis, MSK, DMS, Firehose), AI builder, live AWS security/architecture review, VRP observability, and consumer marketplace.
+Visual pipeline designer: **28+ architecture patterns**, AWS service blocks (Glue, Kinesis, MSK, DMS, Firehose), **AI Builder** (data pipeline + AI agent generator), **Agent Builder** (Bedrock AgentCore canvas), live AWS security/architecture review, VRP observability, and consumer marketplace.
 
-→ Full pattern catalog: **[docs/PORTAL_UI.md](docs/PORTAL_UI.md)**
+→ Full pattern catalog: **[docs/PORTAL_UI.md](docs/PORTAL_UI.md)**  
+→ **Step-by-step tutorials (26 pipelines + 8 agents):** **[docs/tutorials/README.md](docs/tutorials/README.md)**  
+→ **Developer customization (screenshots + code):** **[docs/developer/README.md](docs/developer/README.md)**
 
 ### Portal screenshots
 
 <p align="center">
-  <img src="docs/images/cog1.jpeg" alt="CogniMesh portal — Data Mesh Customer 360 canvas, Architectures pattern library, pipeline settings" width="720" />
-  <br /><em>Architectures tab · Multi-domain Data Mesh (Customer 360) · AWS Glue / MSK / S3 · Mesh integrity gate → Iceberg gold</em>
+  <img src="docs/images/cog1.jpeg" alt="CogniMesh portal - Data Mesh Customer 360 canvas, Architectures pattern library, pipeline settings" width="720" />
+  <br /><em>Architectures tab · Multi-domain Data Mesh (Customer 360) · Three AWS accounts · Commerce RDS / Inventory Kafka / CRM S3 → Mesh integrity gate → Iceberg gold</em>
 </p>
 
 <p align="center">
-  <img src="docs/images/cog2.jpeg" alt="CogniMesh portal — Lambda architecture batch and speed layers on canvas" width="720" />
-  <br /><em>Lambda (λ) architecture — Parallel batch (S3 → Glue ETL → Iceberg) + speed (Kinesis → Flink → Iceberg) → Merge → Athena serving view</em>
+  <img src="docs/images/cog2.jpeg" alt="CogniMesh portal - Lambda architecture batch and speed layers on canvas" width="720" />
+  <br /><em>Lambda (λ) architecture - Parallel batch (S3 → Glue ETL → Iceberg) + speed (Kinesis → Flink → Iceberg) → Merge → Athena serving view</em>
+</p>
+
+<p align="center">
+  <img src="docs/images/portal-agent-builder-full.png" alt="CogniMesh Agent Builder - Bedrock AgentCore drag-drop canvas" width="720" />
+  <br /><em>Agent Builder mode · Templates (customer support, RAG, fraud, steward) · Guardrails · AgentCore manifest export</em>
 </p>
 
 <table>
@@ -202,7 +209,7 @@ Data Mesh · Data Lake · Lakehouse · Kappa · Lambda λ · Streaming · ETL/EL
 
 **AWS Blocks palette**
 
-<p><img src="docs/assets/portal-aws-blocks.png" alt="AWS Blocks — Glue, Kinesis, MSK, ETL enrichment transforms" width="100%" /></p>
+<p><img src="docs/assets/portal-aws-blocks.png" alt="AWS Blocks - Glue, Kinesis, MSK, ETL enrichment transforms" width="100%" /></p>
 
 Glue ETL/ELT · enrichment · dedupe · CDC merge · stream windows
 
@@ -213,22 +220,26 @@ Glue ETL/ELT · enrichment · dedupe · CDC merge · stream windows
 
 **Design canvas overview**
 
-<p><img src="docs/assets/portal-overview.png" alt="CogniMesh portal — canvas with Kappa architecture and AWS Design Review" width="100%" /></p>
+<p><img src="docs/assets/portal-overview.png" alt="CogniMesh portal - canvas with Kappa architecture and AWS Design Review" width="100%" /></p>
 
 AWS Design Review HUD · VRP-ready pipeline
 
 </td>
 <td width="50%">
 
-**AI pipeline builder**
+**AI Builder - pipeline & agent**
 
-<p><img src="docs/assets/portal-ai-builder.png" alt="AI Builder — describe pipeline in English" width="100%" /></p>
+<p><img src="docs/images/portal-ai-pipeline-designer.png" alt="AI Pipeline Designer - describe pipeline in English" width="48%" /> <img src="docs/images/portal-ai-agent-generator.png" alt="AI Agent Generator" width="48%" /></p>
 
-Natural language → pattern → canvas
+Data pipeline (preview plan + natural-language explanation) · AI agent → Agent Builder
 
 </td>
 </tr>
 </table>
+
+Regenerate all UI images: `npm run docs:screenshots` (builds portal, starts API + preview, writes `docs/assets/` and `docs/images/`).
+
+**Agent Builder:** use feature checkboxes (guardrails, memory, KB, tools) when creating agents - see **[docs/AGENT_BUILDER.md](docs/AGENT_BUILDER.md)**.
 
 <details>
 <summary><strong>All patterns in the UI (click to expand)</strong></summary>
@@ -386,8 +397,8 @@ Install and run CogniMesh via Docker, npm, PyPI, Maven, or Go. Full details: **[
 
 | Channel | Install | Use case |
 |---------|---------|----------|
-| **Docker** | `docker compose up --build` | Full stack — no local Java/Maven |
-| **npm** | `npm install && npm start` | Monorepo dev — API, portal, contract compiler |
+| **Docker** | `docker compose up --build` | Full stack - no local Java/Maven |
+| **npm** | `npm install && npm start` | Monorepo dev - API, portal, contract compiler |
 | **PyPI** | `pip install cognimesh` | Python SDK + CLI for contracts & API |
 | **Maven** | `cd services/catalog && mvn spring-boot:run` | Marketplace catalog service |
 | **Go** | `cd services/cognitive-runtime && go run ./cmd/controller` | Cognitive epoch runtime |
@@ -445,7 +456,7 @@ npm start
 
 ```bash
 npm test                 # offline unit/e2e (no servers)
-npm run dev:api          # API only — embedded catalog, no Java
+npm run dev:api          # API only - embedded catalog, no Java
 npm run dev:minimal      # API + portal (no catalog)
 npm run test:api         # SKIPs marketplace when catalog offline
 ```
@@ -501,6 +512,11 @@ CogniMesh/
 | Document | Description |
 |----------|-------------|
 | **[docs/vaquar-pattern.md](docs/vaquar-pattern.md)** | **The Vaquar Pattern** · PVDM · VRP · building blocks |
+| **[docs/developer/README.md](docs/developer/README.md)** | **Developer customization hub** - 21 UI screenshots · pipelines · agents · code |
+| **[docs/tutorials/README.md](docs/tutorials/README.md)** | Tutorial hub - one guide per architecture & agent |
+| [docs/AGENT_BUILDER.md](docs/AGENT_BUILDER.md) | Agent Builder · feature checkboxes · manifest export |
+| [docs/PORTAL_UI.md](docs/PORTAL_UI.md) | Portal patterns · screenshots · AI & Agent Builder |
+| [docs/PORTAL_DEV.md](docs/PORTAL_DEV.md) | Portal developer guide |
 | [docs/drag-drop-pipeline-flow.md](docs/drag-drop-pipeline-flow.md) | Portal → deploy E2E |
 | [docs/architecture.md](docs/architecture.md) | Architecture deep-dive |
 | [docs/data-contract-spec.md](docs/data-contract-spec.md) | DataContract YAML spec |
@@ -508,12 +524,13 @@ CogniMesh/
 | [docs/PLATFORM_CHECKLIST.md](docs/PLATFORM_CHECKLIST.md) | 10/10 evaluation tracker |
 | [docs/PIPELINE_E2E_DIAGRAM.md](docs/PIPELINE_E2E_DIAGRAM.md) | **AWS E2E diagram** (draw.io) · all pipelines |
 | [docs/DISTRIBUTION.md](docs/DISTRIBUTION.md) | Docker · npm · PyPI · Maven · Go |
+| [docs/PUBLISHING.md](docs/PUBLISHING.md) | GHCR + PyPI release workflow (maintainers) |
 
 ---
 
 ## License
 
-Proprietary — see [LICENSE](LICENSE). Pattern by [Vaquarkhan](https://github.com/vaquarkhan).
+Proprietary - see [LICENSE](LICENSE). Pattern by [Vaquarkhan](https://github.com/vaquarkhan).
 
 Security: [SECURITY.md](SECURITY.md) · Changelog: [CHANGELOG.md](CHANGELOG.md) · [10/10 checklist](docs/PLATFORM_CHECKLIST.md)
 

@@ -46,7 +46,7 @@ export default function AwsDeployStatusBanner({ aws, token, onStatusChange }) {
     <div className={`aws-deploy-banner ${status?.status ? `aws-banner-${status.status}` : ""}`}>
       <strong>AWS deploy</strong>
       {!aws?.deployed && (
-        <p className="properties-hint">{aws?.reason || aws?.error || "Local compile only — set AWS_DEPLOY_ENABLED=true"}</p>
+        <p className="properties-hint">{aws?.reason || aws?.error || "Local compile only - set AWS_DEPLOY_ENABLED=true"}</p>
       )}
       {aws?.deployed && (
         <>

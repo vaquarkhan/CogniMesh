@@ -1,5 +1,5 @@
 /**
- * Federated data mesh dummy AWS accounts & regions — aligned with Vaquar SDM mesh spec.
+ * Federated data mesh dummy AWS accounts & regions - aligned with Vaquar SDM mesh spec.
  * @see lib/vaquar/contract-to-mesh.js
  * @see https://github.com/vaquarkhan/aws-serverless-datamesh-framework examples/contracts/payments.mesh.pipeline.yaml
  */

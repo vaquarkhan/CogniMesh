@@ -21,7 +21,7 @@ export default function DeployConfirmModal({ open, pipelineName, awsReview, onCo
         {awsReview && (
           <div className="deploy-review-summary">
             <p>
-              AWS Design Review: <strong>{awsReview.overall?.score}/100</strong> —{" "}
+              AWS Design Review: <strong>{awsReview.overall?.score}/100</strong> -{" "}
               {awsReview.overall?.grade?.label}
             </p>
             <p className="properties-hint">

@@ -1,0 +1,135 @@
+name: Publish
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Image and package version tag (e.g. 0.1.0)"
+        required: true
+        default: "0.1.0"
+      publish_pypi:
+        description: "Upload Python wheel to PyPI"
+        type: boolean
+        default: true
+      publish_docker:
+        description: "Push Docker images to GHCR"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_OWNER: vaquarkhan
+
+jobs:
+  resolve-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+    steps:
+      - id: v
+        run: |
+          if [ "${{ github.event_name }}" = "release" ]; then
+            echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=${{ inputs.version }}" >> "$GITHUB_OUTPUT"
+          fi
+
+  docker:
+    if: >-
+      github.event_name == 'release' ||
+      (github.event_name == 'workflow_dispatch' && inputs.publish_docker)
+    needs: resolve-version
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: cognimesh-api
+            dockerfile: docker/api.Dockerfile
+            context: .
+          - name: cognimesh-catalog
+            dockerfile: Dockerfile
+            context: services/catalog
+          - name: cognimesh-portal
+            dockerfile: docker/portal.Dockerfile
+            context: .
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push ${{ matrix.name }}
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ matrix.name }}:${{ needs.resolve-version.outputs.version }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_OWNER }}/${{ matrix.name }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  pypi:
+    if: >-
+      github.event_name == 'release' ||
+      (github.event_name == 'workflow_dispatch' && inputs.publish_pypi)
+    needs: resolve-version
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install build tools
+        run: pip install build twine
+
+      - name: Sync package version
+        run: |
+          VERSION="${{ needs.resolve-version.outputs.version }}"
+          sed -i "s/^version = .*/version = \"${VERSION}\"/" python/pyproject.toml
+          sed -i "s/^__version__ = .*/__version__ = \"${VERSION}\"/" python/cognimesh/__init__.py
+
+      - name: Build wheel and sdist
+        working-directory: python
+        run: python -m build
+
+      - name: Publish to PyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        run: python -m twine upload --non-interactive python/dist/*
+
+  summary:
+    needs: [resolve-version, docker, pypi]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish summary
+        run: |
+          VERSION="${{ needs.resolve-version.outputs.version }}"
+          echo "## CogniMesh ${{ needs.resolve-version.outputs.version }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "### Docker (GHCR)" >> "$GITHUB_STEP_SUMMARY"
+          echo "- \`ghcr.io/vaquarkhan/cognimesh-api:${VERSION}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- \`ghcr.io/vaquarkhan/cognimesh-portal:${VERSION}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- \`ghcr.io/vaquarkhan/cognimesh-catalog:${VERSION}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "### PyPI" >> "$GITHUB_STEP_SUMMARY"
+          echo "- \`pip install cognimesh==${VERSION}\`" >> "$GITHUB_STEP_SUMMARY"

@@ -97,7 +97,7 @@ export default function AwsDesignReviewHUD({
               </span>
               {review.overall?.criticalCount > 0 && (
                 <span className="aws-critical-banner">
-                  {review.overall.criticalCount} critical — fix before deploy
+                  {review.overall.criticalCount} critical - fix before deploy
                 </span>
               )}
             </>
@@ -133,7 +133,7 @@ export default function AwsDesignReviewHUD({
           <ul className="aws-findings-list">
             {sorted.length === 0 && (
               <li className="aws-finding sev-info">
-                <strong>No issues — production-ready AWS design</strong>
+                <strong>No issues - production-ready AWS design</strong>
               </li>
             )}
             {sorted.map((f) => (

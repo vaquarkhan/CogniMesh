@@ -1,4 +1,4 @@
-/** Data quality policy presets — map to spec.transform.pvdm.qualityPolicyId */
+/** Data quality policy presets - map to spec.transform.pvdm.qualityPolicyId */
 
 export const QUALITY_POLICIES = [
   {

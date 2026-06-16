@@ -1,5 +1,5 @@
 /**
- * Extended pattern catalog — medallion, finance, healthcare, compliance, ML, etc.
+ * Extended pattern catalog - medallion, finance, healthcare, compliance, ML, etc.
  */
 import { medallionPattern } from "./helpers";
 
@@ -174,7 +174,7 @@ export const EXTRA_PATTERNS = [
     medallionLayers: ["silver", "gold"],
     difficulty: "Intermediate",
     icon: "👥",
-    description: "Track customer attribute changes over time using SCD2 merge logic — valid_from, valid_to, is_current flags in Iceberg gold.",
+    description: "Track customer attribute changes over time using SCD2 merge logic - valid_from, valid_to, is_current flags in Iceberg gold.",
     whenToUse: "CRM or master data where historical attribute values must be preserved for reporting.",
     exampleScenario: "CRM daily export → detect changed addresses → merge into dim_customer with SCD2 columns.",
     exampleFlow: "MySQL customers → Silver (hash compare) → Gold Iceberg MERGE (SCD2)",
@@ -264,7 +264,7 @@ export const EXTRA_PATTERNS = [
     badge: "DQ",
     icon: "⚠️",
     description: "Run SparkRules quality checks after transform; route passing rows to gold Iceberg and failing rows to S3 quarantine for steward review.",
-    whenToUse: "Regulated domains that must never silently drop bad data — quarantine instead.",
+    whenToUse: "Regulated domains that must never silently drop bad data - quarantine instead.",
     exampleScenario: "Supplier feed → validate null rates → good rows to gold, bad rows to quarantine/ bucket with VRP audit.",
     exampleFlow: "Source → Transform (DQ) → Choice(pass/fail) → Gold | Quarantine",
     awsServices: ["Glue", "S3", "Iceberg", "Lambda", "Step Functions"],

@@ -4,7 +4,7 @@ import RunObservabilityDashboard from "./RunObservabilityDashboard";
 import PvdmFlowDiagram from "./PvdmFlowDiagram";
 import { s3ConsoleUrl } from "../lib/s3-console";
 function formatTs(ts) {
-  if (!ts) return "—";
+  if (!ts) return "-";
   try {
     return new Date(ts).toLocaleString();
   } catch {
@@ -85,7 +85,7 @@ export default function ExecutionHistoryPanel({ token, pipelineName, domain, ref
       <h2>Run observability</h2>
       <p className="properties-hint">
         {pipelineName}
-        {domain ? ` · ${domain}` : ""} — VRP proof · rows · AWS status
+        {domain ? ` · ${domain}` : ""} - VRP proof · rows · AWS status
       </p>
       {loading && <p className="properties-hint">Loading runs…</p>}
       {error && <p className="login-error">{error}</p>}
@@ -148,13 +148,13 @@ export default function ExecutionHistoryPanel({ token, pipelineName, domain, ref
                   {r.message && <p className="run-message">{r.message}</p>}
                   <dl className="proof-dl">
                     <dt>Quality policy</dt>
-                    <dd>{r.qualityPolicyId || "—"}</dd>
+                    <dd>{r.qualityPolicyId || "-"}</dd>
                     <dt>Rows processed</dt>
-                    <dd>{r.rowsProcessed ?? "—"}</dd>
+                    <dd>{r.rowsProcessed ?? "-"}</dd>
                     <dt>Rows dropped (SparkRules)</dt>
                     <dd>{r.rowsDropped ?? 0}</dd>
                     <dt>Iceberg snapshot</dt>
-                    <dd><code>{r.icebergSnapshotId || "—"}</code></dd>
+                    <dd><code>{r.icebergSnapshotId || "-"}</code></dd>
                     <dt>Proof artifact</dt>
                     <dd>
                       {r.proofS3Uri ? (
@@ -166,7 +166,7 @@ export default function ExecutionHistoryPanel({ token, pipelineName, domain, ref
                             </a>
                           )}
                         </>
-                      ) : "—"}
+                      ) : "-"}
                     </dd>
                     <dt>Checkpoint</dt>
                     <dd>
@@ -179,7 +179,7 @@ export default function ExecutionHistoryPanel({ token, pipelineName, domain, ref
                             </a>
                           )}
                         </>
-                      ) : "—"}
+                      ) : "-"}
                     </dd>
                     <dt>AWS execution</dt>
                     <dd>

@@ -18,7 +18,7 @@ export default function AgentPropertiesPanel({ node, onChange, agentMeta, onMeta
         <p className="properties-intro">
           Settings for the whole agent. Click a block on the canvas to edit Runtime, Guardrails, Tools, or Model.
         </p>
-        <Field label="Agent name" tip="AgentCore runtime name — used in deployment manifest">
+        <Field label="Agent name" tip="AgentCore runtime name - used in deployment manifest">
           <input
             value={agentMeta.name}
             onChange={(e) => onMetaChange({ ...agentMeta, name: e.target.value })}
@@ -87,7 +87,7 @@ export default function AgentPropertiesPanel({ node, onChange, agentMeta, onMeta
               ))}
             </select>
           </Field>
-          <Field label="Session isolation" tip="Firecracker microVM per session — required for sensitive data">
+          <Field label="Session isolation" tip="Firecracker microVM per session - required for sensitive data">
             <select
               value={d.sessionIsolation !== false ? "true" : "false"}
               onChange={(e) => update({ sessionIsolation: e.target.value === "true" })}
@@ -139,7 +139,7 @@ export default function AgentPropertiesPanel({ node, onChange, agentMeta, onMeta
 
       {d.blockType === "guardrail" && (
         <>
-          <Field label="Guardrail ID" tip="Bedrock Guardrail resource ID — set as BEDROCK_GUARDRAIL_ID on deploy">
+          <Field label="Guardrail ID" tip="Bedrock Guardrail resource ID - set as BEDROCK_GUARDRAIL_ID on deploy">
             <input value={d.guardrailId || ""} onChange={(e) => update({ guardrailId: e.target.value })} />
           </Field>
           <Field label="Version">

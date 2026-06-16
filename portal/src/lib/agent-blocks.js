@@ -1,5 +1,5 @@
 /**
- * Amazon Bedrock AgentCore block palette — Runtime, Gateway, Memory, Guardrails, Tools.
+ * Amazon Bedrock AgentCore block palette - Runtime, Gateway, Memory, Guardrails, Tools.
  */
 
 export const AGENT_BLOCK_CATEGORIES = [

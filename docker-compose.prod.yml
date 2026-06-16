@@ -1,0 +1,39 @@
+# CogniMesh - pull published images from GHCR (no local build)
+# Usage: docker compose -f docker-compose.prod.yml up
+# Portal: http://localhost:3000  API: http://localhost:4000  Catalog: http://localhost:8080
+
+services:
+  catalog:
+    image: ghcr.io/vaquarkhan/cognimesh-catalog:0.1.0
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_APPLICATION_NAME: cognimesh-catalog
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/api/v1/products"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+
+  api:
+    image: ghcr.io/vaquarkhan/cognimesh-api:0.1.0
+    ports:
+      - "4000:4000"
+    environment:
+      AUTH_DISABLED: "true"
+      PORT: "4000"
+      CATALOG_URL: http://catalog:8080
+      CATALOG_FALLBACK: embedded
+      CORS_ORIGINS: http://localhost:3000
+    depends_on:
+      catalog:
+        condition: service_healthy
+
+  portal:
+    image: ghcr.io/vaquarkhan/cognimesh-portal:0.1.0
+    ports:
+      - "3000:80"
+    depends_on:
+      api:
+        condition: service_started

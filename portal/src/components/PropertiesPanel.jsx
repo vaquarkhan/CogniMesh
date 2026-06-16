@@ -77,7 +77,7 @@ export default function PropertiesPanel({ node, onChange, pipelineMeta, onMetaCh
         {pipelineMeta.meshAccounts && (
           <div className="mesh-accounts-panel">
             <h3>Mesh AWS accounts</h3>
-            <p className="properties-hint">Vaquar SDM — producer / steward / publisher (dummy account IDs)</p>
+            <p className="properties-hint">Vaquar SDM - producer / steward / publisher (dummy account IDs)</p>
             <ul className="mesh-accounts-list">
               <li><strong>Producer</strong> {pipelineMeta.meshAccounts.producer}</li>
               <li><strong>Steward</strong> {pipelineMeta.meshAccounts.steward}</li>
@@ -146,7 +146,7 @@ export default function PropertiesPanel({ node, onChange, pipelineMeta, onMetaCh
               update({ awsService: svc || undefined, detail: meta ? `${meta.icon} ${meta.label}` : d.detail });
             }}
           >
-            <option value="">— auto —</option>
+            <option value="">- auto -</option>
             {AWS_SERVICE_KEYS.map((k) => (
               <option key={k} value={k}>
                 {AWS_SERVICES[k].icon} {AWS_SERVICES[k].label}
@@ -190,7 +190,7 @@ export default function PropertiesPanel({ node, onChange, pipelineMeta, onMetaCh
                   <input value={d.primaryKey || ""} onChange={(e) => update({ primaryKey: e.target.value })} />
                 </Field>
               )}
-              <Field label="Secrets Manager ARN" tip="Required for AWS security review — never embed passwords">
+              <Field label="Secrets Manager ARN" tip="Required for AWS security review - never embed passwords">
                 <input
                   value={d.secretArn || ""}
                   onChange={(e) => update({ secretArn: e.target.value })}
@@ -220,7 +220,7 @@ export default function PropertiesPanel({ node, onChange, pipelineMeta, onMetaCh
 
       {d.blockType === "transform" && (
         <>
-          <Field label="Processing mode" tip="ETL vs ELT vs enrichment — data architect pattern">
+          <Field label="Processing mode" tip="ETL vs ELT vs enrichment - data architect pattern">
             <select
               value={d.processingMode || "sql"}
               onChange={(e) => {
@@ -235,7 +235,7 @@ export default function PropertiesPanel({ node, onChange, pipelineMeta, onMetaCh
             >
               {PROCESSING_MODES.map((m) => (
                 <option key={m.id} value={m.id}>
-                  {m.label} — {m.desc}
+                  {m.label} - {m.desc}
                 </option>
               ))}
             </select>

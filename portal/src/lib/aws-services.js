@@ -1,4 +1,4 @@
-/** AWS services visible on canvas blocks — maps to CogniMesh Terraform modules. */
+/** AWS services visible on canvas blocks - maps to CogniMesh Terraform modules. */
 
 export const AWS_SERVICES = {
   glue: { label: "AWS Glue", icon: "🧊", color: "#0369a1", role: "process" },

@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { AGENT_TEMPLATES, AGENT_TEMPLATE_CATEGORIES, instantiateAgentTemplate } from "../lib/agent-templates";
+import { defaultAgentFeatures } from "../lib/agent-feature-options";
+import AgentFeatureOptions from "./AgentFeatureOptions";
 
 function scrollSidebarToTop(containerRef) {
   const panel = containerRef.current?.closest(".sidebar-panel");
@@ -11,6 +13,11 @@ export default function AgentTemplateLibrary({ activeTemplateId, onApplyTemplate
   const [category, setCategory] = useState("All");
   const [expandedId, setExpandedId] = useState(null);
   const [search, setSearch] = useState("");
+  const [features, setFeatures] = useState(() => defaultAgentFeatures());
+
+  const launchTemplate = (template) => {
+    onApplyTemplate(instantiateAgentTemplate(template, features));
+  };
 
   useEffect(() => {
     scrollSidebarToTop(rootRef);
@@ -55,6 +62,8 @@ export default function AgentTemplateLibrary({ activeTemplateId, onApplyTemplate
             </button>
           ))}
         </div>
+
+        <AgentFeatureOptions features={features} onChange={setFeatures} compact />
       </div>
 
       <ul className="pattern-list">
@@ -101,7 +110,7 @@ export default function AgentTemplateLibrary({ activeTemplateId, onApplyTemplate
                   <button
                     type="button"
                     className="pattern-use-btn"
-                    onClick={() => onApplyTemplate(instantiateAgentTemplate(template))}
+                    onClick={() => launchTemplate(template)}
                   >
                     Use this agent template
                   </button>
@@ -112,7 +121,7 @@ export default function AgentTemplateLibrary({ activeTemplateId, onApplyTemplate
                 <button
                   type="button"
                   className="pattern-use-btn compact"
-                  onClick={() => onApplyTemplate(instantiateAgentTemplate(template))}
+                  onClick={() => launchTemplate(template)}
                 >
                   Use template
                 </button>
@@ -126,7 +135,7 @@ export default function AgentTemplateLibrary({ activeTemplateId, onApplyTemplate
         <button
           type="button"
           className="btn-secondary pattern-blank-btn"
-          onClick={() => onApplyTemplate(instantiateAgentTemplate(AGENT_TEMPLATES.find((t) => t.id === "blank-agent")))}
+          onClick={() => launchTemplate(AGENT_TEMPLATES.find((t) => t.id === "blank-agent"))}
         >
           ✨ Start blank agent
         </button>

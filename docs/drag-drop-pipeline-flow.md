@@ -118,3 +118,9 @@ npm run test:api
 | `lib/contract-builder/index.js` | Preview + deploy orchestration |
 | `services/api-gateway/server.js` | REST API for portal |
 | `services/pipeline-engine/compile.js` | Contract → Step Functions |
+
+## Agent Builder (cognitive pipelines)
+
+For Bedrock **AgentCore** agents (not data pipelines), use the separate Agent Builder flow with **feature checkboxes** (guardrails, memory, knowledge base, tools, etc.):
+
+→ **[AGENT_BUILDER.md](AGENT_BUILDER.md)**

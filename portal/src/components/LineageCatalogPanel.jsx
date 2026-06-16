@@ -40,7 +40,7 @@ export default function LineageCatalogPanel({ token, refreshKey }) {
       {error && <p className="login-error">{error}</p>}
       {catalog && (
         <p className="properties-hint">
-          {catalog.totalProducts} product(s) · domains: {(catalog.domains || []).join(", ") || "—"}
+          {catalog.totalProducts} product(s) · domains: {(catalog.domains || []).join(", ") || "-"}
         </p>
       )}
       <ul className="lineage-product-list">
