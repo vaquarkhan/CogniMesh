@@ -12,9 +12,21 @@
 <p align="center">
   <a href="docs/DISTRIBUTION.md#docker-recommended-for-local-full-stack"><img src="https://img.shields.io/badge/Docker-Compose-2496ED?style=flat-square&logo=docker&logoColor=white" alt="Docker" /></a>
   <a href="docs/DISTRIBUTION.md#npm-nodejs"><img src="https://img.shields.io/badge/npm-1.0.0-CB3837?style=flat-square&logo=npm&logoColor=white" alt="npm" /></a>
-  <a href="docs/DISTRIBUTION.md#pypi-python-sdk"><img src="https://img.shields.io/badge/PyPI-cognimesh_1.0.0-3776AB?style=flat-square&logo=pypi&logoColor=white" alt="PyPI" /></a>
+  <a href="https://pypi.org/project/cognimesh/"><img src="https://img.shields.io/pypi/v/cognimesh?style=flat-square&logo=pypi&logoColor=white&label=PyPI" alt="PyPI cognimesh" /></a>
   <a href="docs/DISTRIBUTION.md#maven-java-catalog"><img src="https://img.shields.io/badge/Maven-catalog-ED8B00?style=flat-square&logo=apachemaven&logoColor=white" alt="Maven" /></a>
   <a href="docs/DISTRIBUTION.md#go-cognitive-runtime"><img src="https://img.shields.io/badge/Go-runtime-00ADD8?style=flat-square&logo=go&logoColor=white" alt="Go" /></a>
+</p>
+
+<p align="center">
+  <strong>📦 Python SDK — install anytime from <a href="https://pypi.org/project/cognimesh/">PyPI</a></strong>
+</p>
+
+<p align="center">
+  <code>pip install cognimesh</code>
+  &nbsp;·&nbsp;
+  <a href="https://pypi.org/project/cognimesh/#files">Download wheels</a>
+  &nbsp;·&nbsp;
+  <a href="https://pypi.org/project/cognimesh/">pypi.org/project/cognimesh</a>
 </p>
 
 <h1 align="center">CogniMesh</h1>
