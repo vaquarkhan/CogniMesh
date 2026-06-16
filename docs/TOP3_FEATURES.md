@@ -76,6 +76,10 @@ Without these, deploy still compiles + registers catalog + records **local VRP p
 | Athena live preview | **Shipped** | `DATA_PREVIEW_ATHENA=true` + `ATHENA_OUTPUT_LOCATION` |
 | Audit HTML/PDF export | **Shipped** | Operations → Audit → printable HTML |
 | Agent KB/guardrail deploy | **Shipped** | `agent-deploy.js` associates resources when IDs set |
+| Plugin sandbox | **Shipped** | Operations → Plugins · register + sandbox test · Block palette |
+| Cross-org billing | **Shipped** | Operations → Billing · federated usage dashboard |
+| Open spec site | **Shipped** | `/api/v1/platform/open-spec/site` · Operations → Open spec |
+| JDBC preview | **Shipped** | RDS Data API when `DATA_PREVIEW_JDBC=true` |
 | Persistent version store | **Shipped** | `data/pipeline-versions.json` |
 | Live S3 data preview | **Shipped** | `DATA_PREVIEW_LIVE=true` |
 | Self-heal from Run History | **Shipped** | VRP FAIL → Attempt self-heal |

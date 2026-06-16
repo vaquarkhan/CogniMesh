@@ -72,6 +72,27 @@ export async function listPlugins(token) {
   return platformGet("/api/v1/platform/plugins", token);
 }
 
+export async function registerPlugin(token, plugin) {
+  return platformPost("/api/v1/platform/plugins", plugin, token);
+}
+
+export async function sandboxPlugin(token, plugin) {
+  return platformPost("/api/v1/platform/plugins/sandbox", plugin, token);
+}
+
+export async function getBillingDashboard(token, { orgId, domain } = {}) {
+  const qs = new URLSearchParams();
+  if (orgId) qs.set("orgId", orgId);
+  if (domain) qs.set("domain", domain);
+  const q = qs.toString();
+  return platformGet(`/api/v1/platform/billing${q ? `?${q}` : ""}`, token);
+}
+
+export async function getOpenSpecSiteUrl() {
+  const base = import.meta.env.VITE_API_URL || "";
+  return `${base}/api/v1/platform/open-spec/site`;
+}
+
 export async function askCopilot(token, { message, pipelineName, domain }) {
   return platformPost("/api/v1/platform/copilot", { message, pipelineName, domain }, token);
 }

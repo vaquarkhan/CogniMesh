@@ -4,6 +4,7 @@ require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
+const path = require("path");
 const { deployPipeline, previewPipeline } = require("../../lib/contract-builder");
 const { requireAuth } = require("./middleware/auth");
 const { csrfProtection } = require("./middleware/csrf");
@@ -47,6 +48,7 @@ app.use(
 const BODY_LIMIT = process.env.API_BODY_LIMIT || "512kb";
 app.use(express.json({ limit: BODY_LIMIT }));
 app.use(requestLogger);
+app.use("/schemas", express.static(path.join(__dirname, "../../schemas")));
 app.use("/api/v1", rateLimit);
 app.use("/api/v1", csrfProtection);
 

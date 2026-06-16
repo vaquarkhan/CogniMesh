@@ -19,6 +19,10 @@ import {
   downloadAuditHtml,
   importFromStateMachine,
   importFromGlueJob,
+  getBillingDashboard,
+  registerPlugin,
+  sandboxPlugin,
+  getOpenSpecSiteUrl,
 } from "../lib/platform-api";
 
 const TABS = [
@@ -28,6 +32,7 @@ const TABS = [
   { id: "cost", label: "Cost", tier: 2 },
   { id: "lineage", label: "Columns", tier: 3 },
   { id: "access", label: "Federated", tier: 2 },
+  { id: "billing", label: "Billing", tier: 2 },
   { id: "audit", label: "Audit", tier: 2 },
   { id: "mesh", label: "Multi-cloud", tier: 3 },
   { id: "plugins", label: "Plugins", tier: 4 },
@@ -69,6 +74,10 @@ export default function PlatformOperationsPanel({
   const [importArn, setImportArn] = useState("");
   const [importGlueJob, setImportGlueJob] = useState("");
   const [importResult, setImportResult] = useState(null);
+  const [billing, setBilling] = useState(null);
+  const [pluginForm, setPluginForm] = useState({ id: "", type: "source", label: "", description: "" });
+  const [pluginMsg, setPluginMsg] = useState(null);
+  const [specSiteUrl, setSpecSiteUrl] = useState("");
 
   const load = useCallback(async () => {
     if (!token) return;
@@ -101,6 +110,9 @@ export default function PlatformOperationsPanel({
         case "access":
           setFederated(await getFederatedProducts(token));
           break;
+        case "billing":
+          setBilling(await getBillingDashboard(token, { domain: pipelineMeta?.domain }));
+          break;
         case "mesh": {
           const t = await getDeployTargets(token);
           setTargets(t?.targets || []);
@@ -113,6 +125,7 @@ export default function PlatformOperationsPanel({
         }
         case "spec":
           setOpenSpec(await getOpenSpec(token));
+          setSpecSiteUrl(await getOpenSpecSiteUrl());
           break;
         case "notifications":
           setNotif(await getNotificationConfig(token));
@@ -346,6 +359,20 @@ export default function PlatformOperationsPanel({
         </div>
       )}
 
+      {tab === "billing" && billing && (
+        <div className="platform-ops-body">
+          <p><strong>${billing.totalUsd}</strong> total · cross-org usage</p>
+          <ul className="platform-ops-list">
+            {billing.organizations.map((o) => (
+              <li key={o.orgId}>
+                <strong>{o.orgId}</strong> — ${o.totalUsd} · {o.eventCount} events · {o.productCount} products
+              </li>
+            ))}
+          </ul>
+          <p className="properties-hint">Query ${billing.rateCard?.query}/query · egress ${billing.rateCard?.egress_gb}/GB</p>
+        </div>
+      )}
+
       {tab === "mesh" && (
         <ul className="platform-ops-list">
           {targets.map((t) => (
@@ -357,11 +384,48 @@ export default function PlatformOperationsPanel({
       )}
 
       {tab === "plugins" && (
-        <ul className="platform-ops-list">
-          {plugins.map((p) => (
-            <li key={p.id}>{p.label} ({p.type}) v{p.version}</li>
-          ))}
-        </ul>
+        <div className="platform-ops-body">
+          <ul className="platform-ops-list">
+            {plugins.map((p) => (
+              <li key={p.id}>{p.label} ({p.type}) v{p.version}{p.custom && " · custom"}</li>
+            ))}
+          </ul>
+          <div className="plugin-register-form">
+            <h4>Register plugin (sandbox)</h4>
+            <input placeholder="id" value={pluginForm.id} onChange={(e) => setPluginForm({ ...pluginForm, id: e.target.value })} />
+            <input placeholder="label" value={pluginForm.label} onChange={(e) => setPluginForm({ ...pluginForm, label: e.target.value })} />
+            <select value={pluginForm.type} onChange={(e) => setPluginForm({ ...pluginForm, type: e.target.value })}>
+              <option value="source">source</option>
+              <option value="transform">transform</option>
+              <option value="sink">sink</option>
+            </select>
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={async () => {
+                const r = await sandboxPlugin(token, pluginForm);
+                setPluginMsg(r.success ? `Sandbox OK: ${r.block?.type}` : r.errors?.[0]);
+              }}
+            >
+              Test sandbox
+            </button>
+            <button
+              type="button"
+              className="deploy-btn"
+              onClick={async () => {
+                const r = await registerPlugin(token, pluginForm);
+                setPluginMsg(r.success ? `Registered ${r.plugin?.id}` : r.errors?.[0]);
+                if (r.success) {
+                  const p = await listPlugins(token);
+                  setPlugins(p.plugins || []);
+                }
+              }}
+            >
+              Register
+            </button>
+            {pluginMsg && <p className="properties-hint">{pluginMsg}</p>}
+          </div>
+        </div>
       )}
 
       {tab === "copilot" && (
@@ -392,6 +456,9 @@ export default function PlatformOperationsPanel({
         <div className="platform-ops-body">
           <p><strong>{openSpec.spec}</strong> — {openSpec.status}</p>
           <p className="properties-hint">Agent: {openSpec.agentSpec}</p>
+          {specSiteUrl && (
+            <a href={specSiteUrl} target="_blank" rel="noreferrer">Open specification site ↗</a>
+          )}
           <a href={openSpec.publishUrl} target="_blank" rel="noreferrer">GitHub reference</a>
         </div>
       )}

@@ -1123,6 +1123,18 @@ body {
   margin-top: 0.35rem;
 }
 
+.plugin-register-form {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.plugin-register-form input,
+.plugin-register-form select {
+  width: 100%;
+}
+
 .steward-section-title {
   font-size: 0.85rem;
   margin: 1rem 0 0.35rem;

@@ -9,6 +9,8 @@ generated/
 logs/
 data/pipeline-versions.json
 data/deploy-approvals.json
+data/plugins.json
+data/cross-org-billing.json
 *.jar
 !.mvn/wrapper/maven-wrapper.jar
 

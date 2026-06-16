@@ -45,6 +45,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-athena": "^3.654.0",
+    "@aws-sdk/client-rds-data": "^3.654.0",
     "@aws-sdk/client-bedrock-agent": "^3.654.0",
     "@aws-sdk/client-bedrock-runtime": "^3.654.0",
     "@aws-sdk/client-s3": "^3.654.0",

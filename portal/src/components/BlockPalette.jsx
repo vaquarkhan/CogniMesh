@@ -1,7 +1,28 @@
+import { useEffect, useState } from "react";
 import { blocksByCategory } from "../lib/workflow-blocks";
+import { listPlugins } from "../lib/platform-api";
+import { useAuth } from "../auth/AuthContext";
 
 export default function BlockPalette() {
+  const { token } = useAuth();
+  const [pluginBlocks, setPluginBlocks] = useState([]);
+
+  useEffect(() => {
+    if (!token) return;
+    listPlugins(token)
+      .then((data) => setPluginBlocks(data.blocks || []))
+      .catch(() => setPluginBlocks([]));
+  }, [token]);
+
   const categories = blocksByCategory();
+  if (pluginBlocks.length) {
+    categories.push({
+      id: "plugins",
+      label: "Plugins",
+      hint: "Custom blocks from plugin registry",
+      blocks: pluginBlocks,
+    });
+  }
 
   const onDragStart = (event, block) => {
     event.dataTransfer.setData("application/cognimesh-block", JSON.stringify(block));
