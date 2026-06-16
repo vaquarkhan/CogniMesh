@@ -3,6 +3,7 @@
  * Each pattern is a full multi-block canvas graph with AWS services labeled on nodes.
  */
 import { medallionPattern } from "./helpers";
+import { meshAccountsForPipelineMeta, withMeshContext, withMeshRole } from "./mesh-constants";
 
 function wf(nodes, edges, meta, extra = {}) {
   return { nodes, edges, pipelineMeta: meta, ...extra };
@@ -26,17 +27,82 @@ export const ARCHITECTURE_PATTERNS = [
     exampleScenario: "Commerce domain publishes orders_daily v1.0 — analysts request access via marketplace, stewards grant LF SELECT.",
     exampleFlow: "RDS CDC → Bronze → Silver ETL → Gold Iceberg → PVDM Gate → Glue Catalog → LF Tag → Marketplace",
     architectureDiagram:
-      "┌──────── Domain: commerce ────────┐\n│ Source → Bronze → Silver → Gold   │\n│         ↓ Integrity Gate (VRP)    │\n│    Marketplace ← Lake Formation   │\n└───────────────────────────────────┘",
+      "Producer AC → Bronze → Silver → Gold\nSteward AC → PVDM Gate (VRP)\nPublisher AC → Iceberg product → LF → Marketplace",
     awsServices: ["RDS", "Glue", "Iceberg", "Lake Formation", "Step Functions", "Lambda", "Athena"],
+    meshSwimlanes: false,
     ...wf(
       [
         { id: "st", type: "pipeline", position: { x: 40, y: 200 }, data: { label: "Start", blockType: "start", detail: "Domain pipeline" } },
-        { id: "src", type: "pipeline", position: { x: 180, y: 200 }, data: { label: "RDS Orders", blockType: "source", sourceType: "rds", awsService: "rds", database: "commerce", table: "orders", cdcEnabled: true, primaryKey: "order_id", detail: "🗄 RDS · CDC" } },
-        { id: "bronze", type: "pipeline", position: { x: 400, y: 200 }, data: { label: "Bronze Landing", blockType: "transform", transformType: "glue_etl", awsService: "glue", processingMode: "elt", executionMode: "batch", schedule: "0 */4 * * *", sparkSql: "SELECT *, _cdc_ts FROM bronze.orders_raw", detail: "🧊 Glue · ELT bronze" } },
-        { id: "silver", type: "pipeline", position: { x: 620, y: 200 }, data: { label: "Silver Conform", blockType: "transform", transformType: "spark_sql", awsService: "glue", processingMode: "etl", executionMode: "batch", sparkSql: "SELECT order_id, customer_id, CAST(total AS decimal(18,2)) total FROM bronze.orders WHERE order_id IS NOT NULL", detail: "🧊 Glue · ETL silver" } },
-        { id: "gold", type: "pipeline", position: { x: 840, y: 200 }, data: { label: "Gold Product", blockType: "transform", transformType: "spark_sql", awsService: "glue", processingMode: "aggregate", sparkSql: "SELECT DATE(created_at) dt, SUM(total) revenue FROM silver.orders GROUP BY 1", detail: "🧊 Glue · aggregate" } },
-        { id: "gate", type: "pipeline", position: { x: 1060, y: 200 }, data: { label: "PVDM Gate", blockType: "integrity_gate", awsService: "lambda", detail: "λ Integrity + VRP" } },
-        { id: "sink", type: "pipeline", position: { x: 1280, y: 200 }, data: { label: "Iceberg Product", blockType: "sink", targetType: "iceberg", awsService: "iceberg", location: "s3://mesh-commerce-gold/orders_daily/", catalogDatabase: "commerce_gold", catalogTable: "orders_daily", detail: "🏔 Iceberg · LF tagged" } },
+        {
+          id: "src",
+          type: "pipeline",
+          position: { x: 180, y: 200 },
+          data: withMeshRole(
+            {
+              label: "RDS Orders",
+              blockType: "source",
+              sourceType: "rds",
+              awsService: "rds",
+              database: "commerce",
+              table: "orders",
+              cdcEnabled: true,
+              primaryKey: "order_id",
+              meshDomain: "commerce",
+            },
+            "producer"
+          ),
+        },
+        {
+          id: "bronze",
+          type: "pipeline",
+          position: { x: 400, y: 200 },
+          data: withMeshRole(
+            { label: "Bronze Landing", blockType: "transform", transformType: "glue_etl", awsService: "glue", processingMode: "elt", executionMode: "batch", schedule: "0 */4 * * *", sparkSql: "SELECT *, _cdc_ts FROM bronze.orders_raw", meshDomain: "commerce" },
+            "producer"
+          ),
+        },
+        {
+          id: "silver",
+          type: "pipeline",
+          position: { x: 620, y: 200 },
+          data: withMeshRole(
+            { label: "Silver Conform", blockType: "transform", transformType: "spark_sql", awsService: "glue", processingMode: "etl", executionMode: "batch", sparkSql: "SELECT order_id, customer_id, CAST(total AS decimal(18,2)) total FROM bronze.orders WHERE order_id IS NOT NULL", meshDomain: "commerce" },
+            "producer"
+          ),
+        },
+        {
+          id: "gold",
+          type: "pipeline",
+          position: { x: 840, y: 200 },
+          data: withMeshRole(
+            { label: "Gold Product", blockType: "transform", transformType: "spark_sql", awsService: "glue", processingMode: "aggregate", sparkSql: "SELECT DATE(created_at) dt, SUM(total) revenue FROM silver.orders GROUP BY 1", meshDomain: "commerce" },
+            "producer"
+          ),
+        },
+        {
+          id: "gate",
+          type: "pipeline",
+          position: { x: 1060, y: 200 },
+          data: withMeshRole({ label: "PVDM Gate", blockType: "integrity_gate", awsService: "lambda", meshDomain: "commerce" }, "steward"),
+        },
+        {
+          id: "sink",
+          type: "pipeline",
+          position: { x: 1280, y: 200 },
+          data: withMeshRole(
+            {
+              label: "Iceberg Product",
+              blockType: "sink",
+              targetType: "iceberg",
+              awsService: "iceberg",
+              location: "s3://mesh-commerce-gold/orders_daily/",
+              catalogDatabase: "commerce_gold",
+              catalogTable: "orders_daily",
+              meshDomain: "commerce",
+            },
+            "publisher"
+          ),
+        },
       ],
       [
         { id: "e1", source: "st", target: "src" },
@@ -46,39 +112,112 @@ export const ARCHITECTURE_PATTERNS = [
         { id: "e5", source: "gold", target: "gate" },
         { id: "e6", source: "gate", target: "sink" },
       ],
-      { name: "orders-daily-product", domain: "commerce", version: "1.0.0", schemaEvolutionPolicy: "compatible", enableLakeFormation: true }
+      meshAccountsForPipelineMeta({ name: "orders-daily-product", domain: "commerce", version: "1.0.0", schemaEvolutionPolicy: "compatible" })
     ),
-    customizeTips: ["Set domain = your bounded context.", "Gold table = data product contract.", "Enable LF for consumer mesh."],
+    customizeTips: [
+      "Producer AC runs ingest → gold transforms.",
+      "Steward AC hosts PVDM / VRP integrity gate.",
+      "Publisher AC registers Iceberg product + Lake Formation share.",
+    ],
   },
   {
     id: "arch-datamesh-multi-domain",
     name: "Data Mesh — Multi-Domain Parallel",
-    subtitle: "3 domains → merge → federated gold",
+    subtitle: "3 domain ACs → merge → federated gold",
     category: "Data Mesh",
     architecture: "datamesh",
     architectureTags: ["datamesh", "workflow"],
     difficulty: "Expert",
     badge: "Multi-Domain",
     icon: "🕸",
-    description: "Three domain pipelines run in parallel (orders, inventory, customers), merge into a federated customer-360 gold product — true mesh composition.",
+    description:
+      "Three domain pipelines run in parallel (orders, inventory, customers) — each in its own producer AWS account and region — merge into a federated customer-360 gold product in the publisher account.",
     whenToUse: "Cross-domain analytics product built from multiple domain-owned pipelines without central ETL team bottleneck.",
-    exampleScenario: "Retail mesh: commerce + supply-chain + CRM domains parallel ingest, merge on customer_id, publish 360 view.",
-    exampleFlow: "Start → Parallel(3 domains) → Merge → Enrichment → Gate → Iceberg",
-    architectureDiagram: "Parallel[Commerce|Inventory|CRM] → Merge → Enrich → VRP → Gold 360",
+    exampleScenario: "Retail mesh: orders (commerce AC) + inventory (supply AC) + customers (CRM AC) parallel ingest, merge on customer_id, publish 360 view to publisher AC.",
+    exampleFlow: "Start → Parallel(orders|inventory|customers) → Merge → Enrichment → Steward Gate → Publisher Gold",
+    architectureDiagram:
+      "AC-1111 orders/us-east-1 ──┐\nAC-2222 inventory/us-west-2 ─┼→ Merge → Enrich → Gate → AC-3456 gold\nAC-3333 customers/eu-west-1 ──┘",
     awsServices: ["Glue", "Step Functions", "Iceberg", "Lake Formation", "MSK"],
+    meshSwimlanes: true,
     nodes: [
-      { id: "st", type: "pipeline", position: { x: 40, y: 220 }, data: { label: "Start", blockType: "start" } },
-      { id: "par", type: "pipeline", position: { x: 160, y: 220 }, data: { label: "Parallel", blockType: "parallel", branchCount: 3 } },
-      { id: "s1", type: "pipeline", position: { x: 360, y: 60 }, data: { label: "Commerce RDS", blockType: "source", sourceType: "rds", awsService: "rds", database: "commerce", table: "orders", detail: "Domain: commerce" } },
-      { id: "t1", type: "pipeline", position: { x: 560, y: 60 }, data: { label: "Orders ETL", blockType: "transform", transformType: "spark_sql", awsService: "glue", processingMode: "etl", sparkSql: "SELECT customer_id, order_id, total FROM bronze.orders", detail: "🧊 ETL" } },
-      { id: "s2", type: "pipeline", position: { x: 360, y: 220 }, data: { label: "Inventory Kafka", blockType: "source", sourceType: "kafka", awsService: "msk", endpoint: "inventory.updates", detail: "Domain: supply" } },
-      { id: "t2", type: "pipeline", position: { x: 560, y: 220 }, data: { label: "Stock Stream", blockType: "transform", transformType: "glue_etl", awsService: "glue", processingMode: "stream_window", executionMode: "stream", sparkSql: "SELECT sku, qty, window FROM stream.inventory", detail: "🧊 stream window" } },
-      { id: "s3", type: "pipeline", position: { x: 360, y: 380 }, data: { label: "CRM S3", blockType: "source", sourceType: "s3", awsService: "s3", endpoint: "s3://crm-landing/contacts/", detail: "Domain: crm" } },
-      { id: "t3", type: "pipeline", position: { x: 560, y: 380 }, data: { label: "CRM ELT", blockType: "transform", transformType: "spark_sql", awsService: "glue", processingMode: "elt", sparkSql: "SELECT customer_id, segment, region FROM bronze.crm", detail: "🧊 ELT" } },
-      { id: "mg", type: "pipeline", position: { x: 780, y: 220 }, data: { label: "Merge", blockType: "merge" } },
-      { id: "en", type: "pipeline", position: { x: 980, y: 220 }, data: { label: "Customer 360", blockType: "transform", transformType: "spark_sql", awsService: "glue", processingMode: "enrichment", sparkSql: "SELECT o.customer_id, o.total, i.qty, c.segment FROM orders o JOIN inventory i JOIN crm c", detail: "Enrichment join" } },
-      { id: "gt", type: "pipeline", position: { x: 1180, y: 220 }, data: { label: "Mesh Gate", blockType: "integrity_gate", awsService: "lambda" } },
-      { id: "sk", type: "pipeline", position: { x: 1380, y: 220 }, data: { label: "360 Gold", blockType: "sink", targetType: "iceberg", awsService: "iceberg", location: "s3://mesh-federated/customer_360/", catalogDatabase: "federated_gold", catalogTable: "customer_360" } },
+      { id: "st", type: "pipeline", position: { x: 40, y: 220 }, data: { label: "Start", blockType: "start", detail: "Federated mesh" } },
+      { id: "par", type: "pipeline", position: { x: 160, y: 220 }, data: { label: "Parallel", blockType: "parallel", branchCount: 3, detail: "3 domain ACs" } },
+      {
+        id: "s1",
+        type: "pipeline",
+        position: { x: 360, y: 60 },
+        data: withMeshContext(
+          { label: "Orders RDS", blockType: "source", sourceType: "rds", awsService: "rds", database: "orders", table: "orders", cdcEnabled: true, primaryKey: "order_id" },
+          "orders"
+        ),
+      },
+      {
+        id: "t1",
+        type: "pipeline",
+        position: { x: 560, y: 60 },
+        data: withMeshContext(
+          { label: "Orders ETL", blockType: "transform", transformType: "spark_sql", awsService: "glue", processingMode: "etl", sparkSql: "SELECT customer_id, order_id, total FROM bronze.orders" },
+          "orders"
+        ),
+      },
+      {
+        id: "s2",
+        type: "pipeline",
+        position: { x: 360, y: 220 },
+        data: withMeshContext(
+          { label: "Inventory Kafka", blockType: "source", sourceType: "kafka", awsService: "msk", endpoint: "inventory.updates" },
+          "inventory"
+        ),
+      },
+      {
+        id: "t2",
+        type: "pipeline",
+        position: { x: 560, y: 220 },
+        data: withMeshContext(
+          { label: "Inventory Stream", blockType: "transform", transformType: "glue_etl", awsService: "glue", processingMode: "stream_window", executionMode: "stream", sparkSql: "SELECT sku, qty, window FROM stream.inventory" },
+          "inventory"
+        ),
+      },
+      {
+        id: "s3",
+        type: "pipeline",
+        position: { x: 360, y: 380 },
+        data: withMeshContext(
+          { label: "Customers S3", blockType: "source", sourceType: "s3", awsService: "s3", endpoint: "s3://crm-landing/contacts/" },
+          "customers"
+        ),
+      },
+      {
+        id: "t3",
+        type: "pipeline",
+        position: { x: 560, y: 380 },
+        data: withMeshContext(
+          { label: "Customers ELT", blockType: "transform", transformType: "spark_sql", awsService: "glue", processingMode: "elt", sparkSql: "SELECT customer_id, segment, region FROM bronze.crm" },
+          "customers"
+        ),
+      },
+      { id: "mg", type: "pipeline", position: { x: 780, y: 220 }, data: withMeshRole({ label: "Merge", blockType: "merge", meshDomain: "federated" }, "publisher", "us-east-1") },
+      {
+        id: "en",
+        type: "pipeline",
+        position: { x: 980, y: 220 },
+        data: withMeshRole(
+          { label: "Customer 360", blockType: "transform", transformType: "spark_sql", awsService: "glue", processingMode: "enrichment", sparkSql: "SELECT o.customer_id, o.total, i.qty, c.segment FROM orders o JOIN inventory i JOIN crm c", meshDomain: "federated" },
+          "publisher",
+          "us-east-1"
+        ),
+      },
+      { id: "gt", type: "pipeline", position: { x: 1180, y: 220 }, data: withMeshRole({ label: "Mesh Gate", blockType: "integrity_gate", awsService: "lambda", meshDomain: "federated" }, "steward", "us-east-1") },
+      {
+        id: "sk",
+        type: "pipeline",
+        position: { x: 1380, y: 220 },
+        data: withMeshRole(
+          { label: "360 Gold", blockType: "sink", targetType: "iceberg", awsService: "iceberg", location: "s3://mesh-federated/customer_360/", catalogDatabase: "federated_gold", catalogTable: "customer_360", meshDomain: "federated" },
+          "publisher",
+          "us-east-1"
+        ),
+      },
     ],
     edges: [
       { id: "e1", source: "st", target: "par" },
@@ -95,8 +234,12 @@ export const ARCHITECTURE_PATTERNS = [
       { id: "e12", source: "en", target: "gt" },
       { id: "e13", source: "gt", target: "sk" },
     ],
-    pipelineMeta: { name: "customer-360-mesh", domain: "federated", version: "1.0.0" },
-    customizeTips: ["Each branch = one domain team's ownership.", "Merge = federated composition point."],
+    pipelineMeta: meshAccountsForPipelineMeta({ name: "customer-360-mesh", domain: "federated", version: "1.0.0", meshLayout: "three-domain-parallel" }),
+    customizeTips: [
+      "Each parallel branch = one domain producer AC + region (orders · inventory · customers).",
+      "Merge / enrich / gold sink run in publisher AC — steward AC hosts VRP gate.",
+      "Matches Vaquar SDM mesh accounts: producer / steward / publisher.",
+    ],
   },
 
   // ── DATA LAKE ─────────────────────────────────────────────────

@@ -75,6 +75,12 @@ function PipelineNode({ data, selected }) {
       <div className="node-type">{data.processingMode || bt.replace("_", " ")}</div>
       <div className="node-label">{data.label}</div>
       <div className="node-detail">{data.validationError || data.detail}</div>
+      {data.meshAccount && (
+        <span className="node-mesh-ac" title={`${data.meshRole || "mesh"} · ${data.meshAccount} · ${data.meshRegion || ""}`}>
+          AC …{String(data.meshAccount).slice(-4)}
+          {data.meshRegion ? ` · ${data.meshRegion}` : ""}
+        </span>
+      )}
       {awsSvc && (
         <span className="node-aws-service" title={awsSvc.label}>
           {awsSvc.icon} {awsSvc.label.split(" ").pop()}

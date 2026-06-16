@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import PatternLibrary from "./PatternLibrary";
 import BlockPalette from "./BlockPalette";
 import WorkflowGuide from "./WorkflowGuide";
@@ -19,6 +19,14 @@ export default function DesignerSidebar({
   token,
 }) {
   const [tab, setTab] = useState("ai");
+  const panelRef = useRef(null);
+
+  const selectTab = (id) => {
+    setTab(id);
+    requestAnimationFrame(() => {
+      panelRef.current?.scrollTo({ top: 0, behavior: "instant" });
+    });
+  };
 
   return (
     <aside className="designer-sidebar">
@@ -28,7 +36,7 @@ export default function DesignerSidebar({
             key={t.id}
             type="button"
             className={tab === t.id ? "active" : ""}
-            onClick={() => setTab(t.id)}
+            onClick={() => selectTab(t.id)}
             title={t.hint}
           >
             {t.label}
@@ -36,7 +44,7 @@ export default function DesignerSidebar({
         ))}
       </div>
 
-      <div className="sidebar-panel">
+      <div className="sidebar-panel" ref={panelRef}>
         {tab === "ai" && <AiPipelineBuilder token={token} onApplyPattern={onApplyPattern} />}
         {tab === "patterns" && (
           <PatternLibrary activePatternId={activePatternId} onApplyPattern={onApplyPattern} />

@@ -178,8 +178,13 @@ Visual pipeline designer: **28+ architecture patterns**, AWS service blocks (Glu
 ### Portal screenshots
 
 <p align="center">
-  <img src="docs/assets/portal-overview.png" alt="CogniMesh portal — canvas with Kappa architecture and AWS Design Review" width="720" />
-  <br /><em>Design canvas · AWS Design Review HUD · VRP-ready pipeline</em>
+  <img src="docs/images/cog1.jpeg" alt="CogniMesh portal — Data Mesh Customer 360 canvas, Architectures pattern library, pipeline settings" width="720" />
+  <br /><em>Architectures tab · Multi-domain Data Mesh (Customer 360) · AWS Glue / MSK / S3 · Mesh integrity gate → Iceberg gold</em>
+</p>
+
+<p align="center">
+  <img src="docs/images/cog2.jpeg" alt="CogniMesh portal — Lambda architecture batch and speed layers on canvas" width="720" />
+  <br /><em>Lambda (λ) architecture — Parallel batch (S3 → Glue ETL → Iceberg) + speed (Kinesis → Flink → Iceberg) → Merge → Athena serving view</em>
 </p>
 
 <table>
@@ -206,11 +211,11 @@ Glue ETL/ELT · enrichment · dedupe · CDC merge · stream windows
 <tr>
 <td width="50%">
 
-**Complex canvas (Data Mesh)**
+**Design canvas overview**
 
-<p><img src="docs/assets/portal-canvas-datamesh.png" alt="Multi-domain data mesh workflow on canvas" width="100%" /></p>
+<p><img src="docs/assets/portal-overview.png" alt="CogniMesh portal — canvas with Kappa architecture and AWS Design Review" width="100%" /></p>
 
-Parallel domains · Merge · PVDM gate · Iceberg gold
+AWS Design Review HUD · VRP-ready pipeline
 
 </td>
 <td width="50%">
@@ -246,7 +251,7 @@ Natural language → pattern → canvas
 | **Structured** | Vaquar CDC · Multi-source Parallel → Choice |
 | **Analytics** | IoT fleet · SCD2 · Feature store |
 
-Regenerate screenshots: `npm run build --prefix portal && npx playwright install chromium && npm run docs:screenshots`
+Regenerate automated screenshots: `npm run build --prefix portal && npx playwright install chromium && npm run docs:screenshots` (output: `docs/assets/`). Manual UI captures live in **`docs/images/`**.
 
 </details>
 

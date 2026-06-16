@@ -37,6 +37,34 @@ body {
   font-size: 0.8rem;
 }
 
+.designer-mode-switch {
+  display: flex;
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+}
+
+.designer-mode-switch button {
+  font-size: 0.72rem;
+  padding: 0.25rem 0.55rem;
+  border-radius: 6px;
+  border: 1px solid #334155;
+  background: #1e293b;
+  color: #94a3b8;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.designer-mode-switch button.active {
+  border-color: #6366f1;
+  color: #c7d2fe;
+  background: #312e81;
+}
+
+.designer-mode-switch button:hover:not(.active) {
+  border-color: #475569;
+  color: #cbd5e1;
+}
+
 .header-actions {
   display: flex;
   gap: 0.5rem;
@@ -241,6 +269,25 @@ body {
 
 .pattern-library {
   padding: 0.75rem;
+}
+
+.pattern-library-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: #151b24;
+  margin: -0.75rem -0.75rem 0.75rem;
+  padding: 0.75rem;
+  border-bottom: 1px solid #243044;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+}
+
+.pattern-library-sticky .pattern-library-intro {
+  margin-bottom: 0.5rem;
+}
+
+.pattern-library-sticky .pattern-filters {
+  margin-bottom: 0;
 }
 
 .pattern-library h2 {
@@ -1462,3 +1509,227 @@ body {
 .palette-cat-aws-ingest .palette-item { border-left: 3px solid #059669; }
 .palette-cat-aws-process .palette-item { border-left: 3px solid #2563eb; }
 .palette-cat-aws-serving .palette-item { border-left: 3px solid #ea580c; }
+
+/* Agent Builder — AgentCore */
+.agent-toolbar {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.5rem 1.25rem;
+  background: #151b24;
+  border-bottom: 1px solid #243044;
+  flex-shrink: 0;
+}
+
+.agent-deploy-btn {
+  background: #4338ca;
+}
+
+.agent-deploy-btn:hover:not(:disabled) {
+  background: #3730a3;
+}
+
+.agent-main {
+  flex: 1;
+  min-height: 0;
+}
+
+.agent-node {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 140px;
+  max-width: 200px;
+  padding: 0.45rem 0.55rem;
+  border: 2px solid;
+  border-radius: 10px;
+  color: #f8fafc;
+  font-size: 0.72rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+.agent-node.selected {
+  box-shadow: 0 0 0 2px #6ee7b7;
+}
+
+.agent-node.invalid {
+  box-shadow: 0 0 0 2px #f87171;
+}
+
+.agent-node-icon {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.agent-node-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.agent-node-label {
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.agent-node-detail {
+  font-size: 0.62rem;
+  opacity: 0.85;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.agent-node-error {
+  font-size: 0.58rem;
+  color: #fecaca;
+  margin-top: 0.15rem;
+}
+
+.agent-handle {
+  width: 8px;
+  height: 8px;
+  background: #94a3b8;
+  border: 2px solid #1e293b;
+}
+
+.agent-palette-item {
+  border-left: 3px solid #6366f1;
+}
+
+.agent-block-guardrail { border-left-color: #f87171 !important; }
+.agent-block-runtime { border-left-color: #6366f1 !important; }
+.agent-block-foundation_model { border-left-color: #3b82f6 !important; }
+.agent-block-gateway { border-left-color: #06b6d4 !important; }
+.agent-block-knowledge_base { border-left-color: #f59e0b !important; }
+
+.agent-deploy-banner {
+  background: #312e81;
+  border: 1px solid #4338ca;
+  border-radius: 8px;
+  padding: 0.45rem 0.65rem;
+  margin: 0.5rem 0.75rem 0;
+  font-size: 0.8rem;
+  color: #c7d2fe;
+}
+
+.agent-preview-panel {
+  max-width: 420px;
+}
+
+.agent-yaml {
+  font-size: 0.68rem;
+  max-height: 60vh;
+}
+
+.agent-validation-summary {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #243044;
+}
+
+.agent-validation-summary h3 {
+  margin: 0 0 0.35rem;
+  font-size: 0.85rem;
+}
+
+.agent-warning {
+  color: #fde68a;
+  font-size: 0.75rem;
+  margin: 0.35rem 0;
+}
+
+.agent-guide .guide-steps {
+  padding-left: 1.2rem;
+  font-size: 0.82rem;
+}
+
+.agent-guide .guide-steps li {
+  margin-bottom: 0.65rem;
+}
+
+.agent-guide .guide-steps p {
+  margin: 0.2rem 0 0;
+  color: #94a3b8;
+  font-size: 0.78rem;
+}
+
+/* Data Mesh — 3 domain account swimlanes */
+.mesh-swimlanes {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.mesh-swimlane {
+  flex: 1;
+  border-bottom: 1px dashed #334155;
+  position: relative;
+  min-height: 120px;
+}
+
+.mesh-swimlane:last-child {
+  border-bottom: none;
+}
+
+.mesh-swimlane-label {
+  position: absolute;
+  left: 8px;
+  top: 6px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #94a3b8;
+  background: rgba(21, 27, 36, 0.85);
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  border: 1px solid #334155;
+}
+
+.mesh-lane-orders { background: rgba(17, 94, 89, 0.06); }
+.mesh-lane-inventory { background: rgba(67, 56, 202, 0.06); }
+.mesh-lane-customers { background: rgba(180, 83, 9, 0.06); }
+
+.node-mesh-ac {
+  display: block;
+  font-size: 0.55rem;
+  color: #a5b4fc;
+  margin-top: 0.15rem;
+  font-weight: 600;
+}
+
+.mesh-accounts-panel {
+  margin: 0.75rem 0;
+  padding: 0.55rem 0.65rem;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 8px;
+}
+
+.mesh-accounts-panel h3 {
+  margin: 0 0 0.35rem;
+  font-size: 0.82rem;
+  color: #c7d2fe;
+}
+
+.mesh-accounts-list {
+  margin: 0.35rem 0 0;
+  padding-left: 1rem;
+  font-size: 0.75rem;
+  color: #cbd5e1;
+}
+
+.mesh-accounts-list li {
+  margin-bottom: 0.2rem;
+}
+
+.mesh-node-meta {
+  margin-bottom: 0.5rem;
+  padding: 0.35rem 0.5rem;
+  background: #312e81;
+  border-radius: 6px;
+  border: 1px solid #4338ca;
+}

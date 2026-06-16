@@ -74,6 +74,20 @@ export default function PropertiesPanel({ node, onChange, pipelineMeta, onMetaCh
             ))}
           </select>
         </Field>
+        {pipelineMeta.meshAccounts && (
+          <div className="mesh-accounts-panel">
+            <h3>Mesh AWS accounts</h3>
+            <p className="properties-hint">Vaquar SDM — producer / steward / publisher (dummy account IDs)</p>
+            <ul className="mesh-accounts-list">
+              <li><strong>Producer</strong> {pipelineMeta.meshAccounts.producer}</li>
+              <li><strong>Steward</strong> {pipelineMeta.meshAccounts.steward}</li>
+              <li><strong>Publisher</strong> {pipelineMeta.meshAccounts.publisher}</li>
+            </ul>
+            {pipelineMeta.awsRegion && (
+              <p className="properties-hint">Default region: <strong>{pipelineMeta.awsRegion}</strong></p>
+            )}
+          </div>
+        )}
         <div className="properties-help-box">
           <strong>Workflow designer</strong>
           <ul>
@@ -94,6 +108,15 @@ export default function PropertiesPanel({ node, onChange, pipelineMeta, onMetaCh
     <aside className="properties">
       <h2>{d.label}</h2>
       <p className="properties-type">{d.blockType}</p>
+      {d.meshAccount && (
+        <div className="mesh-node-meta">
+          <p className="properties-hint">
+            <strong>{d.meshRole || "mesh"}</strong> · AC {d.meshAccount}
+            {d.meshRegion ? ` · ${d.meshRegion}` : ""}
+            {d.meshDomain ? ` · ${d.meshDomain}` : ""}
+          </p>
+        </div>
+      )}
       {awsFindings?.length > 0 && (
         <div className="props-aws-findings">
           <strong>AWS review ({awsFindings.length})</strong>

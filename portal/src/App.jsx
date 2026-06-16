@@ -10,6 +10,7 @@ import ReactFlow, {
 import "reactflow/dist/style.css";
 
 import DesignerSidebar from "./components/DesignerSidebar";
+import AgentBuilderView from "./components/AgentBuilderView";
 import PipelineNode from "./components/PipelineNode";
 import PropertiesPanel from "./components/PropertiesPanel";
 import DeployPanel from "./components/DeployPanel";
@@ -20,6 +21,7 @@ import DeployConfirmModal from "./components/DeployConfirmModal";
 import WelcomeModal from "./components/WelcomeModal";
 import StewardApprovalsPanel from "./components/StewardApprovalsPanel";
 import CanvasTipBar from "./components/CanvasTipBar";
+import MeshSwimlanes from "./components/MeshSwimlanes";
 import ToastStack, { useToast } from "./components/Toast";
 import MobileWarning from "./components/MobileWarning";
 import LoadingOverlay from "./components/LoadingOverlay";
@@ -98,6 +100,7 @@ export default function App() {
   const [awsReview, setAwsReview] = useState(null);
   const [awsReviewLoading, setAwsReviewLoading] = useState(false);
   const [awsReviewExpanded, setAwsReviewExpanded] = useState(true);
+  const [designerMode, setDesignerMode] = useState("pipeline");
   const reactFlowInstance = useRef(null);
 
   const blockValidation = useMemo(() => validateBlocks(nodes, edges), [nodes, edges]);
@@ -395,8 +398,29 @@ export default function App() {
       <header className="header">
         <div>
           <h1>CogniMesh</h1>
-          <p className="subtitle">Step Functions–style workflow · many sources · parallel · choice</p>
+          <p className="subtitle">
+            {designerMode === "pipeline"
+              ? "Step Functions–style workflow · many sources · parallel · choice"
+              : "Amazon Bedrock AgentCore · drag-drop agents · guardrails · templates"}
+          </p>
+          <div className="designer-mode-switch">
+            <button
+              type="button"
+              className={designerMode === "pipeline" ? "active" : ""}
+              onClick={() => setDesignerMode("pipeline")}
+            >
+              Data Pipeline
+            </button>
+            <button
+              type="button"
+              className={designerMode === "agent" ? "active" : ""}
+              onClick={() => setDesignerMode("agent")}
+            >
+              Agent Builder
+            </button>
+          </div>
         </div>
+        {designerMode === "pipeline" && (
         <div className="header-actions">
           {!authDisabled && userEmail && <span className="user-badge">{userEmail}</span>}
           <button className="btn-secondary" type="button" onClick={undo} disabled={historyIndex <= 0}>
@@ -437,8 +461,12 @@ export default function App() {
             </button>
           )}
         </div>
+        )}
       </header>
 
+      {designerMode === "agent" ? (
+        <AgentBuilderView userEmail={userEmail} authDisabled={authDisabled} onLogout={logout} />
+      ) : (
       <div className="main">
         <DesignerSidebar
           activePatternId={activePatternId}
@@ -457,6 +485,7 @@ export default function App() {
           )}
 
           <div className="canvas" ref={reactFlowWrapper}>
+            {activePatternId === "arch-datamesh-multi-domain" && <MeshSwimlanes />}
             {nodes.length === 0 && (
               <div className="canvas-empty-overlay">
                 <p className="canvas-empty-title">No pipeline yet</p>
@@ -545,6 +574,7 @@ export default function App() {
 
         {showDeploy && <DeployPanel result={deployResult} loading={loading} error={deployError} token={token} />}
       </div>
+      )}
     </div>
   );
 }
