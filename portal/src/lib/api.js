@@ -6,7 +6,7 @@ function authHeaders(token) {
   return headers;
 }
 
-async function apiFetch(path, options = {}) {
+export async function apiFetch(path, options = {}) {
   const { token, headers: extraHeaders, ...fetchOptions } = options;
   const res = await fetch(`${API_BASE}${path}`, {
     credentials: "include",

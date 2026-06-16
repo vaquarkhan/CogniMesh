@@ -100,3 +100,9 @@ variable "enable_portal_cdn" {
   type    = bool
   default = true
 }
+
+variable "enable_platform_ops" {
+  type        = bool
+  default     = true
+  description = "DynamoDB platform state, Athena workgroup, Bedrock/RDS Data API IAM for API gateway"
+}

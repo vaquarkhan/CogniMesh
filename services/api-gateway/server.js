@@ -517,12 +517,24 @@ app.get("/api/v1/products/:id", requireAuth, (req, res) => {
 });
 
 if (require.main === module) {
-  app.listen(PORT, () => {
-    structuredLog("server_start", { port: PORT, catalog_url: CATALOG_URL });
-    console.log(`CogniMesh API Gateway listening on http://localhost:${PORT}`);
-    console.log(`  Catalog URL: ${CATALOG_URL}`);
-    console.log(`  Auth: ${process.env.AUTH_DISABLED === "true" ? "DISABLED (dev)" : "Cognito JWT"}`);
-  });
+  const { bootstrapPlatformStores } = require("../../lib/platform/bootstrap-stores");
+  bootstrapPlatformStores()
+    .then((info) => {
+      structuredLog("platform_store_ready", info);
+      app.listen(PORT, () => {
+        structuredLog("server_start", { port: PORT, catalog_url: CATALOG_URL });
+        console.log(`CogniMesh API Gateway listening on http://localhost:${PORT}`);
+        console.log(`  Catalog URL: ${CATALOG_URL}`);
+        console.log(`  Auth: ${process.env.AUTH_DISABLED === "true" ? "DISABLED (dev)" : "Cognito JWT"}`);
+        if (info.mode === "dynamodb") {
+          console.log(`  Platform store: DynamoDB (${info.table})`);
+        }
+      });
+    })
+    .catch((err) => {
+      console.error("Failed to initialize platform store:", err.message);
+      process.exit(1);
+    });
 }
 
 module.exports = { app };

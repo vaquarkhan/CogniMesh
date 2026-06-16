@@ -32,6 +32,12 @@ jobs:
       - name: Portal unit tests
         run: npm run test:portal-unit
 
+      - name: Install Playwright browsers
+        run: npx playwright install chromium
+
+      - name: Portal E2E (Operations panel)
+        run: npm run test:portal-e2e
+
       - name: Integration tests
         run: npm test
 

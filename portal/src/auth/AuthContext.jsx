@@ -32,6 +32,7 @@ export function AuthProvider({ children }) {
       if (cfg.authDisabled) {
         setAuthDisabled(true);
         setUser({ username: "local-dev" });
+        setToken("local-dev");
         setLoading(false);
         return;
       }

@@ -80,7 +80,10 @@ export default function PlatformOperationsPanel({
   const [specSiteUrl, setSpecSiteUrl] = useState("");
 
   const load = useCallback(async () => {
-    if (!token) return;
+    if (!token) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {

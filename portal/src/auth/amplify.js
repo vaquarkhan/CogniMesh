@@ -1,6 +1,7 @@
 import { Amplify } from "aws-amplify";
 
 let configured = false;
+const API_BASE = import.meta.env.VITE_API_URL || "";
 
 async function safeJson(res, fallback) {
   try {
@@ -16,7 +17,7 @@ async function safeJson(res, fallback) {
 
 export async function loadAuthConfig() {
   try {
-    const res = await fetch("/api/v1/auth/config");
+    const res = await fetch(`${API_BASE}/api/v1/auth/config`);
     return await safeJson(res, { authDisabled: true });
   } catch {
     return { authDisabled: true };

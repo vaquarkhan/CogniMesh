@@ -1,6 +1,6 @@
 {
   "name": "cognimesh",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "CogniMesh - Multimodal Cognitive Data Mesh & Marketplace",
   "scripts": {
@@ -19,6 +19,7 @@
     "test:python": "python -m pytest python/tests -q",
     "test:portal": "npm run build --prefix portal",
     "test:portal-unit": "npm test --prefix portal",
+    "test:portal-e2e": "node scripts/test-portal-e2e.js",
     "docs:screenshots": "node scripts/capture-portal-screenshots.js",
     "docs:tutorials": "npm test --prefix portal -- src/scripts/generate-tutorial-docs.test.js",
     "start:dev": "node scripts/start-dev.js",
@@ -45,11 +46,13 @@
   },
   "dependencies": {
     "@aws-sdk/client-athena": "^3.654.0",
+    "@aws-sdk/client-dynamodb": "^3.654.0",
     "@aws-sdk/client-rds-data": "^3.654.0",
     "@aws-sdk/client-bedrock-agent": "^3.654.0",
     "@aws-sdk/client-bedrock-runtime": "^3.654.0",
     "@aws-sdk/client-s3": "^3.654.0",
     "@aws-sdk/client-sfn": "^3.654.0",
+    "@aws-sdk/lib-dynamodb": "^3.654.0",
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1",
     "aws-jwt-verify": "^4.0.1",

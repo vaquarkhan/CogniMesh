@@ -74,3 +74,24 @@ output "portal_cloudfront_domain" {
 output "portal_bucket" {
   value = try(module.portal_cdn[0].portal_bucket, null)
 }
+
+output "platform_state_table" {
+  value = try(module.platform_ops[0].platform_state_table_name, null)
+}
+
+output "athena_workgroup" {
+  value = try(module.platform_ops[0].athena_workgroup_name, null)
+}
+
+output "athena_output_location" {
+  value = try(module.platform_ops[0].athena_output_location, null)
+}
+
+output "api_platform_role_arn" {
+  value = try(module.platform_ops[0].api_platform_role_arn, null)
+}
+
+output "platform_env" {
+  value     = try(module.platform_ops[0].platform_env, {})
+  sensitive = false
+}

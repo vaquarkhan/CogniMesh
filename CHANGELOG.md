@@ -7,14 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-06-16
+
 ### Added
 
-- Docker Compose, embedded catalog fallback, portal postinstall, E2E graceful SKIP
-- LICENSE, CHANGELOG, SECURITY.md, PLATFORM_CHECKLIST.md
-- Unit tests (`npm run test:unit`), full CI workflow (`ci.yml`)
-- ESLint + Prettier, safe YAML parsing, CSRF + rate limiting
-- Structured JSON logs, deep `/health`, audit log (`/api/v1/audit`)
-- Portal: toasts, loading overlay, undo/redo, mobile warning, freshness badges
+- Platform operations (Tier 1–4): live dashboard, versioning, deploy approval, health/cost/audit, federated mesh, column lineage, self-heal, multi-cloud, plugins, copilot, DQ rules, SLA, open spec
+- DynamoDB platform store (`PLATFORM_STORE=dynamodb`) with file fallback for versions, approvals, plugins, billing
+- Terraform `platform-ops` module: DynamoDB state table, Athena workgroup, Bedrock/RDS Data API IAM
+- Playwright portal E2E (`npm run test:portal-e2e`) for Operations panel and steward approvals
+- LLM copilot (Bedrock), live Athena/S3/JDBC preview, AWS SFN/Glue import, agent deploy to Bedrock
+
+### Changed
+
+- API gateway bootstraps platform stores before listen (DynamoDB or local JSON)
+
+[0.2.0]: https://github.com/vaquarkhan/CogniMesh/releases/tag/v0.2.0
 
 ## [0.1.0] - 2026-06-15
 
