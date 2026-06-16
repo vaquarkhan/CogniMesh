@@ -64,11 +64,38 @@ Local deploy compiles contracts and runs PVDM simulation without AWS. For real S
 ```bash
 cd infra/terraform/environments/dev
 terraform apply
-terraform output -json aws_deploy_env    # Step Functions + Vaquar buckets/Lambdas
-terraform output -json platform_env      # Bedrock agent role, Athena, DynamoDB
 ```
 
-Copy values into `.env`, set `AWS_DEPLOY_ENABLED=true`, restart `npm run dev:api`. Without `AWS_STEP_FUNCTIONS_ROLE_ARN`, deploy succeeds locally but the portal shows an explicit warning that SFN was not pushed.
+### One-command env cheat sheet
+
+Copy all deploy-related variables into your shell (PowerShell example):
+
+```powershell
+cd infra/terraform/environments/dev
+$env = terraform output -json aws_deploy_env | ConvertFrom-Json
+$plat = terraform output -json platform_env | ConvertFrom-Json
+$env.PSObject.Properties | ForEach-Object { "$($_.Name)=$($_.Value)" }
+$plat.PSObject.Properties | ForEach-Object { "$($_.Name)=$($_.Value)" }
+```
+
+Bash:
+
+```bash
+cd infra/terraform/environments/dev
+terraform output -json aws_deploy_env | jq -r 'to_entries[] | "\(.key)=\(.value)"'
+terraform output -json platform_env | jq -r 'to_entries[] | "\(.key)=\(.value)"'
+```
+
+Individual outputs:
+
+| Output | Use in `.env` |
+|--------|----------------|
+| `pipeline_orchestrator_role_arn` | `AWS_STEP_FUNCTIONS_ROLE_ARN` |
+| `bedrock_agent_role_arn` | `AWS_BEDROCK_AGENT_ROLE_ARN` |
+| `aws_deploy_env` (JSON) | Step Functions, buckets, Lambda names |
+| `platform_env` (JSON) | Bedrock, Athena, DynamoDB ops |
+
+Copy values into `.env`, set `AWS_DEPLOY_ENABLED=true` and `AWS_AGENT_DEPLOY_ENABLED=true`, restart `npm run dev:api`. Without `AWS_STEP_FUNCTIONS_ROLE_ARN`, deploy succeeds locally but the portal shows an explicit warning that SFN was not pushed.
 
 **Live source preview:** set `DATA_PREVIEW_LIVE=true` on the API server (see `docs/PLATFORM_OPS.md`).
 

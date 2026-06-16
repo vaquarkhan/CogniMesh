@@ -5,7 +5,11 @@ import { applyProcessingTemplate } from "../lib/processing-templates";
 import DataPreviewButton from "./DataPreviewButton";
 import BusinessRulesEditor from "./BusinessRulesEditor";
 
-const SOURCE_TYPES = ["rds", "mysql", "s3", "kafka", "kinesis", "media_url", "api"];
+const SINK_ENCRYPTION_OPTIONS = [
+  { value: "", label: "Not set (review will flag)" },
+  { value: "AES256", label: "AES256 (S3 default)" },
+  { value: "aws:kms", label: "AWS KMS" },
+];
 const TRANSFORM_TYPES = ["spark_sql", "glue_etl", "glue_streaming", "agentic", "passthrough"];
 const TARGET_TYPES = ["s3", "iceberg", "redshift", "delta"];
 const EXECUTION_MODES = ["batch", "stream"];
@@ -31,6 +35,8 @@ export default function PropertiesPanel({
   awsFindings,
   onOpenAwsReview,
   onOpenAwsReviewFinding,
+  onApplyFindingFix,
+  applyingFindingId,
   token,
   nodes,
   edges,
@@ -86,6 +92,22 @@ export default function PropertiesPanel({
               </option>
             ))}
           </select>
+        </Field>
+        <Field
+          label="Lake Formation governance"
+          tip="Enable LF grants for mesh consumers (recommended when domain is not default)."
+        >
+          <label className="agent-feature-check pipeline-lf-toggle">
+            <input
+              type="checkbox"
+              data-testid="pipeline-enable-lake-formation"
+              checked={Boolean(pipelineMeta.enableLakeFormation)}
+              onChange={(e) =>
+                onMetaChange({ ...pipelineMeta, enableLakeFormation: e.target.checked })
+              }
+            />
+            <span>Enable Lake Formation for gold tables</span>
+          </label>
         </Field>
         {pipelineMeta.meshAccounts && (
           <div className="mesh-accounts-panel">
@@ -164,6 +186,17 @@ export default function PropertiesPanel({
                     }
                   >
                     Fix this →
+                  </button>
+                )}
+                {onApplyFindingFix && (
+                  <button
+                    type="button"
+                    className="btn-secondary compact props-aws-apply-btn"
+                    data-testid={`props-aws-apply-${f.id}`}
+                    disabled={applyingFindingId === f.id}
+                    onClick={() => onApplyFindingFix(f)}
+                  >
+                    {applyingFindingId === f.id ? "Applying…" : "Apply fix"}
                   </button>
                 )}
               </li>
@@ -390,6 +423,22 @@ export default function PropertiesPanel({
           </Field>
           <Field label="Catalog table" tip={tipFor("sink", "catalogTable")}>
             <input value={d.catalogTable || ""} onChange={(e) => update({ catalogTable: e.target.value })} />
+          </Field>
+          <Field
+            label="Encryption at rest"
+            tip="AES256 or KMS on lakehouse buckets — required by AWS Design Review for S3 targets."
+          >
+            <select
+              data-testid="sink-encryption"
+              value={d.encryption || ""}
+              onChange={(e) => update({ encryption: e.target.value || undefined })}
+            >
+              {SINK_ENCRYPTION_OPTIONS.map((opt) => (
+                <option key={opt.value || "unset"} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
           </Field>
         </>
       )}

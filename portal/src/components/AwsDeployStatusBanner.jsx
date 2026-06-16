@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getExecutionStatus } from "../lib/api";
+import { stepFunctionsStateMachineConsoleUrl } from "../lib/aws-console-urls";
 
 const TERMINAL = new Set(["SUCCEEDED", "FAILED", "TIMED_OUT", "ABORTED"]);
 
@@ -73,10 +74,20 @@ export default function AwsDeployStatusBanner({ aws, token, onStatusChange }) {
           )}
           {status?.consoleUrl && (
             <a href={status.consoleUrl} target="_blank" rel="noreferrer" className="aws-console-link">
-              Open in AWS Step Functions Console ↗
+              Open execution in AWS Step Functions Console ↗
             </a>
           )}
-          {!arn && (
+          {!arn && aws.stateMachineArn && (
+            <a
+              href={stepFunctionsStateMachineConsoleUrl(aws.stateMachineArn)}
+              target="_blank"
+              rel="noreferrer"
+              className="aws-console-link"
+            >
+              Open state machine in AWS Console ↗
+            </a>
+          )}
+          {!arn && !aws.stateMachineArn && (
             <p className="properties-hint">Set AWS_DEPLOY_EXECUTE=true to start an execution and poll live status.</p>
           )}
         </>

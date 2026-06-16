@@ -9,7 +9,8 @@ import MeshSwimlanes from "./components/MeshSwimlanes";
 import ToastStack, { useToast } from "./components/Toast";
 import MobileWarning from "./components/MobileWarning";
 import LoadingOverlay from "./components/LoadingOverlay";
-import { deployPipeline, previewPipeline, runAwsDesignReview, isApiReachable, getApiHealth } from "./lib/api";
+import { deployPipeline, previewPipeline, runAwsDesignReview, isApiReachable, getApiHealth, getDesignReviewFixHelp } from "./lib/api";
+import { insertIntegrityGate } from "./lib/integrity-gate-insert";
 import { analyzeImpact } from "./lib/platform-api";
 import AwsDesignReviewHUD from "./components/AwsDesignReviewHUD";
 import { validateBlocks, isWorkflowGraph } from "./lib/validate-blocks";
@@ -115,6 +116,7 @@ export default function App() {
   const [awsReviewExpanded, setAwsReviewExpanded] = useState(true);
   const [awsFocusFindingId, setAwsFocusFindingId] = useState(null);
   const [awsAutoLoadFixForId, setAwsAutoLoadFixForId] = useState(null);
+  const [applyingFindingId, setApplyingFindingId] = useState(null);
   const [designerMode, setDesignerMode] = useState("pipeline");
   const [agentBootstrap, setAgentBootstrap] = useState(null);
   const reactFlowInstance = useRef(null);
@@ -321,6 +323,79 @@ export default function App() {
       });
     },
     [edges, setNodes, pushHistory]
+  );
+
+  const addIntegrityGateToGraph = useCallback(() => {
+    const result = insertIntegrityGate(nodes, edges, nextId);
+    if (!result.added) {
+      toastError(result.reason || "Could not add integrity gate");
+      return false;
+    }
+    setNodes(result.nodes);
+    setEdges(result.edges);
+    pushHistory(result.nodes, result.edges);
+    if (result.gateId) setSelectedId(result.gateId);
+    success("Added Integrity Gate block — wire or re-scan AWS review");
+    return true;
+  }, [nodes, edges, setNodes, setEdges, pushHistory, success, toastError]);
+
+  const applyAwsFindingFix = useCallback(
+    async (finding) => {
+      if (!finding?.id) return;
+      setApplyingFindingId(finding.id);
+      try {
+        if (
+          finding.id === "sec.integrity_gate" ||
+          finding.id.startsWith("sec.integrity_gate.") ||
+          finding.title?.toLowerCase().includes("integrity gate")
+        ) {
+          if (addIntegrityGateToGraph()) {
+            setTimeout(runDesignReviewScan, 400);
+          }
+          return;
+        }
+
+        const data = await getDesignReviewFixHelp({
+          token,
+          nodes,
+          edges,
+          pipelineMeta: { ...pipelineMeta, ownerEmail: userEmail },
+          findingId: finding.id,
+        });
+        const plan = data.plans?.[0];
+        if (!plan) throw new Error("No fix plan returned");
+
+        if (plan.propertyPatch?.enableLakeFormation) {
+          setPipelineMeta((m) => ({ ...m, enableLakeFormation: true }));
+        } else if (plan.propertyPatch && plan.nodeId) {
+          updateNode(plan.nodeId, plan.propertyPatch);
+        } else if (finding.id.startsWith("sec.lake_formation")) {
+          setPipelineMeta((m) => ({ ...m, enableLakeFormation: true }));
+        } else {
+          toastError("No automatic patch for this finding — use Fix this for the step guide");
+          return;
+        }
+
+        success("Applied suggested fix — re-scanning AWS review…");
+        setTimeout(runDesignReviewScan, 400);
+      } catch (err) {
+        toastError(err.message || "Could not apply fix");
+      } finally {
+        setApplyingFindingId(null);
+      }
+    },
+    [
+      token,
+      nodes,
+      edges,
+      pipelineMeta,
+      userEmail,
+      addIntegrityGateToGraph,
+      updateNode,
+      runDesignReviewScan,
+      success,
+      toastError,
+    ]
   );
 
   const selectedNode = nodesWithValidation.find((n) => n.id === selectedId) || null;
@@ -690,6 +765,8 @@ export default function App() {
             setAwsFocusFindingId(findingId);
             setAwsAutoLoadFixForId(findingId);
           }}
+          onApplyFindingFix={applyAwsFindingFix}
+          applyingFindingId={applyingFindingId}
           token={token}
           nodes={nodes}
           edges={edges}

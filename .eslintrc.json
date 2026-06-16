@@ -11,6 +11,8 @@
     {
       "files": ["portal/**/*.{js,jsx}"],
       "env": { "browser": true },
+      "plugins": ["react-hooks"],
+      "extends": ["plugin:react-hooks/recommended"],
       "parserOptions": { "ecmaVersion": 2022, "sourceType": "module", "ecmaFeatures": { "jsx": true } },
       "rules": { "no-unused-vars": "warn" }
     }

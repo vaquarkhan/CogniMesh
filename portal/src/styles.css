@@ -2037,6 +2037,18 @@ body {
   margin-top: 0.4rem;
   width: 100%;
 }
+.props-aws-apply-btn {
+  margin-top: 0.35rem;
+  width: 100%;
+}
+.pipeline-lf-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  color: #cbd5e1;
+  cursor: pointer;
+}
 .props-aws-finding-title { font-weight: 600; color: #e7ecf3; }
 .props-aws-finding-msg { display: block; color: #94a3b8; font-size: 0.68rem; margin-top: 0.15rem; }
 .props-aws-finding-fix { display: block; color: #6ee7b7; font-size: 0.68rem; margin-top: 0.2rem; }

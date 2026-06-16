@@ -159,7 +159,8 @@ export default function PlatformOperationsPanel({
   useEffect(() => {
     load();
     if (tab !== "dashboard") return undefined;
-    const id = setInterval(load, 15000);
+    const intervalMs = refreshKey > 0 ? 5000 : 15000;
+    const id = setInterval(load, intervalMs);
     return () => clearInterval(id);
   }, [load, tab, refreshKey]);
 

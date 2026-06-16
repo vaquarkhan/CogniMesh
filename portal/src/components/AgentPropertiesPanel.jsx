@@ -1,4 +1,5 @@
 import { AGENT_FRAMEWORKS, GUARDRAIL_PII_ACTIONS } from "../lib/agent-blocks";
+import { BEDROCK_MIN_INSTRUCTION_LENGTH, validateAgentInstruction } from "../lib/agent-instruction";
 
 function Field({ label, tip, children }) {
   return (
@@ -39,13 +40,20 @@ export default function AgentPropertiesPanel({ node, onChange, agentMeta, onMeta
             placeholder="1.0.0"
           />
         </Field>
-        <Field label="Description">
+        <Field label="Description" tip={`Bedrock CreateAgent requires at least ${BEDROCK_MIN_INSTRUCTION_LENGTH} characters`}>
           <textarea
             rows={3}
+            minLength={BEDROCK_MIN_INSTRUCTION_LENGTH}
             value={agentMeta.description || ""}
             onChange={(e) => onMetaChange({ ...agentMeta, description: e.target.value })}
             placeholder="What this agent does…"
+            data-testid="agent-description"
           />
+          {(() => {
+            const v = validateAgentInstruction(agentMeta.description);
+            if (v.valid) return null;
+            return <p className="agent-warning">{v.message}</p>;
+          })()}
         </Field>
 
         {validation && (

@@ -17,6 +17,8 @@ import { useToast } from "./Toast";
 import { validateAgentBlocks } from "../lib/validate-agent-blocks";
 import { exportAgentManifest, downloadAgentManifest } from "../lib/agent-export";
 import { deployAgentManifest } from "../lib/platform-api";
+import { validateAgentInstruction } from "../lib/agent-instruction";
+import { bedrockAgentConsoleUrl } from "../lib/aws-console-urls";
 import { instantiateAgentTemplate, getAgentTemplateById } from "../lib/agent-templates";
 
 const nodeTypes = { agent: AgentNode };
@@ -210,6 +212,11 @@ export default function AgentBuilderView({
   };
 
   const handleDeployToAws = async () => {
+    const instructionCheck = validateAgentInstruction(agentMeta.description);
+    if (!instructionCheck.valid) {
+      toastError(instructionCheck.message);
+      return;
+    }
     if (!validation.valid) {
       toastError(validation.errors[0] || "Fix validation errors before deploy");
       return;
@@ -227,6 +234,8 @@ export default function AgentBuilderView({
         status: data.deployed ? "deployed" : data.simulated ? "simulated" : data.partial ? "partial" : "failed",
         agentName: agentMeta.name,
         agentId: data.agentId,
+        agentArn: data.agentArn,
+        consoleUrl: data.agentArn ? bedrockAgentConsoleUrl(data.agentArn) : null,
         message: data.message || data.reason || (data.errors?.[0]) || "Deploy finished",
         plan: data.plan,
       });
@@ -320,6 +329,16 @@ export default function AgentBuilderView({
                 {deployMessage.agentName}
                 {deployMessage.agentId ? ` · ${deployMessage.agentId}` : ""}
               </span>
+              {deployMessage.consoleUrl && (
+                <a
+                  href={deployMessage.consoleUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="aws-console-link"
+                >
+                  Open in Bedrock Agents Console ↗
+                </a>
+              )}
               <p className="properties-hint">{deployMessage.message}</p>
             </div>
           )}
