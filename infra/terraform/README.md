@@ -32,6 +32,11 @@ environments/
 ## Production deploy
 
 ```bash
+# Lambda zips are built automatically during terraform plan/apply (external data source).
+# To build locally for inspection:
+npm run package:lambda
+npm run test:lambda-zips
+
 cd environments/prod
 cp terraform.tfvars.example terraform.tfvars
 # Edit bucket names (globally unique) and default_admin_email

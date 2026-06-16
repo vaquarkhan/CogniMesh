@@ -90,6 +90,8 @@ jobs:
         run: |
           terraform init -backend=false
           terraform validate
+      - name: Package and smoke-test Lambda zips
+        run: npm run test:lambda-zips
       - name: Terraform plan (no apply)
         working-directory: infra/terraform/environments/prod
         env:

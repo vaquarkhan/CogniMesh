@@ -87,16 +87,6 @@ variable "enable_integrity_gate_lambda" {
   default = true
 }
 
-variable "integrity_gate_package_path" {
-  type    = string
-  default = "../../build/integrity-gate.zip"
-}
-
-variable "domain_writer_package_path" {
-  type    = string
-  default = "../../build/domain-writer.zip"
-}
-
 variable "portal_bucket_name" {
   type = string
 }

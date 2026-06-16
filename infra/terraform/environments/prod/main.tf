@@ -101,22 +101,28 @@ module "integrity_gate_lambda" {
   count  = var.enable_integrity_gate_lambda ? 1 : 0
   source = "../../modules/lambda"
 
-  name_prefix  = var.name_prefix
-  role_arn     = module.iam.domain_writer_role_arn
-  package_path = var.integrity_gate_package_path
-  handler      = "handler.handler"
-  tags         = local.tags
+  name_prefix       = var.name_prefix
+  function_suffix   = "integrity-gate"
+  role_arn          = module.iam.domain_writer_role_arn
+  package_path      = abspath("${path.module}/${data.external.integrity_gate_package.result.path}")
+  source_code_hash  = data.external.integrity_gate_package.result.hash
+  handler           = "handler.handler"
+  tags              = local.tags
 }
 
 module "domain_writer_lambda" {
   count  = var.enable_integrity_gate_lambda ? 1 : 0
   source = "../../modules/lambda"
 
-  name_prefix  = var.name_prefix
-  role_arn     = module.iam.domain_writer_role_arn
-  package_path = var.domain_writer_package_path
-  handler      = "handler.handler"
-  tags         = merge(local.tags, { Component = "domain-writer" })
+  name_prefix       = var.name_prefix
+  function_suffix   = "domain-writer"
+  role_arn          = module.iam.domain_writer_role_arn
+  package_path      = abspath("${path.module}/${data.external.domain_writer_package.result.path}")
+  source_code_hash  = data.external.domain_writer_package.result.hash
+  handler           = "handler.handler"
+  timeout           = 120
+  memory_size       = 512
+  tags              = merge(local.tags, { Component = "domain-writer" })
 }
 
 module "eks" {

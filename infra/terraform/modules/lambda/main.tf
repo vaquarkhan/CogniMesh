@@ -2,12 +2,24 @@ variable "name_prefix" {
   type = string
 }
 
+variable "function_suffix" {
+  type        = string
+  description = "Lambda function name suffix (e.g. integrity-gate, domain-writer)"
+  default     = "integrity-gate"
+}
+
 variable "role_arn" {
   type = string
 }
 
 variable "package_path" {
   type = string
+}
+
+variable "source_code_hash" {
+  type        = string
+  description = "Optional precomputed base64 sha256 of package zip"
+  default     = null
 }
 
 variable "handler" {
@@ -30,15 +42,19 @@ variable "tags" {
   default = {}
 }
 
-resource "aws_lambda_function" "integrity_gate" {
-  function_name = "${var.name_prefix}-integrity-gate"
-  role          = var.role_arn
-  handler       = var.handler
-  runtime       = "nodejs20.x"
-  timeout       = var.timeout
-  memory_size   = var.memory_size
-  filename      = var.package_path
-  source_code_hash = filebase64sha256(var.package_path)
+locals {
+  zip_hash = coalesce(var.source_code_hash, filebase64sha256(var.package_path))
+}
+
+resource "aws_lambda_function" "this" {
+  function_name    = "${var.name_prefix}-${var.function_suffix}"
+  role             = var.role_arn
+  handler          = var.handler
+  runtime          = "nodejs20.x"
+  timeout          = var.timeout
+  memory_size      = var.memory_size
+  filename         = var.package_path
+  source_code_hash = local.zip_hash
 
   environment {
     variables = {
@@ -46,17 +62,17 @@ resource "aws_lambda_function" "integrity_gate" {
     }
   }
 
-  tags = merge(var.tags, { Component = "integrity-gate" })
+  tags = var.tags
 }
 
 output "function_name" {
-  value = aws_lambda_function.integrity_gate.function_name
+  value = aws_lambda_function.this.function_name
 }
 
 output "function_arn" {
-  value = aws_lambda_function.integrity_gate.arn
+  value = aws_lambda_function.this.arn
 }
 
 output "invoke_arn" {
-  value = aws_lambda_function.integrity_gate.invoke_arn
+  value = aws_lambda_function.this.invoke_arn
 }

@@ -1,0 +1,11 @@
+{
+  "name": "cognimesh-domain-writer",
+  "version": "0.1.0",
+  "private": true,
+  "main": "handler.js",
+  "dependencies": {
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
+    "js-yaml": "^4.1.0"
+  }
+}
