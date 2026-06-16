@@ -60,8 +60,6 @@ docker pull ghcr.io/vaquarkhan/cognimesh-catalog:1.0.0
 docker compose -f docker-compose.prod.yml up
 ```
 
-Maintainers: see [PUBLISHING.md](PUBLISHING.md) for GHCR + PyPI release workflow.
-
 ---
 
 ## npm (Node.js)

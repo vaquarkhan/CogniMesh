@@ -56,5 +56,3 @@ This feature set targets **9.5/10** on:
 
 - **Category 7 - Observability**: `/metrics`, execution history, deep health lineage checks
 - **Category 8 - Data platform**: lineage catalog, schema evolution, freshness badges
-
-See [PLATFORM_CHECKLIST.md](PLATFORM_CHECKLIST.md).

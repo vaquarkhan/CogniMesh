@@ -2,7 +2,7 @@
 
 Operations layer for running and trusting CogniMesh pipelines after deploy. All routes under `/api/v1/platform/*` require auth unless noted.
 
-Portal entry: header **Operations** panel · see [PRODUCT_ROADMAP.md](PRODUCT_ROADMAP.md)
+Portal entry: header **Operations** panel
 
 ## Quick reference
 
@@ -44,6 +44,8 @@ Portal entry: header **Operations** panel · see [PRODUCT_ROADMAP.md](PRODUCT_RO
 
 ## Data persistence (local dev)
 
+Local JSON under `data/` (gitignored) when `PLATFORM_STORE` is not `dynamodb`:
+
 | File | Contents |
 |------|----------|
 | `data/pipeline-versions.json` | Deploy version snapshots |
@@ -65,4 +67,3 @@ Portal entry: header **Operations** panel · see [PRODUCT_ROADMAP.md](PRODUCT_RO
 
 - [openapi.yaml](openapi.yaml) — full API reference
 - [PORTAL_DEV.md](PORTAL_DEV.md) — local development
-- [PUBLISHING.md](PUBLISHING.md) — releases

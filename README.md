@@ -521,13 +521,9 @@ CogniMesh/
 | [docs/architecture.md](docs/architecture.md) | Architecture deep-dive |
 | [docs/data-contract-spec.md](docs/data-contract-spec.md) | DataContract YAML spec |
 | [docs/LINEAGE_CATALOG.md](docs/LINEAGE_CATALOG.md) | Lineage catalog · schema evolution |
-| [docs/PLATFORM_CHECKLIST.md](docs/PLATFORM_CHECKLIST.md) | 10/10 evaluation tracker |
-| [REVIEW.md](REVIEW.md) | Latest platform review |
-| [docs/PRODUCT_ROADMAP.md](docs/PRODUCT_ROADMAP.md) | Tier 1–4 product roadmap |
 | [docs/PLATFORM_OPS.md](docs/PLATFORM_OPS.md) | Operations API reference |
 | [docs/PIPELINE_E2E_DIAGRAM.md](docs/PIPELINE_E2E_DIAGRAM.md) | **AWS E2E diagram** (draw.io) · all pipelines |
 | [docs/DISTRIBUTION.md](docs/DISTRIBUTION.md) | Docker · npm · PyPI · Maven · Go |
-| [docs/PUBLISHING.md](docs/PUBLISHING.md) | GHCR + PyPI release workflow (maintainers) |
 
 ---
 
@@ -535,7 +531,7 @@ CogniMesh/
 
 Proprietary - see [LICENSE](LICENSE). Pattern by [Vaquarkhan](https://github.com/vaquarkhan).
 
-Security: [SECURITY.md](SECURITY.md) · Changelog: [CHANGELOG.md](CHANGELOG.md) · [10/10 checklist](docs/PLATFORM_CHECKLIST.md)
+Security: [SECURITY.md](SECURITY.md) · Changelog: [CHANGELOG.md](CHANGELOG.md)
 
 <p align="center">
   <sub>Domain teams own the pipeline design. The mesh proves correctness before publication.</sub>

@@ -7,16 +7,36 @@ dist/
 build/
 generated/
 logs/
-data/pipeline-versions.json
-data/deploy-approvals.json
-data/plugins.json
-data/cross-org-billing.json
+infra/terraform/build/
+python/dist/
+python/build/
 *.jar
 !.mvn/wrapper/maven-wrapper.jar
 
-# IDE
+# Local runtime / platform state (not for repo)
+data/
+
+# Internal & maintainer-only docs (not for end users)
+REVIEW.md
+docs/PLATFORM_CHECKLIST.md
+docs/PRODUCT_ROADMAP.md
+docs/PUBLISHING.md
+docs/internal/
+
+# Test & coverage output
+coverage/
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Portal local overrides
+portal/.env.local
+
+# IDE / agent tooling
 .idea/
 .vscode/
+.cursor/
+.agent/
 *.iml
 
 # Terraform
@@ -42,3 +62,9 @@ Thumbs.db
 .venv*/
 __pycache__/
 *.egg-info/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
