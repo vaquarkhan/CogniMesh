@@ -19,16 +19,16 @@ module "networking" {
 module "storage" {
   source = "../../modules/storage"
 
-  name_prefix             = var.name_prefix
-  checkpoint_bucket_name  = var.checkpoint_bucket_name
-  proof_bucket_name       = var.proof_bucket_name
-  lakehouse_bucket_name   = var.lakehouse_bucket_name
-  bronze_bucket_name      = var.bronze_bucket_name
-  silver_bucket_name      = var.silver_bucket_name
-  gold_bucket_name        = var.gold_bucket_name
+  name_prefix               = var.name_prefix
+  checkpoint_bucket_name    = var.checkpoint_bucket_name
+  proof_bucket_name         = var.proof_bucket_name
+  lakehouse_bucket_name     = var.lakehouse_bucket_name
+  bronze_bucket_name        = var.bronze_bucket_name
+  silver_bucket_name        = var.silver_bucket_name
+  gold_bucket_name          = var.gold_bucket_name
   checkpoint_retention_days = 30
   proof_retention_days      = 90
-  tags                    = local.tags
+  tags                      = local.tags
 }
 
 module "messaging" {
@@ -41,13 +41,13 @@ module "messaging" {
 module "iam" {
   source = "../../modules/iam"
 
-  name_prefix            = var.name_prefix
-  checkpoint_bucket_arn  = module.storage.checkpoint_bucket_arn
-  proof_bucket_arn       = module.storage.proof_bucket_arn
-  lakehouse_bucket_arn   = module.storage.lakehouse_bucket_arn
-  glue_database_name     = var.glue_database_name
-  enable_lakeformation   = var.enable_lake_formation_governance
-  tags                   = local.tags
+  name_prefix           = var.name_prefix
+  checkpoint_bucket_arn = module.storage.checkpoint_bucket_arn
+  proof_bucket_arn      = module.storage.proof_bucket_arn
+  lakehouse_bucket_arn  = module.storage.lakehouse_bucket_arn
+  glue_database_name    = var.glue_database_name
+  enable_lakeformation  = var.enable_lake_formation_governance
+  tags                  = local.tags
 }
 
 module "glue" {
@@ -101,38 +101,38 @@ module "integrity_gate_lambda" {
   count  = var.enable_integrity_gate_lambda ? 1 : 0
   source = "../../modules/lambda"
 
-  name_prefix       = var.name_prefix
-  function_suffix   = "integrity-gate"
-  role_arn          = module.iam.domain_writer_role_arn
-  package_path      = abspath("${path.module}/${data.external.integrity_gate_package.result.path}")
-  source_code_hash  = data.external.integrity_gate_package.result.hash
-  handler           = "handler.handler"
-  tags              = local.tags
+  name_prefix      = var.name_prefix
+  function_suffix  = "integrity-gate"
+  role_arn         = module.iam.domain_writer_role_arn
+  package_path     = abspath("${path.module}/${data.external.integrity_gate_package.result.path}")
+  source_code_hash = data.external.integrity_gate_package.result.hash
+  handler          = "handler.handler"
+  tags             = local.tags
 }
 
 module "domain_writer_lambda" {
   count  = var.enable_integrity_gate_lambda ? 1 : 0
   source = "../../modules/lambda"
 
-  name_prefix       = var.name_prefix
-  function_suffix   = "domain-writer"
-  role_arn          = module.iam.domain_writer_role_arn
-  package_path      = abspath("${path.module}/${data.external.domain_writer_package.result.path}")
-  source_code_hash  = data.external.domain_writer_package.result.hash
-  handler           = "handler.handler"
-  timeout           = 120
-  memory_size       = 512
-  tags              = merge(local.tags, { Component = "domain-writer" })
+  name_prefix      = var.name_prefix
+  function_suffix  = "domain-writer"
+  role_arn         = module.iam.domain_writer_role_arn
+  package_path     = abspath("${path.module}/${data.external.domain_writer_package.result.path}")
+  source_code_hash = data.external.domain_writer_package.result.hash
+  handler          = "handler.handler"
+  timeout          = 120
+  memory_size      = 512
+  tags             = merge(local.tags, { Component = "domain-writer" })
 }
 
 module "eks" {
   count  = var.enable_eks ? 1 : 0
   source = "../../modules/eks"
 
-  name_prefix         = var.name_prefix
-  vpc_id              = module.networking.vpc_id
-  private_subnet_ids  = module.networking.private_subnet_ids
-  tags                = local.tags
+  name_prefix        = var.name_prefix
+  vpc_id             = module.networking.vpc_id
+  private_subnet_ids = module.networking.private_subnet_ids
+  tags               = local.tags
 }
 
 module "portal_cdn" {

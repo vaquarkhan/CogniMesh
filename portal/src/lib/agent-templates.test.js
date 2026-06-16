@@ -66,4 +66,28 @@ describe("agent-export", () => {
     expect(manifest.spec.environmentVariables.BEDROCK_GUARDRAIL_ID).toBeTruthy();
     expect(yaml).toContain("AgentDeployment");
   });
+
+  it("omits environmentVariables when no guardrails (no empty YAML object)", () => {
+    const inst = instantiateAgentTemplate(getAgentTemplateById("blank-agent"));
+    const withModel = {
+      ...inst,
+      nodes: [
+        ...inst.nodes,
+        {
+          id: "model-1",
+          type: "agent",
+          position: { x: 0, y: 0 },
+          data: { label: "Model", blockType: "foundation_model", modelId: "anthropic.claude-3-sonnet" },
+        },
+      ],
+    };
+    const { manifest, yaml } = exportAgentManifest({
+      nodes: withModel.nodes,
+      edges: withModel.edges,
+      agentMeta: withModel.agentMeta,
+    });
+    expect(manifest.spec.environmentVariables).toBeUndefined();
+    expect(yaml).not.toMatch(/environmentVariables:\s*$/m);
+    expect(yaml).not.toContain("environmentVariables: {}");
+  });
 });

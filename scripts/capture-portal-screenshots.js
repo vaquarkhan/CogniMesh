@@ -286,7 +286,8 @@ async function main() {
     const browser = await chromium.launch();
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
     await page.addInitScript(() => {
-      localStorage.setItem("cognimesh_welcome_seen", "1");
+      // Runs in browser context (Playwright init script)
+      globalThis.localStorage.setItem("cognimesh_welcome_seen", "1");
     });
     await page.goto("http://localhost:4173/", { waitUntil: "networkidle" });
     await sleep(1200);

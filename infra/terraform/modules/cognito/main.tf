@@ -41,7 +41,7 @@ resource "random_password" "admin_initial" {
 resource "aws_cognito_user_pool" "main" {
   name = "${var.name_prefix}-portal-users"
 
-# Self-registration disabled - admin creates users only
+  # Self-registration disabled - admin creates users only
   admin_create_user_config {
     allow_admin_create_user_only = true
   }

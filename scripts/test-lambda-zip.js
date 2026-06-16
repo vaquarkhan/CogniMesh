@@ -6,7 +6,6 @@ const os = require("os");
 const path = require("path");
 const { execSync } = require("child_process");
 
-const root = path.resolve(__dirname, "..");
 const zipArg = process.argv[2];
 if (!zipArg) {
   console.error("Usage: node scripts/test-lambda-zip.js <path-to.zip>");

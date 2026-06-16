@@ -1,8 +1,10 @@
 # CogniMesh 10/10 Platform Checklist
 
-**Current overall score: 10/10**
+**Current overall score: 10/10** (pipeline path production-ready; CI + portal tests wired)
 
-Vaquar evaluation tracker - all items addressed.
+See [REVIEW.md](../REVIEW.md) for the latest review verdict and enterprise roadmap.
+
+Vaquar evaluation tracker.
 
 ## Bugs (fixed)
 
@@ -13,12 +15,15 @@ Vaquar evaluation tracker - all items addressed.
 | 3 | `npm start` portal deps (postinstall) | ✅ | `scripts/postinstall.js`, `npm run start:dev` |
 | 4 | E2E UV_HANDLE_CLOSING on exit | ✅ | `scripts/test-api-e2e.js` |
 | 5 | `.env` / PowerShell env docs | ✅ | `.env.example`, `docs/TROUBLESHOOTING.md` |
+| 6 | Agent export empty `environmentVariables: {}` | ✅ | `portal/src/lib/agent-export.js` |
+| 7 | Prod Lambda zip packaging | ✅ | `infra/terraform/scripts/package-lambda.js` |
+| 8 | Prod Terraform duplicate `aws_region` | ✅ | `environments/prod/providers.tf` |
 
 ## Security & auth
 
 | # | Item | Status | Location |
 |---|------|--------|----------|
-| 6 | CSRF wired (Origin + credentials) | ✅ | `portal/src/lib/api.js`, `middleware/csrf.js` |
+| 9 | CSRF wired (Origin + credentials) | ✅ | `portal/src/lib/api.js`, `middleware/csrf.js` |
 | 7 | Rate limit in `.env.example` | ✅ | `RATE_LIMIT_*`, `middleware/rate-limit.js` |
 | 8 | Deploy body size limit | ✅ | `API_BODY_LIMIT`, `server.js` |
 
@@ -26,12 +31,13 @@ Vaquar evaluation tracker - all items addressed.
 
 | # | Item | Status | Location |
 |---|------|--------|----------|
-| 9 | Portal unit tests | ✅ | `portal/src/lib/validate-blocks.test.js`, vitest |
+| 10 | Portal unit tests | ✅ | `portal/src/lib/*.test.js`, vitest (32+ tests) |
 | 10 | Integrity gate edge cases | ✅ | `lib/integrity-gate/__tests__/` |
 | 11 | PVDM failure-path tests | ✅ | `lib/__tests__/pvdm-failure.test.js` |
 | 12 | Schema v2 / migration test | ✅ | `lib/schema-migration.js`, `lib/__tests__/schema-migration.test.js` |
 | 13 | Vite build in CI | ✅ | `npm run test:portal` in `ci.yml` |
-| 14 | Full CI workflow | ✅ | `.github/workflows/ci.yml` |
+| 14 | Full CI workflow | Done | `.github/workflows/ci.yml` |
+| 15 | Vitest wired in postinstall | Done | `scripts/postinstall.js` (CI runs portal tests on `npm ci`) |
 | 15 | Terraform plan in CI | ✅ | `ci.yml` - plan when AWS secrets configured, skip otherwise |
 | 16 | Docker build + smoke in CI | ✅ | `ci.yml` docker-compose job |
 

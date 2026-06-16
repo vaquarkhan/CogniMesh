@@ -109,12 +109,14 @@ export function exportAgentManifest({ nodes, edges, agentMeta }) {
         nodes: nodes.map((n) => ({ id: n.id, blockType: n.data.blockType, label: n.data.label })),
         edges: edges.map((e) => ({ source: e.source, target: e.target })),
       },
-      environmentVariables: guardrails.length
+      ...(guardrails.length
         ? {
-            BEDROCK_GUARDRAIL_ID: guardrails[0].data.guardrailId,
-            BEDROCK_GUARDRAIL_VERSION: guardrails[0].data.version || "1",
+            environmentVariables: {
+              BEDROCK_GUARDRAIL_ID: guardrails[0].data.guardrailId,
+              BEDROCK_GUARDRAIL_VERSION: guardrails[0].data.version || "1",
+            },
           }
-        : {},
+        : {}),
     },
   };
 
@@ -152,8 +154,9 @@ function manifestToYaml(obj, indent = 0) {
       return `${pad}- ${val}\n`;
     }).join("");
   }
-  return Object.entries(obj)
-    .filter(([, v]) => v !== undefined)
+  const entries = Object.entries(obj).filter(([, v]) => v !== undefined);
+  if (!entries.length) return `${pad}{}\n`;
+  return entries
     .map(([k, v]) => {
       if (v === null) return `${pad}${k}: null\n`;
       if (Array.isArray(v)) {
