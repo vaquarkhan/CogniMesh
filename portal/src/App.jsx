@@ -110,6 +110,7 @@ export default function App() {
   const [apiHealth, setApiHealth] = useState(null);
   const [tipDismissed, setTipDismissed] = useState(false);
   const [awsReview, setAwsReview] = useState(null);
+  const [awsReviewError, setAwsReviewError] = useState(null);
   const [awsReviewLoading, setAwsReviewLoading] = useState(false);
   const [awsReviewExpanded, setAwsReviewExpanded] = useState(true);
   const [designerMode, setDesignerMode] = useState("pipeline");
@@ -144,20 +145,34 @@ export default function App() {
   const runDesignReviewScan = useCallback(async () => {
     if (!nodes.length) {
       setAwsReview(null);
+      setAwsReviewError(null);
       return;
     }
     const apiUp = await isApiReachable();
     if (!apiUp) {
       setAwsReview(null);
+      setAwsReviewError({
+        errors: ["API gateway is not reachable"],
+        fixHint: "Run npm run dev:api (or npm run dev:minimal) and ensure the portal proxy points to port 4000.",
+      });
       return;
     }
     setAwsReviewLoading(true);
+    setAwsReviewError(null);
     try {
       const meta = { ...pipelineMeta, ownerEmail: userEmail };
       const result = await runAwsDesignReview({ nodes, edges, pipelineMeta: meta, token });
-      setAwsReview(result?.status === "success" ? result : null);
-    } catch {
+      if (result?.status === "success") {
+        setAwsReview(result);
+        setAwsReviewError(null);
+        if (result.overall?.deployBlocked) setAwsReviewExpanded(true);
+      } else {
+        setAwsReview(null);
+        setAwsReviewError(result);
+      }
+    } catch (err) {
       setAwsReview(null);
+      setAwsReviewError({ errors: [err.message], fixHint: "Check the API terminal for errors, then click Re-scan." });
     } finally {
       setAwsReviewLoading(false);
     }
@@ -526,12 +541,17 @@ export default function App() {
           <button className="btn-secondary" type="button" onClick={() => setShowStewardApprovals((v) => !v)}>
             Approvals
           </button>
-          <button className="btn-secondary" type="button" onClick={() => setAwsReviewExpanded((v) => !v)}>
+          <button
+            className={`btn-secondary aws-review-header-btn ${awsReview?.overall?.deployBlocked ? "has-critical" : ""}`}
+            type="button"
+            onClick={() => setAwsReviewExpanded(true)}
+          >
             AWS Review
-            {awsReview?.overall?.score != null && (
-              <span className={`header-score ${awsReview.overall.deployBlocked ? "score-bad" : "score-ok"}`}>
-                {awsReview.overall.score}
-              </span>
+            {awsReview?.overall?.criticalCount > 0 && (
+              <span className="header-score score-bad">{awsReview.overall.criticalCount} critical</span>
+            )}
+            {awsReview?.overall?.score != null && !awsReview?.overall?.deployBlocked && (
+              <span className="header-score score-ok">{awsReview.overall.score}</span>
             )}
           </button>
           <button className="btn-secondary" type="button" onClick={() => setShowPlatformOps((v) => !v)}>
@@ -631,11 +651,21 @@ export default function App() {
 
             <AwsDesignReviewHUD
               review={awsReview}
+              reviewError={awsReviewError}
               loading={awsReviewLoading}
               expanded={awsReviewExpanded}
               onToggleExpand={() => setAwsReviewExpanded((v) => !v)}
               onFocusNode={focusCanvasNode}
               onRunReview={runDesignReviewScan}
+              onApplyNodeFix={(nodeId, patch) => {
+                updateNode(nodeId, patch);
+                success("Applied suggested fix — re-scanning AWS review…");
+                setTimeout(runDesignReviewScan, 400);
+              }}
+              token={token}
+              nodes={nodes}
+              edges={edges}
+              pipelineMeta={{ ...pipelineMeta, ownerEmail: userEmail }}
             />
           </div>
         </div>
@@ -646,6 +676,7 @@ export default function App() {
           pipelineMeta={pipelineMeta}
           onMetaChange={setPipelineMeta}
           awsFindings={selectedId ? awsReview?.findingsByNode?.[selectedId] : null}
+          onOpenAwsReview={() => setAwsReviewExpanded(true)}
           token={token}
           nodes={nodes}
           edges={edges}

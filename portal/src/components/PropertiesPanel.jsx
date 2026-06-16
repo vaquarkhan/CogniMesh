@@ -29,6 +29,7 @@ export default function PropertiesPanel({
   pipelineMeta,
   onMetaChange,
   awsFindings,
+  onOpenAwsReview,
   token,
   nodes,
   edges,
@@ -133,12 +134,24 @@ export default function PropertiesPanel({
       )}
       {awsFindings?.length > 0 && (
         <div className="props-aws-findings">
-          <strong>AWS review ({awsFindings.length})</strong>
+          <div className="props-aws-findings-head">
+            <strong>AWS issues on this block ({awsFindings.length})</strong>
+            {onOpenAwsReview && (
+              <button type="button" className="btn-ghost compact" onClick={onOpenAwsReview}>
+                Open fix guide →
+              </button>
+            )}
+          </div>
           <ul>
             {awsFindings.map((f) => (
               <li key={f.id} className={`sev-${f.severity}`}>
-                {f.title}
-                <small>{f.fix}</small>
+                <span className="props-aws-finding-title">{f.title}</span>
+                <small className="props-aws-finding-msg">{f.message}</small>
+                {f.fix && (
+                  <small className="props-aws-finding-fix">
+                    <strong>Fix:</strong> {f.fix}
+                  </small>
+                )}
               </li>
             ))}
           </ul>

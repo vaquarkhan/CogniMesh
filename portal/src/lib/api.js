@@ -161,8 +161,43 @@ export async function runAwsDesignReview({ nodes, edges, pipelineMeta, token }) 
     token,
     body: JSON.stringify({ nodes, edges, pipelineMeta }),
   });
-  if (!res.ok) return null;
-  return safeJson(res, "Design review");
+  const data = await parseJsonResponse(res, "Design review");
+  if (!data) {
+    return {
+      status: "error",
+      errors: ["API unavailable — start the gateway with npm run dev:api"],
+      fixHint: "Run npm run dev:minimal from the repo root, then click Re-scan.",
+    };
+  }
+  if (!res.ok) {
+    return {
+      status: "error",
+      errors: data.errors || [`Design review failed (${res.status})`],
+      fixHint: data.fixHint || "Fix canvas validation errors and try again.",
+      graphErrors: data.graphErrors,
+    };
+  }
+  return data;
+}
+
+export async function getDesignReviewFixHelp({
+  token,
+  nodes,
+  edges,
+  pipelineMeta,
+  findingId,
+  findingIds,
+}) {
+  const res = await apiFetch("/api/v1/pipelines/design-review/fix-help", {
+    method: "POST",
+    token,
+    body: JSON.stringify({ nodes, edges, pipelineMeta, findingId, findingIds }),
+  });
+  const data = await parseJsonResponse(res, "Fix help");
+  if (!res.ok || !data) {
+    throw new Error(data?.errors?.[0] || "Fix help unavailable");
+  }
+  return data;
 }
 
 export async function getExecutionStatus({ token, executionArn }) {

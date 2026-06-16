@@ -1657,8 +1657,11 @@ body {
   flex-direction: column;
 }
 .aws-review-hud.collapsed .aws-review-body { display: none; }
-.aws-review-hud.expanded { max-height: 70vh; }
-.aws-review-empty { padding: 0.75rem 1rem; font-size: 0.82rem; color: #94a3b8; }
+.aws-review-hud.expanded { max-height: 72vh; }
+.aws-review-hud.aws-review-blocked { border-color: #ea580c; box-shadow: 0 8px 32px rgba(234, 88, 12, 0.15); }
+.aws-review-hud.aws-review-pass { border-color: #059669; }
+.aws-review-empty { padding: 1rem 1.1rem; }
+.aws-review-empty-title { margin: 0 0 0.35rem; font-size: 0.9rem; color: #e7ecf3; font-weight: 600; }
 .aws-review-header {
   display: flex;
   align-items: center;
@@ -1678,8 +1681,70 @@ body {
 .overall-grade { font-size: 0.78rem; color: #6ee7b7; }
 .overall-grade.grade-blocked { color: #fca5a5; }
 .aws-critical-banner { display: block; font-size: 0.72rem; color: #fca5a5; margin-top: 0.15rem; }
-.aws-review-chevron { color: #64748b; font-size: 1rem; }
+.aws-pass-banner { display: block; font-size: 0.72rem; color: #6ee7b7; margin-top: 0.15rem; }
+.aws-review-mini-stats { display: flex; gap: 0.25rem; flex-shrink: 0; }
+.aws-stat-pill {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.15rem 0.4rem;
+  border-radius: 999px;
+}
+.aws-stat-pill.stat-critical { background: #450a0a; color: #fca5a5; border: 1px solid #dc2626; }
+.aws-stat-pill.stat-high { background: #431407; color: #fdba74; border: 1px solid #ea580c; }
+.aws-review-loading-ring {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 3px solid #243044;
+  border-top-color: #6ee7b7;
+  animation: spin 0.8s linear infinite;
+}
+.aws-review-chevron { color: #64748b; font-size: 1rem; flex-shrink: 0; }
 .aws-review-body { overflow: auto; padding: 0 0.85rem 0.85rem; border-top: 1px solid #243044; }
+.aws-review-stats-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0.65rem 0 0.5rem;
+}
+.aws-stat-chip {
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 0.2rem 0.45rem;
+  border-radius: 999px;
+  border: 1px solid #334155;
+}
+.aws-stat-chip.sev-critical { background: #450a0a; color: #fca5a5; border-color: #dc2626; }
+.aws-stat-chip.sev-high { background: #431407; color: #fdba74; border-color: #ea580c; }
+.aws-stat-chip.sev-medium { background: #422006; color: #fde68a; border-color: #ca8a04; }
+.aws-stat-chip.sev-low { background: #1e293b; color: #cbd5e1; }
+.aws-review-wizard {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, #1e1b4b 0%, #1e293b 100%);
+  border: 1px solid #5b21b6;
+  border-radius: 8px;
+  padding: 0.55rem 0.65rem;
+  margin-bottom: 0.5rem;
+}
+.aws-review-wizard-text { flex: 1; min-width: 140px; }
+.aws-review-wizard-text strong { display: block; font-size: 0.82rem; color: #e7ecf3; }
+.aws-review-wizard-nav { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.aws-topology-details {
+  margin: 0.35rem 0 0.5rem;
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+.aws-topology-details summary {
+  cursor: pointer;
+  color: #cbd5e1;
+  padding: 0.35rem 0;
+  user-select: none;
+}
+.aws-topology-details[open] summary { margin-bottom: 0.35rem; }
 .aws-review-tabs { display: flex; flex-wrap: wrap; gap: 0.35rem; margin: 0.5rem 0; align-items: center; }
 .aws-review-tabs button {
   background: #1e293b;
@@ -1722,6 +1787,59 @@ body {
 .aws-topo-icon { font-size: 0.85rem; }
 .aws-topo-flow { font-size: 0.62rem; color: #64748b; margin-top: 0.35rem; word-break: break-all; }
 .aws-findings-list { list-style: none; padding: 0; margin: 0.5rem 0 0; }
+.aws-finding-card {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-left-width: 3px;
+  border-radius: 8px;
+  margin-bottom: 0.45rem;
+  font-size: 0.78rem;
+  overflow: hidden;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.aws-finding-card.is-open { box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25); }
+.aws-finding-card.aws-finding-active {
+  border-color: #7c3aed;
+  box-shadow: 0 0 0 1px #7c3aed44;
+}
+.aws-finding-card.sev-critical { border-left-color: #dc2626; }
+.aws-finding-card.sev-high { border-left-color: #ea580c; }
+.aws-finding-card.sev-medium { border-left-color: #ca8a04; }
+.aws-finding-card.sev-low { border-left-color: #64748b; }
+.aws-finding-card.sev-info { border-left-color: #2563eb; }
+.aws-finding-card-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  width: 100%;
+  padding: 0.55rem 0.65rem;
+  background: transparent;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+.aws-finding-card-head:hover { background: #243044; }
+.aws-finding-card-title { flex: 1; font-weight: 600; color: #e7ecf3; min-width: 120px; }
+.aws-finding-chevron { color: #64748b; font-size: 0.75rem; margin-left: auto; }
+.aws-finding-card-body { padding: 0 0.65rem 0.65rem; }
+.aws-finding-success { padding: 0.75rem; text-align: center; }
+.aws-fix-steps-wrap {
+  background: #0f1419;
+  border: 1px solid #243044;
+  border-radius: 6px;
+  padding: 0.45rem 0.55rem;
+  margin: 0.35rem 0;
+}
+.aws-fix-steps-label {
+  margin: 0 0 0.35rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #6ee7b7;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
 .aws-finding {
   background: #1e293b;
   border: 1px solid #334155;
@@ -1746,6 +1864,63 @@ body {
 .wa-ref { font-size: 0.62rem; color: #64748b; }
 .aws-finding-msg { color: #94a3b8; margin: 0.2rem 0; }
 .aws-finding-fix { color: #6ee7b7; margin: 0.25rem 0; font-size: 0.72rem; }
+.aws-fix-steps {
+  margin: 0.35rem 0 0.5rem 1.1rem;
+  padding: 0;
+  font-size: 0.72rem;
+  color: #cbd5e1;
+}
+.aws-fix-steps li { margin-bottom: 0.25rem; }
+.aws-finding-fields { font-size: 0.68rem; color: #93c5fd; margin: 0.25rem 0; }
+.aws-finding-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.45rem;
+}
+.aws-ai-fix-btn.deploy-btn { background: linear-gradient(135deg, #6d28d9, #4f46e5); border: none; color: #fff; }
+.aws-ai-fix-btn.deploy-btn:hover { filter: brightness(1.08); }
+.aws-apply-fix-btn { border-color: #059669; color: #6ee7b7; }
+.btn-ghost {
+  background: transparent;
+  border: none;
+  color: #93c5fd;
+  cursor: pointer;
+  font-size: 0.72rem;
+  padding: 0.25rem 0.4rem;
+  border-radius: 4px;
+}
+.btn-ghost:hover { background: #1e293b; color: #bfdbfe; }
+.btn-ghost.compact { font-size: 0.68rem; }
+.aws-review-header-btn.has-critical { border-color: #dc2626; color: #fca5a5; }
+.aws-review-error-title { margin: 0 0 0.35rem; font-weight: 600; color: #fca5a5; }
+.props-aws-findings-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+.aws-ai-fix-box {
+  background: #1e1b4b;
+  border: 1px solid #5b21b6;
+  border-radius: 6px;
+  padding: 0.45rem 0.55rem;
+  margin: 0.35rem 0;
+  font-size: 0.72rem;
+}
+.aws-ai-fix-box p { margin: 0.25rem 0 0; color: #ddd6fe; }
+.aws-review-error-state { border-color: #dc2626; }
+.aws-review-error-banner { color: #fca5a5; font-size: 0.75rem; }
+.aws-review-error-body { padding: 0.75rem 0.85rem; border-top: 1px solid #243044; }
+.aws-review-priority {
+  background: #422006;
+  border: 1px solid #ea580c;
+  border-radius: 6px;
+  padding: 0.45rem 0.6rem;
+  margin: 0.5rem 0;
+  font-size: 0.78rem;
+}
 .aws-finding-services { font-size: 0.65rem; color: #64748b; margin: 0.2rem 0; }
 .header-score {
   display: inline-block;
@@ -1836,10 +2011,12 @@ body {
   font-size: 0.75rem;
 }
 .props-aws-findings ul { margin: 0.35rem 0 0; padding-left: 1rem; }
-.props-aws-findings li { margin-bottom: 0.35rem; }
+.props-aws-findings li { margin-bottom: 0.5rem; }
 .props-aws-findings li.sev-critical { color: #fca5a5; }
 .props-aws-findings li.sev-high { color: #fdba74; }
-.props-aws-findings small { display: block; color: #94a3b8; font-size: 0.68rem; }
+.props-aws-finding-title { display: block; font-weight: 600; }
+.props-aws-finding-msg { display: block; color: #94a3b8; font-size: 0.68rem; margin-top: 0.15rem; }
+.props-aws-finding-fix { display: block; color: #6ee7b7; font-size: 0.68rem; margin-top: 0.2rem; }
 
 /* Architecture pattern filters + AWS chips */
 .pattern-arch-filters {
