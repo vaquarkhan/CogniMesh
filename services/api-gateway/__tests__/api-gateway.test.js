@@ -8,6 +8,7 @@ process.env.AUTH_DISABLED = "true";
 process.env.CSRF_DISABLED = "true";
 process.env.CATALOG_FALLBACK = "embedded";
 process.env.CATALOG_STORAGE = "memory";
+process.env.OTEL_SDK_DISABLED = "true";
 
 const { app } = require("../server");
 

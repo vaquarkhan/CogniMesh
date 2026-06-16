@@ -1,16 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, lazy, Suspense } from "react";
-import ReactFlow, {
-  Background,
-  Controls,
-  MiniMap,
-  addEdge,
-  useEdgesState,
-  useNodesState,
-} from "reactflow";
-import "reactflow/dist/style.css";
 
 import DesignerSidebar from "./components/DesignerSidebar";
-import PipelineNode from "./components/PipelineNode";
 import PropertiesPanel from "./components/PropertiesPanel";
 import DeployConfirmModal from "./components/DeployConfirmModal";
 import WelcomeModal from "./components/WelcomeModal";
@@ -34,6 +24,7 @@ const LineageCatalogPanel = lazy(() => import("./components/LineageCatalogPanel"
 const ExecutionHistoryPanel = lazy(() => import("./components/ExecutionHistoryPanel"));
 const StewardApprovalsPanel = lazy(() => import("./components/StewardApprovalsPanel"));
 const PlatformOperationsPanel = lazy(() => import("./components/PlatformOperationsPanel"));
+const PipelineFlow = lazy(() => import("./components/PipelineFlow"));
 
 function PanelFallback() {
   return (
@@ -50,8 +41,6 @@ function deploySuccessToast(data) {
   }
   return "Pipeline deployed successfully";
 }
-
-const nodeTypes = { pipeline: PipelineNode };
 
 let nodeId = 0;
 const nextId = () => `node-${++nodeId}`;
@@ -82,8 +71,8 @@ export default function App() {
   const { token, userEmail, logout, authDisabled } = useAuth();
   const { toasts, success, error: toastError } = useToast();
   const reactFlowWrapper = useRef(null);
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [nodes, setNodes] = useState([]);
+  const [edges, setEdges] = useState([]);
   const [history, setHistory] = useState([snapshot([], [])]);
   const [historyIndex, setHistoryIndex] = useState(0);
   const [selectedId, setSelectedId] = useState(null);
@@ -241,17 +230,6 @@ export default function App() {
     setEdges(history[next].edges);
     success("Redo");
   };
-
-  const onConnect = useCallback(
-    (params) => {
-      setEdges((eds) => {
-        const next = addEdge({ ...params, animated: true }, eds);
-        pushHistory(nodes, next);
-        return next;
-      });
-    },
-    [nodes, setEdges, pushHistory]
-  );
 
   const onDragOver = useCallback((event) => {
     event.preventDefault();
@@ -586,7 +564,12 @@ export default function App() {
             />
           )}
 
-          <div className="canvas" ref={reactFlowWrapper}>
+          <div
+            className="canvas"
+            ref={reactFlowWrapper}
+            onDrop={nodes.length === 0 ? onDrop : undefined}
+            onDragOver={nodes.length === 0 ? onDragOver : undefined}
+          >
             {activePatternId === "arch-datamesh-multi-domain" && <MeshSwimlanes />}
             {nodes.length === 0 && (
               <div className="canvas-empty-overlay">
@@ -602,43 +585,21 @@ export default function App() {
               </div>
             )}
 
-            <ReactFlow
-              nodes={nodesWithValidation}
-              edges={edges}
-              nodeTypes={nodeTypes}
-              onInit={(inst) => {
-                reactFlowInstance.current = inst;
-              }}
-              onNodesChange={onNodesChange}
-              onEdgesChange={onEdgesChange}
-              onConnect={onConnect}
-              onDrop={onDrop}
-              onDragOver={onDragOver}
-              onNodeClick={(_, node) => setSelectedId(node.id)}
-              onPaneClick={() => setSelectedId(null)}
-              fitView
-              deleteKeyCode={["Backspace", "Delete"]}
-            >
-              <Background gap={20} color="#243044" />
-              <Controls />
-              <MiniMap
-                nodeColor={(n) => {
-                  const c = {
-                    start: "#10b981",
-                    parallel: "#fb923c",
-                    merge: "#fdba74",
-                    choice: "#22d3ee",
-                    map: "#a78bfa",
-                    pass: "#94a3b8",
-                    integrity_gate: "#f87171",
-                    source: "#059669",
-                    transform: "#2563eb",
-                    sink: "#ea580c",
-                  };
-                  return c[n.data?.blockType] || "#6b7280";
-                }}
-              />
-            </ReactFlow>
+            {nodes.length > 0 && (
+              <Suspense fallback={<PanelFallback />}>
+                <PipelineFlow
+                  nodes={nodesWithValidation}
+                  edges={edges}
+                  setNodes={setNodes}
+                  setEdges={setEdges}
+                  pushHistory={pushHistory}
+                  reactFlowInstance={reactFlowInstance}
+                  setSelectedId={setSelectedId}
+                  onDrop={onDrop}
+                  onDragOver={onDragOver}
+                />
+              </Suspense>
+            )}
 
             <AwsDesignReviewHUD
               review={awsReview}

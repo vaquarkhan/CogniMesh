@@ -1053,6 +1053,46 @@ body {
   margin-top: 1rem;
 }
 
+.data-preview-hint {
+  margin-top: 0.35rem;
+  font-size: 0.8rem;
+}
+
+.data-preview-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.data-preview-badge {
+  display: inline-block;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.data-preview-badge-live {
+  background: #064e3b;
+  color: #6ee7b7;
+  border: 1px solid #059669;
+}
+
+.data-preview-badge-sim {
+  background: #1e293b;
+  color: #94a3b8;
+  border: 1px solid #475569;
+}
+
+.data-preview-badge-warn {
+  background: #451a03;
+  color: #fdba74;
+  border: 1px solid #ea580c;
+}
+
 .data-preview-table {
   width: 100%;
   font-size: 0.65rem;
