@@ -43,10 +43,10 @@
 
 <p align="center">
   <a href="docs/assets/cognimesh-portal-demo.mp4">
-    <img src="docs/assets/cognimesh-portal-demo.gif" alt="CogniMesh portal demo: pick a Data Mesh pattern, use AI Builder, review on canvas, preview YAML, open Marketplace and Operations, switch to Agent Builder" width="960" />
+    <img src="docs/assets/cognimesh-portal-demo.gif" alt="CogniMesh portal demo: Multi-Source workflow, AWS Design Review with Fix-first wizard and Properties panel, AI Builder, preview YAML, Operations, and Bedrock Agent Builder" width="960" />
   </a>
   <br />
-  <em>End-to-end UI walkthrough (click for HD MP4) · patterns → AI Builder → deploy preview → Operations</em>
+  <em>End-to-end UI walkthrough (click for HD MP4) · AWS review → Properties fixes → AI Builder → Agent Builder</em>
   <br />
   <code>npm run docs:demo</code> to regenerate · needs portal build + Playwright · optional ffmpeg for MP4/GIF
 </p>

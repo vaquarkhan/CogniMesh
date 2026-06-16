@@ -135,83 +135,189 @@ async function dismissWelcome(page) {
 }
 
 async function clickTab(page, label) {
-  await page.locator(".sidebar-tabs button", { hasText: label }).click();
+  await ensurePipelineMode(page);
+  await page.waitForSelector(".designer-sidebar", { state: "visible", timeout: 15000 });
+  const btn = page.locator(".designer-sidebar .sidebar-tabs button").filter({ hasText: label });
+  await btn.first().waitFor({ state: "attached", timeout: 10000 });
+  await btn.first().click({ force: true });
   await sleep(450);
+}
+
+async function ensureDesignerSidebar(page) {
+  await ensurePipelineMode(page);
+  if ((await page.locator(".designer-sidebar").count()) === 0) {
+    await page.locator('.designer-mode-switch button:has-text("Data Pipeline")').click({ force: true });
+    await sleep(600);
+  }
+  await page.waitForSelector(".designer-sidebar", { state: "visible", timeout: 15000 });
+}
+
+async function ensurePipelineMode(page) {
+  const pipeBtn = page.locator('.designer-mode-switch button:has-text("Data Pipeline")');
+  if ((await pipeBtn.count()) === 0) return;
+  const cls = (await pipeBtn.getAttribute("class")) || "";
+  if (!cls.includes("active")) {
+    await pipeBtn.click({ force: true });
+    await sleep(600);
+  }
+}
+
+async function fitCanvasView(page) {
+  await collapseAwsHud(page);
+  const fitBtn = page.locator('.react-flow__controls-fitview, button[aria-label="fit view"]');
+  if ((await fitBtn.count()) > 0) {
+    await fitBtn.click({ force: true });
+    await sleep(450);
+  }
+}
+
+async function clickCanvasNode(page, label) {
+  await collapseAwsHud(page);
+  const node = page.locator(".react-flow__node").filter({ hasText: label });
+  await node.first().waitFor({ state: "attached", timeout: 12000 });
+  await node.first().click({ force: true });
+  await sleep(400);
+}
+
+async function loadMultiSourcePattern(page) {
+  const loadBtn = page.locator('button:has-text("Load: Multi-Source workflow")');
+  if ((await loadBtn.count()) === 0) {
+    await clickTab(page, "Architectures");
+    await page.locator(".pattern-arch-filters button", { hasText: "Workflow" }).click();
+    await sleep(400);
+    const use = page.locator('button.pattern-use-btn:has-text("Use pattern")').first();
+    if ((await use.count()) > 0) await use.click();
+  } else {
+    await loadBtn.click();
+  }
+  await page.locator(".react-flow__node").first().waitFor({ state: "visible", timeout: 12000 });
+  await sleep(600);
+  await fitCanvasView(page);
+}
+
+async function collapseAwsHud(page) {
+  const hud = page.locator('[data-testid="aws-review-hud"]');
+  if ((await hud.count()) === 0) return;
+  const expanded = await hud.evaluate((el) => el.classList.contains("expanded")).catch(() => false);
+  if (expanded) {
+    await hud.locator(".aws-review-header").click();
+    await sleep(450);
+  }
+}
+
+async function waitForPortalApi() {
+  const url = `${PORTAL_URL}/health`;
+  const start = Date.now();
+  while (Date.now() - start < 90000) {
+    try {
+      const res = await fetch(url);
+      if (res.ok) {
+        const data = await res.json();
+        if (data?.status === "ok" || data?.status === "degraded") return;
+      }
+    } catch {
+      /* retry */
+    }
+    await sleep(600);
+  }
+  throw new Error(`Timeout waiting for portal API proxy at ${url}`);
+}
+
+async function waitForAwsReview(page) {
+  const hud = page.locator('[data-testid="aws-review-hud"]');
+  await hud.waitFor({ state: "visible", timeout: 20000 });
+  await page.waitForFunction(
+    () => {
+      const el = document.querySelector('[data-testid="aws-review-hud"]');
+      return el && !el.querySelector(".aws-review-loading");
+    },
+    { timeout: 20000 }
+  );
+  await sleep(500);
+}
+
+async function ensureAwsReviewReady(page) {
+  await waitForAwsReview(page);
+  const errBody = page.locator(".aws-review-error-body");
+  if ((await errBody.count()) > 0) {
+    const retry = page.locator('button:has-text("Retry review"), button.aws-refresh-btn:has-text("Re-scan")');
+    if ((await retry.count()) > 0) {
+      await retry.first().click({ force: true });
+      await waitForAwsReview(page);
+    }
+  }
 }
 
 async function runDemoFlow(page) {
   await page.goto(PORTAL_URL, { waitUntil: "networkidle" });
   await sleep(1000);
   await dismissWelcome(page);
+  await page.waitForSelector(".designer-sidebar", { state: "visible", timeout: 30000 });
+  await ensurePipelineMode(page);
 
-  // 1. Pattern library
-  await clickTab(page, "Architectures");
-  await page.locator(".pattern-arch-filters button", { hasText: "Data Mesh" }).click();
-  await sleep(500);
-  const card = page.locator(".pattern-card-header").first();
-  if ((await card.count()) > 0) await card.click();
+  await loadMultiSourcePattern(page);
+  await ensureAwsReviewReady(page);
+
+  // 2. AWS Design Review HUD (auto-scan + Security tab)
+  const hud = page.locator('[data-testid="aws-review-hud"]');
+  const expanded = await hud.evaluate((el) => el.classList.contains("expanded")).catch(() => true);
+  if (!expanded) await hud.locator(".aws-review-header").click();
   await sleep(700);
+  const securityTab = hud.locator('.aws-review-tabs button:has-text("Security")');
+  if ((await securityTab.count()) > 0) await securityTab.click();
+  await sleep(800);
 
-  // 2. Load mesh pattern onto canvas
-  const meshBtn = page.locator('button.pattern-use-btn:has-text("Use pattern")').first();
-  if ((await meshBtn.count()) > 0) await meshBtn.click();
-  await sleep(1400);
-
-  // 3. Select a block → properties
-  const node = page.locator(".react-flow__node").nth(2);
-  if ((await node.count()) > 0) {
-    await node.click({ force: true });
-    await sleep(900);
+  // 3. HUD wizard — Fix first + focus block (shows Properties findings without canvas click)
+  const fixFirstTab = hud.locator('.aws-review-tabs button:has-text("Fix first")');
+  if ((await fixFirstTab.count()) > 0) {
+    await fixFirstTab.click({ force: true });
+    await sleep(600);
+    const fixThis = hud.locator('.aws-review-wizard-nav button:has-text("Fix this")');
+    if ((await fixThis.count()) > 0) await fixThis.click({ force: true });
+    await sleep(1000);
   }
+  const focusBlock = hud.locator('button:has-text("Focus block")').first();
+  if ((await focusBlock.count()) > 0) {
+    await focusBlock.click({ force: true });
+    await sleep(800);
+    await page.locator('[data-testid="props-aws-findings"]').waitFor({ state: "visible", timeout: 8000 }).catch(() => {});
+    await sleep(600);
+  }
+  await collapseAwsHud(page);
 
-  // 4. AI Builder plan
-  await clickTab(page, "AI Builder");
-  const pipelineInput = page.locator(".ai-builder-input").first();
+  // 4. AI Builder
+  const pipelineInput = page.locator(".designer-sidebar .ai-builder-input").first();
+  await pipelineInput.waitFor({ state: "visible", timeout: 15000 });
   await pipelineInput.fill("Customer 360 data mesh with parallel domains and Iceberg gold");
   await sleep(400);
-  await page.locator(".ai-builder-submit").first().click();
+  await page.locator(".designer-sidebar .ai-builder-submit").first().click();
   await sleep(900);
-
-  // 5. Load generated plan
-  const loadBtn = page.locator('.design-plan-actions button:has-text("Load pipeline")');
+  const loadBtn = page.locator('.designer-sidebar .design-plan-actions button:has-text("Load pipeline")');
   if ((await loadBtn.count()) > 0) {
     await loadBtn.click();
     await sleep(1200);
-  } else {
-    await clickTab(page, "Architectures");
-    await page.locator(".pattern-arch-filters button", { hasText: "Data Mesh" }).click();
-    await sleep(300);
-    const use = page.locator('button.pattern-use-btn:has-text("Use pattern")').first();
-    if ((await use.count()) > 0) await use.click();
-    await sleep(1200);
   }
 
-  // 6. AWS Design Review
-  const reviewBtn = page.locator(".header-actions button").filter({ hasText: "AWS Review" });
-  if ((await reviewBtn.count()) > 0) {
-    await reviewBtn.click();
-    await sleep(1200);
-  }
-
-  // 7. Preview YAML
+  // 6. Preview YAML
+  await collapseAwsHud(page);
   const previewBtn = page.locator(".header-actions button").filter({ hasText: "Preview YAML" });
   if ((await previewBtn.count()) > 0) {
     await previewBtn.click();
-    await sleep(1500);
+    await sleep(1600);
     await page.keyboard.press("Escape").catch(() => {});
     await sleep(400);
   }
 
-  // 8. Marketplace
+  // 7. Marketplace
   const mktBtn = page.locator(".header-actions button").filter({ hasText: "Marketplace" });
   if ((await mktBtn.count()) > 0) {
     await mktBtn.first().click();
-    await sleep(1200);
+    await sleep(1100);
     await mktBtn.first().click();
     await sleep(400);
   }
 
-  // 9. Operations panel
+  // 8. Operations
   const opsBtn = page.locator('button:has-text("Operations")');
   if ((await opsBtn.count()) > 0) {
     await opsBtn.click();
@@ -219,23 +325,29 @@ async function runDemoFlow(page) {
     const liveTab = page.locator('.platform-ops-tabs button:has-text("Live ops")');
     if ((await liveTab.count()) > 0) await liveTab.click();
     await sleep(700);
-    const healthTab = page.locator('.platform-ops-tabs button:has-text("Health")');
-    if ((await healthTab.count()) > 0) await healthTab.click();
-    await sleep(700);
     await page.keyboard.press("Escape").catch(() => {});
     await sleep(400);
   }
 
-  // 10. Agent Builder teaser
+  // 9. Agent Builder — Customer Support with guardrails
   await page.locator(".designer-mode-switch button", { hasText: "Agent Builder" }).click();
-  await sleep(500);
-  await clickTab(page, "Templates");
-  const agentTpl = page.locator('button.pattern-use-btn:has-text("Use template")').first();
-  if ((await agentTpl.count()) > 0) await agentTpl.click();
-  await sleep(1200);
+  await sleep(600);
+  const agentCard = page.locator(".pattern-card").filter({ hasText: "Customer Support Agent" });
+  if ((await agentCard.count()) > 0) {
+    await agentCard.locator(".pattern-card-header").click();
+    await sleep(500);
+    await agentCard.locator('button:has-text("Use this agent template")').click();
+    await sleep(1400);
+    await page.locator(".agent-node-label").filter({ hasText: "PII Guardrail" }).first().click({ force: true });
+    await sleep(800);
+    await page.locator('button:has-text("Preview manifest")').click();
+    await sleep(1200);
+    await page.keyboard.press("Escape").catch(() => {});
+    await sleep(400);
+  }
 
   await page.locator(".designer-mode-switch button", { hasText: "Data Pipeline" }).click();
-  await sleep(600);
+  await sleep(500);
 }
 
 async function main() {
@@ -250,7 +362,7 @@ async function main() {
 
   killPort(API_PORT);
   killPort(PORTAL_PORT);
-  await sleep(500);
+  await sleep(1200);
 
   spawnProc("node", ["services/api-gateway/server.js"], { api: true });
   spawnProc("npx", ["vite", "preview", "--host", "127.0.0.1", "--port", PORTAL_PORT, "--strictPort"], {
@@ -262,6 +374,8 @@ async function main() {
   try {
     await waitForUrl(`${API_URL}/health`);
     await waitForUrl(PORTAL_URL);
+    await waitForPortalApi();
+    await sleep(800);
 
     browser = await chromium.launch();
     const context = await browser.newContext({
@@ -274,7 +388,12 @@ async function main() {
     });
 
     console.log("Recording portal demo…");
-    await runDemoFlow(page);
+    try {
+      await runDemoFlow(page);
+    } catch (flowErr) {
+      await page.screenshot({ path: path.join(OUT_DIR, "demo-capture-failure.png"), fullPage: true }).catch(() => {});
+      throw flowErr;
+    }
 
     const video = page.video();
     await context.close();
@@ -302,7 +421,7 @@ async function main() {
   }
 }
 
-main().catch((err) => {
+main().catch(async (err) => {
   console.error(err);
   process.exit(1);
 });
