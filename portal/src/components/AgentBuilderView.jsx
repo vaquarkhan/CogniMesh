@@ -224,7 +224,7 @@ export default function AgentBuilderView({
         return;
       }
       setDeployMessage({
-        status: data.deployed ? "deployed" : data.simulated ? "simulated" : "failed",
+        status: data.deployed ? "deployed" : data.simulated ? "simulated" : data.partial ? "partial" : "failed",
         agentName: agentMeta.name,
         agentId: data.agentId,
         message: data.message || data.reason || (data.errors?.[0]) || "Deploy finished",
@@ -232,6 +232,8 @@ export default function AgentBuilderView({
       });
       if (data.deployed || data.simulated) {
         success(data.deployed ? `Agent deployed: ${data.agentId}` : "Agent deploy simulated — see banner");
+      } else if (data.partial && data.agentId) {
+        toastError(`Agent ${data.agentId} created but alias failed: ${data.errors?.[0] || "see banner"}`);
       } else {
         toastError(data.errors?.[0] || "Agent deploy failed");
       }
@@ -308,6 +310,8 @@ export default function AgentBuilderView({
                   ? "Deployed to Bedrock"
                   : deployMessage.status === "simulated"
                     ? "Local simulation (not on AWS)"
+                    : deployMessage.status === "partial"
+                      ? "Agent created on Bedrock (alias step failed)"
                     : deployMessage.status === "exported"
                       ? "Manifest exported"
                       : "Deploy failed"}

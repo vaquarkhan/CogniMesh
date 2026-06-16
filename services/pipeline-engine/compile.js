@@ -14,13 +14,14 @@ function compile(contractPath) {
   return compileContract(contract);
 }
 
-function compileContractSmart(contract) {
+function compileContractSmart(contract, options = {}) {
+  const aws = options.aws || {};
   if (contract.spec?.transform?.type === "agentic") {
     return { pattern: "cognitive-eks", stateMachine: compileContract(contract) };
   }
   if (isVaquarContract(contract)) {
     const { generateVaquarArtifacts } = require("../../lib/vaquar");
-    const vaquar = generateVaquarArtifacts(contract);
+    const vaquar = generateVaquarArtifacts(contract, aws);
     return { pattern: "vaquar-pvdm", stateMachine: vaquar.stateMachine, vaquar };
   }
   return { pattern: "legacy-glue", stateMachine: compileContract(contract) };

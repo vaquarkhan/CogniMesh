@@ -1938,6 +1938,12 @@ body {
   color: #bfdbfe;
 }
 
+.agent-deploy-banner.agent-deploy-partial {
+  background: #422006;
+  border-color: #fb923c;
+  color: #fed7aa;
+}
+
 .agent-deploy-banner.agent-deploy-failed {
   background: #450a0a;
   border-color: #ef4444;

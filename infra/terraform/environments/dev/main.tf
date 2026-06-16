@@ -61,6 +61,66 @@ module "dynamodb" {
   tags        = local.tags
 }
 
+module "iam" {
+  source = "../../modules/iam"
+
+  name_prefix           = "${var.project_name}-${var.environment}"
+  checkpoint_bucket_arn = module.storage.checkpoint_bucket_arn
+  proof_bucket_arn      = module.storage.proof_bucket_arn
+  lakehouse_bucket_arn  = module.storage.lakehouse_bucket_arn
+  glue_database_name    = module.glue.database_name
+  enable_lakeformation  = false
+  tags                  = local.tags
+}
+
+module "orchestration" {
+  count  = var.enable_pvdm_lambdas ? 1 : 0
+  source = "../../modules/orchestration"
+
+  name_prefix = "${var.project_name}-${var.environment}"
+  role_arn    = module.iam.pipeline_orchestrator_role_arn
+  tags        = local.tags
+}
+
+module "integrity_gate_lambda" {
+  count  = var.enable_pvdm_lambdas ? 1 : 0
+  source = "../../modules/lambda"
+
+  name_prefix      = "${var.project_name}-${var.environment}"
+  function_suffix  = "integrity-gate"
+  role_arn         = module.iam.domain_writer_role_arn
+  package_path     = abspath("${path.module}/${data.external.integrity_gate_package.result.path}")
+  source_code_hash = data.external.integrity_gate_package.result.hash
+  handler          = "handler.handler"
+  tags             = local.tags
+}
+
+module "domain_writer_lambda" {
+  count  = var.enable_pvdm_lambdas ? 1 : 0
+  source = "../../modules/lambda"
+
+  name_prefix      = "${var.project_name}-${var.environment}"
+  function_suffix  = "domain-writer"
+  role_arn         = module.iam.domain_writer_role_arn
+  package_path     = abspath("${path.module}/${data.external.domain_writer_package.result.path}")
+  source_code_hash = data.external.domain_writer_package.result.hash
+  handler          = "handler.handler"
+  timeout          = 120
+  memory_size      = 512
+  tags             = merge(local.tags, { Component = "domain-writer" })
+}
+
+module "platform_ops" {
+  count  = var.enable_platform_ops ? 1 : 0
+  source = "../../modules/platform-ops"
+
+  name_prefix           = "${var.project_name}-${var.environment}"
+  lakehouse_bucket_arn  = module.storage.lakehouse_bucket_arn
+  lakehouse_bucket_name = "${var.project_name}-${var.environment}-lakehouse-${local.account_id}"
+  glue_database_name    = module.glue.database_name
+  tags                  = local.tags
+}
+
 output "vpc_id" {
   value = module.networking.vpc_id
 }
@@ -75,4 +135,20 @@ output "glue_database" {
 
 output "catalog_table" {
   value = module.dynamodb.table_name
+}
+
+output "pipeline_orchestrator_role_arn" {
+  value = module.iam.pipeline_orchestrator_role_arn
+}
+
+output "checkpoint_bucket" {
+  value = module.storage.checkpoint_bucket_arn
+}
+
+output "proof_bucket" {
+  value = module.storage.proof_bucket_arn
+}
+
+output "bedrock_agent_role_arn" {
+  value = var.enable_platform_ops ? module.platform_ops[0].bedrock_agent_role_arn : null
 }

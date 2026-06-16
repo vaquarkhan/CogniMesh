@@ -660,6 +660,7 @@ CogniMesh/
 
 | Document | Description |
 |----------|-------------|
+| **[CONTRIBUTING.md](CONTRIBUTING.md)** | How to contribute · local setup · tests |
 | **[docs/vaquar-pattern.md](docs/vaquar-pattern.md)** | **The Vaquar Pattern** · PVDM · VRP · building blocks |
 | **[docs/developer/README.md](docs/developer/README.md)** | **Developer customization hub** - 21 UI screenshots · pipelines · agents · code |
 | **[docs/tutorials/README.md](docs/tutorials/README.md)** | Tutorial hub - one guide per architecture & agent |
