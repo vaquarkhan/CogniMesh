@@ -335,7 +335,7 @@ app.post("/api/v1/pipelines/preview", requireAuth, (req, res) => {
     span.end("error", { reason: "missing_nodes" });
     return res.status(400).json({ status: "error", errors: ["nodes array is required"] });
   }
-  const compileSpan = startSpan("compile.preview", { trace_parent: span.traceId });
+  const compileSpan = startSpan("compile.preview", { user_id: req.auth?.sub }, span);
   const result = previewPipeline({ nodes, edges: edges || [], pipelineMeta });
   compileSpan.end(result.status, { contract_id: result.contract?.metadata?.name });
   if (result.status === "success") metrics.inc("preview_success");
@@ -374,7 +374,7 @@ app.post("/api/v1/pipelines/deploy", requireAuth, async (req, res) => {
     });
   }
 
-  const compileSpan = startSpan("compile.deploy", { trace_parent: span.traceId });
+  const compileSpan = startSpan("compile.deploy", { user_id: req.auth?.sub }, span);
   const result = await deployPipeline({
     nodes,
     edges: edges || [],

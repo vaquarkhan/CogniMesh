@@ -121,6 +121,33 @@ async function testStewardApprovalsPanel(page) {
   if ((await deploySection.count()) === 0) throw new Error("Pipeline deploys section missing");
 }
 
+async function testPatternPreviewJourney(page) {
+  await page.goto(PORTAL_URL);
+  await dismissWelcome(page);
+  await sleep(800);
+
+  const loadBtn = page.locator('button:has-text("Load: Multi-Source workflow")');
+  if ((await loadBtn.count()) === 0) throw new Error("Quick-load pattern button not found");
+  await loadBtn.click();
+
+  const node = page.locator(".react-flow__node");
+  await node.first().waitFor({ state: "visible", timeout: 10000 });
+  if ((await node.count()) === 0) throw new Error("Pattern did not load nodes onto canvas");
+
+  const previewBtn = page.locator('button:has-text("Preview YAML")');
+  await previewBtn.click();
+
+  const deployPanel = page.locator(".deploy-panel");
+  await deployPanel.waitFor({ state: "visible", timeout: 20000 });
+
+  const heading = deployPanel.locator("h2", { hasText: /Preview (result|issues|failed)/ });
+  await heading.waitFor({ state: "visible", timeout: 20000 });
+
+  const deployBtn = page.locator('button.deploy-btn:has-text("Deploy Pipeline")');
+  if ((await deployBtn.count()) === 0) throw new Error("Deploy Pipeline button missing after preview");
+  if (await deployBtn.isDisabled()) throw new Error("Deploy Pipeline should be enabled after successful preview");
+}
+
 function killPort(port) {
   try {
     if (process.platform === "win32") {
@@ -175,6 +202,8 @@ async function main() {
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage();
   try {
+    await testPatternPreviewJourney(page);
+    console.log("✓ Pattern load → Preview YAML → deploy panel");
     await testOperationsPanel(page);
     console.log("✓ Operations panel tabs");
     await testStewardApprovalsPanel(page);

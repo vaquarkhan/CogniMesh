@@ -1201,6 +1201,12 @@ body {
   gap: 1rem;
 }
 
+.panel-loading {
+  padding: 1.5rem;
+  color: #94a3b8;
+  font-size: 0.9rem;
+}
+
 .loading-spinner {
   width: 40px;
   height: 40px;

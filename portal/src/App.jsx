@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, lazy, Suspense } from "react";
 import ReactFlow, {
   Background,
   Controls,
@@ -10,17 +10,10 @@ import ReactFlow, {
 import "reactflow/dist/style.css";
 
 import DesignerSidebar from "./components/DesignerSidebar";
-import AgentBuilderView from "./components/AgentBuilderView";
 import PipelineNode from "./components/PipelineNode";
 import PropertiesPanel from "./components/PropertiesPanel";
-import DeployPanel from "./components/DeployPanel";
-import MarketplacePanel from "./components/MarketplacePanel";
-import LineageCatalogPanel from "./components/LineageCatalogPanel";
-import ExecutionHistoryPanel from "./components/ExecutionHistoryPanel";
 import DeployConfirmModal from "./components/DeployConfirmModal";
 import WelcomeModal from "./components/WelcomeModal";
-import StewardApprovalsPanel from "./components/StewardApprovalsPanel";
-import PlatformOperationsPanel from "./components/PlatformOperationsPanel";
 import CanvasTipBar from "./components/CanvasTipBar";
 import MeshSwimlanes from "./components/MeshSwimlanes";
 import ToastStack, { useToast } from "./components/Toast";
@@ -33,6 +26,22 @@ import { validateBlocks, isWorkflowGraph } from "./lib/validate-blocks";
 import { formatApiErrors } from "./lib/format-api-errors";
 import { useAuth } from "./auth/AuthContext";
 import { instantiatePattern, getPatternById } from "./lib/pipeline-patterns";
+
+const AgentBuilderView = lazy(() => import("./components/AgentBuilderView"));
+const DeployPanel = lazy(() => import("./components/DeployPanel"));
+const MarketplacePanel = lazy(() => import("./components/MarketplacePanel"));
+const LineageCatalogPanel = lazy(() => import("./components/LineageCatalogPanel"));
+const ExecutionHistoryPanel = lazy(() => import("./components/ExecutionHistoryPanel"));
+const StewardApprovalsPanel = lazy(() => import("./components/StewardApprovalsPanel"));
+const PlatformOperationsPanel = lazy(() => import("./components/PlatformOperationsPanel"));
+
+function PanelFallback() {
+  return (
+    <div className="panel-loading" role="status" aria-busy="true">
+      Loading…
+    </div>
+  );
+}
 
 function deploySuccessToast(data) {
   if (data?.aws?.deployed) return "Pipeline deployed to AWS Step Functions";
@@ -547,15 +556,17 @@ export default function App() {
       </header>
 
       {designerMode === "agent" ? (
-        <AgentBuilderView
-          userEmail={userEmail}
-          authDisabled={authDisabled}
-          onLogout={logout}
-          token={token}
-          bootstrap={agentBootstrap}
-          onBootstrapApplied={() => setAgentBootstrap(null)}
-          notify={{ success, error: toastError }}
-        />
+        <Suspense fallback={<PanelFallback />}>
+          <AgentBuilderView
+            userEmail={userEmail}
+            authDisabled={authDisabled}
+            onLogout={logout}
+            token={token}
+            bootstrap={agentBootstrap}
+            onBootstrapApplied={() => setAgentBootstrap(null)}
+            notify={{ success, error: toastError }}
+          />
+        </Suspense>
       ) : (
       <div className="main">
         <DesignerSidebar
@@ -652,34 +663,54 @@ export default function App() {
         />
 
         {showPlatformOps && (
-          <PlatformOperationsPanel
-            token={token}
-            pipelineMeta={pipelineMeta}
-            nodes={nodes}
-            edges={edges}
-            refreshKey={catalogRefresh}
-            onRollback={handleVersionRollback}
-            onImport={handleAwsImport}
-            onClose={() => setShowPlatformOps(false)}
-          />
+          <Suspense fallback={<PanelFallback />}>
+            <PlatformOperationsPanel
+              token={token}
+              pipelineMeta={pipelineMeta}
+              nodes={nodes}
+              edges={edges}
+              refreshKey={catalogRefresh}
+              onRollback={handleVersionRollback}
+              onImport={handleAwsImport}
+              onClose={() => setShowPlatformOps(false)}
+            />
+          </Suspense>
         )}
 
-        {showStewardApprovals && <StewardApprovalsPanel token={token} refreshKey={catalogRefresh} />}
+        {showStewardApprovals && (
+          <Suspense fallback={<PanelFallback />}>
+            <StewardApprovalsPanel token={token} refreshKey={catalogRefresh} />
+          </Suspense>
+        )}
 
-        {showMarketplace && <MarketplacePanel token={token} refreshKey={catalogRefresh} />}
+        {showMarketplace && (
+          <Suspense fallback={<PanelFallback />}>
+            <MarketplacePanel token={token} refreshKey={catalogRefresh} />
+          </Suspense>
+        )}
 
-        {showLineageCatalog && <LineageCatalogPanel token={token} refreshKey={catalogRefresh} />}
+        {showLineageCatalog && (
+          <Suspense fallback={<PanelFallback />}>
+            <LineageCatalogPanel token={token} refreshKey={catalogRefresh} />
+          </Suspense>
+        )}
 
         {showExecutionHistory && (
-          <ExecutionHistoryPanel
-            token={token}
-            pipelineName={pipelineMeta.name}
-            domain={pipelineMeta.domain}
-            refreshKey={catalogRefresh}
-          />
+          <Suspense fallback={<PanelFallback />}>
+            <ExecutionHistoryPanel
+              token={token}
+              pipelineName={pipelineMeta.name}
+              domain={pipelineMeta.domain}
+              refreshKey={catalogRefresh}
+            />
+          </Suspense>
         )}
 
-        {showDeploy && <DeployPanel result={deployResult} loading={loading} error={deployError} token={token} />}
+        {showDeploy && (
+          <Suspense fallback={<PanelFallback />}>
+            <DeployPanel result={deployResult} loading={loading} error={deployError} token={token} />
+          </Suspense>
+        )}
       </div>
       )}
     </div>
