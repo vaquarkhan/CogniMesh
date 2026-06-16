@@ -73,6 +73,55 @@ paths:
   /api/v1/audit:
     get:
       summary: Recent audit events
+  /schemas/data-contract-v1.schema.json:
+    get:
+      summary: Open DataContract JSON Schema (cognimesh.io/v1)
+  /api/v1/platform/dashboard:
+    get:
+      summary: Live pipeline execution dashboard
+      security: [{ bearerAuth: [] }]
+  /api/v1/platform/health:
+    get:
+      summary: Data product health scores
+      security: [{ bearerAuth: [] }]
+  /api/v1/platform/impact:
+    post:
+      summary: Deploy impact / blast radius analysis
+      security: [{ bearerAuth: [] }]
+  /api/v1/platform/preview-source:
+    post:
+      summary: Source data preview (S3, Athena, JDBC, simulated)
+      security: [{ bearerAuth: [] }]
+  /api/v1/platform/versions/{domain}/{name}:
+    get:
+      summary: List pipeline versions for rollback
+      security: [{ bearerAuth: [] }]
+  /api/v1/platform/billing:
+    get:
+      summary: Cross-org billing dashboard
+      security: [{ bearerAuth: [] }]
+  /api/v1/platform/plugins:
+    get:
+      summary: Plugin registry + canvas blocks
+      security: [{ bearerAuth: [] }]
+    post:
+      summary: Register custom plugin (sandbox validated)
+      security: [{ bearerAuth: [] }]
+  /api/v1/platform/copilot:
+    post:
+      summary: Operations copilot (rules or Bedrock LLM)
+      security: [{ bearerAuth: [] }]
+  /api/v1/platform/import/sfn:
+    post:
+      summary: Import Step Functions ASL to canvas
+      security: [{ bearerAuth: [] }]
+  /api/v1/platform/open-spec/site:
+    get:
+      summary: Public HTML specification site (no auth)
+  /api/v1/agents/deploy:
+    post:
+      summary: Deploy AgentCore manifest to Bedrock
+      security: [{ bearerAuth: [] }]
 components:
   securitySchemes:
     bearerAuth:

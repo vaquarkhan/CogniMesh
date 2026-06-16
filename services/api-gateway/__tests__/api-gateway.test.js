@@ -79,4 +79,40 @@ describe("api-gateway", () => {
     const body = await res.json();
     assert.ok(Array.isArray(body.graphs));
   });
+
+  it("GET /api/v1/platform/dashboard returns live ops", async () => {
+    const res = await fetch(`${base}/api/v1/platform/dashboard`);
+    assert.equal(res.status, 200);
+    const body = await res.json();
+    assert.ok(body.summary);
+    assert.ok(Array.isArray(body.pipelines));
+  });
+
+  it("GET /api/v1/platform/open-spec/site returns HTML", async () => {
+    const res = await fetch(`${base}/api/v1/platform/open-spec/site`);
+    assert.equal(res.status, 200);
+    const html = await res.text();
+    assert.ok(html.includes("cognimesh.io/v1"));
+  });
+
+  it("GET /api/v1/platform/plugins returns registry", async () => {
+    const res = await fetch(`${base}/api/v1/platform/plugins`);
+    assert.equal(res.status, 200);
+    const body = await res.json();
+    assert.ok(Array.isArray(body.plugins));
+  });
+
+  it("GET /api/v1/platform/billing returns dashboard", async () => {
+    const res = await fetch(`${base}/api/v1/platform/billing`);
+    assert.equal(res.status, 200);
+    const body = await res.json();
+    assert.ok(typeof body.totalUsd === "number");
+  });
+
+  it("GET /schemas/data-contract-v1.schema.json is served", async () => {
+    const res = await fetch(`${base}/schemas/data-contract-v1.schema.json`);
+    assert.equal(res.status, 200);
+    const schema = await res.json();
+    assert.ok(schema.$schema || schema.type || schema.properties);
+  });
 });

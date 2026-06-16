@@ -16,15 +16,26 @@
 
 Pipeline deploy (integrity gate → catalog → Step Functions) is **production-ready**. Agent Builder supports **manifest export** and **Deploy to AWS** (Bedrock CreateAgent when `AWS_AGENT_DEPLOY_ENABLED=true`, otherwise simulated plan).
 
-## Platform operations (roadmap MVP — June 2026)
+## Platform operations (roadmap complete — June 2026)
 
-All Tier 1–4 roadmap items have MVP backends in `lib/platform/` and portal UI (Operations panel, impact on deploy confirm, data preview, DQ rules editor, agent deploy).
+All Tier 1–4 roadmap items and post-MVP enhancements are implemented in `lib/platform/` with portal UI.
 
 | Area | Entry points |
 |------|----------------|
 | APIs | `lib/platform/index.js` → `/api/v1/platform/*`, `/api/v1/agents/deploy` |
-| Portal | `PlatformOperationsPanel.jsx`, `platform-api.js`, `DataPreviewButton`, `BusinessRulesEditor` |
-| Tests | `lib/platform/__tests__/platform.test.js` |
+| Portal | `PlatformOperationsPanel.jsx`, Operations header button |
+| Docs | [docs/PLATFORM_OPS.md](docs/PLATFORM_OPS.md), [openapi.yaml](docs/openapi.yaml) |
+| Tests | `lib/platform/__tests__/platform.test.js` (68+ unit tests) |
+
+## Production hardening
+
+| Item | Status |
+|------|--------|
+| Platform routes in OpenAPI | Done |
+| Platform smoke tests in api-gateway | Done |
+| `/health` platform_ops check | Done |
+| Static schema + open spec site | Done |
+| File-backed versions, billing, plugins | Done |
 
 ## Path to 10/10
 

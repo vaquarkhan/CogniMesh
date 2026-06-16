@@ -61,6 +61,9 @@ Vaquar evaluation tracker.
 | 35 | Pipeline version rollback | ✅ | Operations → Versions, `/api/v1/platform/versions` |
 | 36 | Business DQ rules editor | ✅ | `BusinessRulesEditor.jsx`, `/api/v1/platform/dq/validate` |
 | 37 | Agent Deploy to AWS | ✅ | `AgentBuilderView.jsx`, `/api/v1/agents/deploy` |
+| 38 | Platform ops API reference | ✅ | [PLATFORM_OPS.md](PLATFORM_OPS.md), `openapi.yaml` |
+| 39 | Platform health in `/health` | ✅ | `checks.platform_ops` in `server.js` |
+| 40 | Open spec publication site | ✅ | `/api/v1/platform/open-spec/site` |
 
 ## Documentation
 
@@ -95,7 +98,7 @@ Vaquar evaluation tracker.
 
 ```bash
 npm run start:dev        # API + portal, embedded catalog
-npm run test:unit        # lib + API gateway (57 tests)
+npm run test:unit        # lib + API gateway (73 tests)
 npm run test:portal-unit # portal vitest
 npm run test:portal      # vite production build
 npm test                 # integration suite

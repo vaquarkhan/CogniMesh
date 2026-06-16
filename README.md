@@ -524,6 +524,7 @@ CogniMesh/
 | [docs/PLATFORM_CHECKLIST.md](docs/PLATFORM_CHECKLIST.md) | 10/10 evaluation tracker |
 | [REVIEW.md](REVIEW.md) | Latest platform review |
 | [docs/PRODUCT_ROADMAP.md](docs/PRODUCT_ROADMAP.md) | Tier 1–4 product roadmap |
+| [docs/PLATFORM_OPS.md](docs/PLATFORM_OPS.md) | Operations API reference |
 | [docs/PIPELINE_E2E_DIAGRAM.md](docs/PIPELINE_E2E_DIAGRAM.md) | **AWS E2E diagram** (draw.io) · all pipelines |
 | [docs/DISTRIBUTION.md](docs/DISTRIBUTION.md) | Docker · npm · PyPI · Maven · Go |
 | [docs/PUBLISHING.md](docs/PUBLISHING.md) | GHCR + PyPI release workflow (maintainers) |

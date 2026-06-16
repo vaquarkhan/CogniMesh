@@ -67,6 +67,8 @@ async function deepHealth() {
   );
   const awsDeploy = process.env.AWS_DEPLOY_ENABLED === "true";
   const awsRole = Boolean(process.env.AWS_STEP_FUNCTIONS_ROLE_ARN);
+  const { getLiveDashboard } = require("../../lib/platform");
+  const platformDash = getLiveDashboard();
 
   const checks = {
     catalog: {
@@ -77,6 +79,20 @@ async function deepHealth() {
     aws_deploy: { ok: !awsDeploy || awsRole, enabled: awsDeploy },
     lineage_catalog: { ok: true, products: lineageCatalogSummary().totalProducts },
     execution_history: { ok: true, ...executionStats() },
+    platform_ops: {
+      ok: true,
+      pipelines: platformDash.summary?.pipelines ?? 0,
+      features: [
+        "dashboard",
+        "versions",
+        "impact",
+        "preview",
+        "billing",
+        "plugins",
+        "copilot",
+        "import",
+      ],
+    },
   };
 
   const ok = Object.values(checks).every((c) => c.ok);
