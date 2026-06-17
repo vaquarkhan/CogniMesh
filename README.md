@@ -41,8 +41,9 @@
   Zero-code pipelines · Proof-gated publication · Agentic AI · Fine-grained governance
 </p>
 
+### Pipeline creation (end-to-end)
+
 <p align="center">
-  <strong>Pipeline creation (end-to-end)</strong><br />
   <a href="docs/assets/cognimesh-pipeline-demo.mp4">
     <img src="docs/assets/cognimesh-pipeline-demo.gif" alt="CogniMesh pipeline demo: pattern library, Multi-Source workflow, AWS Design Review fix critical/high findings, preview YAML, deploy pipeline" width="960" />
   </a>
@@ -50,8 +51,9 @@
   <em>Pattern library → load pattern → AWS review → fix all → preview → deploy</em>
 </p>
 
+### Agent creation (end-to-end)
+
 <p align="center">
-  <strong>Agent creation (end-to-end)</strong><br />
   <a href="docs/assets/cognimesh-agent-demo.mp4">
     <img src="docs/assets/cognimesh-agent-demo.gif" alt="CogniMesh agent demo: agent templates and blocks, Customer Support agent, guardrail review, preview manifest, export, deploy to AWS" width="960" />
   </a>
