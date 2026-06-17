@@ -42,13 +42,23 @@
 </p>
 
 <p align="center">
-  <a href="docs/assets/cognimesh-portal-demo.mp4">
-    <img src="docs/assets/cognimesh-portal-demo.gif" alt="CogniMesh portal demo: Multi-Source workflow, AWS Design Review with Fix-first wizard and Properties panel, AI Builder, preview YAML, Operations, and Bedrock Agent Builder" width="960" />
+  <strong>Pipeline creation (end-to-end)</strong><br />
+  <a href="docs/assets/cognimesh-pipeline-demo.mp4">
+    <img src="docs/assets/cognimesh-pipeline-demo.gif" alt="CogniMesh pipeline demo: pattern library, Multi-Source workflow, AWS Design Review fix critical/high findings, preview YAML, deploy pipeline" width="960" />
   </a>
   <br />
-  <em>End-to-end UI walkthrough (click for HD MP4) · AWS review → Properties fixes → AI Builder → Agent Builder</em>
+  <em>Pattern library → load pattern → AWS review → fix all → preview → deploy</em>
+</p>
+
+<p align="center">
+  <strong>Agent creation (end-to-end)</strong><br />
+  <a href="docs/assets/cognimesh-agent-demo.mp4">
+    <img src="docs/assets/cognimesh-agent-demo.gif" alt="CogniMesh agent demo: agent templates and blocks, Customer Support agent, guardrail review, preview manifest, export, deploy to AWS" width="960" />
+  </a>
   <br />
-  <code>npm run docs:demo</code> to regenerate · needs portal build + Playwright · optional ffmpeg for MP4/GIF
+  <em>Templates &amp; blocks → load agent → guardrail review → preview → export → deploy</em>
+  <br />
+  <code>npm run docs:demo</code> to regenerate both · portal build + Playwright · optional ffmpeg for MP4/GIF
 </p>
 
 <p align="center">
@@ -406,7 +416,7 @@ Data pipeline (preview plan + natural-language explanation) · AI agent → Agen
 
 Regenerate all UI images: `npm run docs:screenshots` (builds portal, starts API + preview, writes `docs/assets/` and `docs/images/`).
 
-Regenerate the README demo GIF/MP4: `npm run docs:demo` (Playwright records a ~25s walkthrough; install [ffmpeg](https://ffmpeg.org/) for MP4/GIF export).
+Regenerate the README demo GIFs/MP4s: `npm run docs:demo` (Playwright records pipeline + agent walkthroughs; install [ffmpeg](https://ffmpeg.org/) for MP4/GIF export).
 
 **Agent Builder:** use feature checkboxes (guardrails, memory, KB, tools) when creating agents - see **[docs/AGENT_BUILDER.md](docs/AGENT_BUILDER.md)**.
 
