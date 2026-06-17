@@ -5,6 +5,9 @@ const fs = require("fs");
 const path = require("path");
 const yaml = require("js-yaml");
 const { resolveVrpFields } = require("../../lib/vrp/fields");
+const { writeChunkRecords, readChunkRecords } = require("../../lib/vrp/chunk-store");
+const { persistProof } = require("../../lib/vrp/proof-store");
+const { appendTransparencyEntry } = require("../../lib/vrp/transparency-log");
 const vrp = require("../../lib/vrp/generate");
 
 /** SparkRules-style chunk filter - enforces data quality before PVDM write */
@@ -58,19 +61,28 @@ class IceGuardWriter {
   constructor(options = {}) {
     this.checkpointInterval = options.checkpointInterval || 5000;
     this.rollbackThresholdMs = options.rollbackThresholdMs || 30000;
+    this.isolationId = options.isolationId || `ig-${crypto.randomUUID()}`;
     this.checkpoints = [];
     this.committedChunks = [];
   }
 
-  writeChunk(chunkId, records, stagingUri) {
+  writeChunk(chunkId, records, stagingUri, isolationId) {
+    const persisted = writeChunkRecords(chunkId, records, stagingUri, { isolationId });
     const checkpoint = {
       chunkId,
       recordCount: records.length,
       stagingUri,
+      localPath: persisted.localPath,
+      fileSha256: persisted.sha256,
       ts: Date.now(),
     };
     this.checkpoints.push(checkpoint);
-    return { checkpoint, parquetUri: `${stagingUri}/chunk-${String(chunkId).padStart(6, "0")}.parquet` };
+    return {
+      checkpoint,
+      parquetUri: persisted.parquetUri,
+      localPath: persisted.localPath,
+      writeSha256: persisted.sha256,
+    };
   }
 
   rollback() {
@@ -90,6 +102,7 @@ async function generateVRP(sourceRows, sinkRows, identityFieldsOrOptions, conten
     return vrp.generateVRP(sourceRows, sinkRows, {
       identityFields: identityFieldsOrOptions,
       contentFields: contentFields || identityFieldsOrOptions,
+      sinkFileDigest: { sha256: "legacy-no-readback", row_count: String(sinkRows.length) },
       sign: process.env.VRP_SIGN_ON_GENERATE !== "false",
     });
   }
@@ -102,11 +115,15 @@ const validateThenCommit = vrp.validateThenCommit;
 function commitMetadata(vrpResult, catalog, options = {}) {
   validateThenCommit(vrpResult);
   const proof = vrpResult.proof || {};
+  const snapshotId =
+    options.icebergSnapshotId ||
+    proof.iceberg_snapshot_id ||
+    String(BigInt(`0x${crypto.randomBytes(8).toString("hex")}`));
   return {
     committed: true,
     database: catalog.database,
     table: catalog.table,
-    snapshot_id: options.icebergSnapshotId || crypto.randomUUID(),
+    snapshot_id: snapshotId,
     proof_ref: proof.multiset?.source_hash || proof.source_hash,
   };
 }
@@ -124,6 +141,7 @@ async function runPvdmWorkload(workload) {
     database: spec.target?.catalog?.database || "default",
     table: spec.target?.catalog?.table || "output",
   };
+  const contractMeta = contract?.metadata || {};
 
   if (!source_rows.length) {
     return {
@@ -146,8 +164,10 @@ async function runPvdmWorkload(workload) {
   }
 
   const { identityFields, contentFields } = fieldResolution;
+  const runId = workload_id || `wl-${crypto.randomUUID()}`;
   const iceguard = new IceGuardWriter({
     checkpointInterval: pvdmSpec.checkpointInterval || 5000,
+    isolationId: runId,
   });
 
   try {
@@ -171,16 +191,28 @@ async function runPvdmWorkload(workload) {
       };
     }
 
-    const runId = workload_id || `wl-${crypto.randomUUID()}`;
-    const chunks = [];
+    const chunkDrafts = [];
+    const snapshotId =
+      workload.iceberg_snapshot_id ||
+      String(BigInt(`0x${crypto.randomBytes(8).toString("hex")}`));
+
     for (let i = resume_offset; i < rows.length; i += chunkSize) {
       const slice = rows.slice(i, i + chunkSize);
       const chunkId = Math.floor(i / chunkSize);
       const staging = spec.target?.location || "s3://cognimesh-staging";
-      const { parquetUri } = iceguard.writeChunk(chunkId, slice, staging);
+      const { parquetUri, localPath, writeSha256 } = iceguard.writeChunk(chunkId, slice, staging, runId);
 
-      const sinkRows = slice.map((r) => ({ ...r }));
-      const vrpResult = await generateVRP(slice, sinkRows, {
+      const readBack = readChunkRecords(localPath);
+      if (readBack.sha256 !== writeSha256) {
+        return {
+          outcome: "verification_failed",
+          workload_id: runId,
+          vrp_verdict: "FAIL",
+          message: "sink read-back digest mismatch after write",
+        };
+      }
+
+      const prelim = await generateVRP(slice, readBack.rows, {
         pvdmSpec,
         identityFields,
         contentFields,
@@ -188,6 +220,38 @@ async function runPvdmWorkload(workload) {
         chunkId,
         catalog,
         parquetUri,
+        sinkFileDigest: { sha256: readBack.sha256, row_count: readBack.rows.length },
+        sign: false,
+      });
+
+      if (prelim.verdict !== "PASS") {
+        return {
+          outcome: "verification_failed",
+          workload_id: runId,
+          vrp_verdict: prelim.verdict,
+          message: prelim.error || "VRP FAIL: source/sink multiset mismatch after read-back",
+          proof: prelim.proof,
+        };
+      }
+
+      chunkDrafts.push({ chunkId, parquetUri, localPath, readBack, slice });
+    }
+
+    const chunks = [];
+    let lastProof = null;
+    let proofPersisted = null;
+
+    for (const draft of chunkDrafts) {
+      const vrpResult = await generateVRP(draft.slice, draft.readBack.rows, {
+        pvdmSpec,
+        identityFields,
+        contentFields,
+        pipelineRunId: runId,
+        chunkId: draft.chunkId,
+        catalog,
+        parquetUri: draft.parquetUri,
+        sinkFileDigest: { sha256: draft.readBack.sha256, row_count: draft.readBack.rows.length },
+        icebergSnapshotId: snapshotId,
         sign: process.env.VRP_SIGN_ON_GENERATE !== "false",
       });
 
@@ -201,12 +265,21 @@ async function runPvdmWorkload(workload) {
         };
       }
 
-      iceguard.commitChunk(chunkId);
-      chunks.push({ chunkId, parquetUri, proof: vrpResult.proof });
+      iceguard.commitChunk(draft.chunkId);
+      lastProof = vrpResult.proof;
+      chunks.push({ chunkId: draft.chunkId, parquetUri: draft.parquetUri, proof: vrpResult.proof });
+
+      if (vrpResult.proof?.signing?.signature) {
+        appendTransparencyEntry(vrpResult.proof);
+        proofPersisted = persistProof(vrpResult.proof, {
+          domain: contractMeta.domain,
+          name: contractMeta.name,
+          proofBucket: process.env.PROOF_BUCKET,
+        });
+      }
     }
 
-    const lastProof = chunks[chunks.length - 1]?.proof;
-    const meta = commitMetadata({ verdict: "PASS", proof: lastProof }, catalog);
+    const meta = commitMetadata({ verdict: "PASS", proof: lastProof }, catalog, { icebergSnapshotId: snapshotId });
 
     return {
       outcome: "committed",
@@ -216,8 +289,18 @@ async function runPvdmWorkload(workload) {
       vrp_verdict: "PASS",
       message: "PVDM committed: Physical → Verify → Metadata",
       proof: lastProof,
+      proofS3Uri: proofPersisted?.proofS3Uri || proofPersisted?.proofLocalUri || null,
+      proofPersisted: Boolean(proofPersisted?.persisted),
     };
   } catch (err) {
+    if (err.code === "SIGNING_FAILED") {
+      return {
+        outcome: "signing_failed",
+        workload_id,
+        vrp_verdict: "FAIL",
+        message: err.message,
+      };
+    }
     if (err.code === "VERIFICATION_FAILED") {
       return {
         outcome: "verification_failed",

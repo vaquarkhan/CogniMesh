@@ -142,8 +142,12 @@ VRP proofs are **not** “no trust required.” They reduce risk when:
 2. **Signing custody** — Production signing uses **AWS KMS** (`VRP_KMS_KEY_ID`, `kms:Sign`); key material is non-exportable. Trust shifts to KMS key policy + CloudTrail, not env-var private keys.
 3. **Canonical payloads** — Proof bodies use RFC 8785-style JCS (`lib/vrp/canonical.js`) over a strict schema (strings + integers; no floats).
 4. **Freshness** — Proofs carry `pipeline_run_id`, `chunk_sequence`, `not_before` / `not_after`, and a catalog table identity to limit replay.
-5. **Fail closed** — Exceptions and empty workloads yield `UNVERIFIED`, never `PASS`.
-6. **Enforced inputs (roadmap)** — Agent/decision attestations must list inputs **served** by a proof-aware data gateway, not self-declared. Provenance you enforce beats provenance you declare.
+5. **Fail closed** — Exceptions and empty workloads yield `UNVERIFIED`, never `PASS`. KMS signing failures yield `signing_failed` and block deploy.
+6. **Sink read-back** — Source multiset is hashed pre-write; sink multiset is hashed after reading persisted chunk bytes from storage (`lib/vrp/chunk-store.js`). Shallow in-memory copies are rejected (`sink_materialization: "read_back"`).
+7. **Proof persistence** — `proofS3Uri` is emitted only when a signed proof is written (`lib/vrp/proof-store.js`). No fabricated URIs.
+8. **Transparency log** — Issued proofs append to `data/vrp-transparency-log.jsonl` for replay detection (`lib/vrp/transparency-log.js`).
+9. **Snapshot pinning** — Proofs bind `iceberg_snapshot_id` + `snapshot_pin` SQL; consumers must read `FOR SYSTEM_VERSION AS OF <id>`.
+10. **Enforced inputs (roadmap)** — Agent/decision attestations must list inputs **served** by a proof-aware data gateway, not self-declared.
 
 | Attack surface | Mitigation in CogniMesh |
 |----------------|-------------------------|

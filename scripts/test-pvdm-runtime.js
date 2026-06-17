@@ -32,19 +32,15 @@ const rows = [
 ];
 
 (async () => {
-  console.log("1. VRP PASS");
-  const vrp = await generateVRP(rows, rows, ["order_id"], ["order_id", "amount"]);
-  if (vrp.verdict !== "PASS") throw new Error("VRP should pass");
-  validateThenCommit(vrp);
-  console.log("   ok");
-
-  console.log("2. PVDM workload");
+  console.log("1. PVDM workload with sink read-back");
   const result = await runPvdmWorkload({ contract, source_rows: rows, workload_id: "test-wl" });
   if (result.outcome !== "committed") {
     console.error(result);
-    throw new Error("PVDM should commit");
+    throw new Error("PVDM should commit with read-back verification");
   }
-  console.log(`   outcome=${result.outcome} chunks=${result.chunks}`);
+  validateThenCommit({ verdict: "PASS", proof: result.proof });
+  console.log(`   outcome=${result.outcome} chunks=${result.chunks} snapshot=${result.snapshot_id}`);
+  console.log("   ok");
 
   console.log("\nPVDM runtime tests passed");
 })().catch((e) => {
