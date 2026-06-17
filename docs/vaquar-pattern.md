@@ -1,6 +1,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/The-Vaquar-Pattern-2563eb?style=for-the-badge" alt="Vaquar Pattern" />
   <img src="https://img.shields.io/badge/PVDM-Physical·Verify·Durable·Metadata-0d9488?style=for-the-badge" alt="PVDM" />
+  <img src="https://img.shields.io/badge/PVDM--A-Decision·Attestation-6366f1?style=for-the-badge" alt="PVDM-A" />
   <img src="https://img.shields.io/badge/Author-Vaquarkhan-7c3aed?style=for-the-badge" alt="Author" />
 </p>
 
@@ -104,26 +105,45 @@ flowchart TB
 
 ## VRP: verifiable reconciliation proof
 
-VRP compares **source** and **sink** multisets over identity + content fields. A SHA-256 hash of row counts per composite key must match exactly.
+VRP compares **source** and **sink** multisets over identity + content fields. A SHA-256 hash of row counts per composite key must match exactly — but the proof does **not** stop at a self-reported hash. The signed envelope binds **content-addressable sink artifacts** so an independent verifier can recompute the sink side from durable storage.
 
 ```mermaid
 sequenceDiagram
     participant Src as Source chunk
     participant W as IceGuard writer
+    participant Store as Parquet chunk store
     participant V as VRP engine
-    participant M as Metadata commit
+    participant Cat as Glue / Iceberg catalog
 
     Src->>W: writeChunk(n)
+    W->>Store: persist Parquet + footer digest
+    Store-->>W: read-back rows (independent materialization)
     W->>V: hashMultiset(source)
-    W->>V: hashMultiset(sink)
-    alt hashes match
-        V-->>M: verdict PASS + proof
-        M->>M: commit snapshot
-    else mismatch
+    W->>V: hashMultiset(sink from read-back)
+    V->>V: bind file_digests[], manifest_digest, iceberg_snapshot_id
+    alt hashes match + artifacts bound
+        V-->>Cat: verdict PASS + signed proof
+        Cat->>Cat: commit real snapshot id
+    else mismatch or digest drift
         V-->>W: verdict FAIL
         W->>W: rollback uncommitted chunks
     end
 ```
+
+**Proof envelope** (`proof_version: "2"`) includes:
+
+| Field | Purpose |
+|-------|---------|
+| `multiset.source_hash` / `multiset.sink_hash` | JCS SHA-256 over row-count map (identity + content fields) |
+| `multiset.sink_materialization` | Must be `"read_back"` — sink hash from persisted bytes, not in-memory copy |
+| `sink_artifacts.file_digests[]` | Per-chunk Parquet URI + `digest_type: parquet_footer` + `footer_sha256` |
+| `sink_artifacts.manifest_digest` | Binds catalog commit to proof multiset |
+| `iceberg_snapshot_id` | Real Glue `current-snapshot-id` or monotonic catalog state — not `snap-${Date.now()}` |
+| `snapshot_pin.sql` | `FOR SYSTEM_VERSION AS OF <id>` for consumer queries |
+| `schema_fingerprint` | Detects schema drift between source and sink |
+| `pipeline_run_id`, `chunk_sequence` | Replay binding |
+| `not_before` / `not_after` | Freshness window |
+| `signing` | KMS `kms:Sign` (production) or dev-Ed25519 (local only) |
 
 **Outcomes** (aligned with serverless-data-mesh domain writer):
 
@@ -133,32 +153,48 @@ sequenceDiagram
 | `verification_failed` | VRP FAIL; no snapshot |
 | `unverified` | Empty workload, filtered-to-zero, or PVDM not run — **not** PASS |
 | `rolled_back` | Runtime error; IceGuard checkpoints reverted |
+| `signing_failed` | KMS signing error; deploy blocked |
 
-### Trust model (honest)
+### What VRP proves — and what it does not
 
-VRP proofs are **not** “no trust required.” They reduce risk when:
+- **Proves:** source and sink multisets match over declared fields; sink multiset was derived from independently read Parquet bytes whose footer digest is in the proof; the proof was signed under a named key within a validity window; the Iceberg snapshot id resolves to catalog state.
+- **Does not prove:** semantic correctness of transforms, business-rule intent, or that columns outside `identityFields` + `contentFields` are uncorrupted. Narrow field selection is an explicit opt-in — default hashes **all columns**.
 
-1. **Sink binding** — Proofs include per-chunk file digests and (when integrated) Iceberg manifest digests so an independent verifier can recompute the sink multiset from durable storage, not a self-reported hash alone.
-2. **Signing custody** — Production signing uses **AWS KMS** (`VRP_KMS_KEY_ID`, `kms:Sign`); key material is non-exportable. Trust shifts to KMS key policy + CloudTrail, not env-var private keys.
-3. **Canonical payloads** — Proof bodies use RFC 8785-style JCS (`lib/vrp/canonical.js`) over a strict schema (strings + integers; no floats).
-4. **Freshness** — Proofs carry `pipeline_run_id`, `chunk_sequence`, `not_before` / `not_after`, and a catalog table identity to limit replay.
+### Security review: eight attacks
+
+Independent review identified eight ways a naive “signed multiset hash” could give false confidence. CogniMesh addresses each in code:
+
+| # | Attack | Risk | Mitigation (shipped) | Implementation |
+|---|--------|------|----------------------|----------------|
+| 1 | **Forgeable hash** — signature over self-reported count hash, not real sink bytes | Signed self-attestation | Content-addressable sink: Parquet footer digests + manifest digest; verifier recomputes multiset from read-back | `lib/vrp/parquet-chunk.js`, `chunk-store.js`, `verify.js` |
+| 2 | **Naive canonical JSON** — floats, key order, Unicode footguns | Valid sig fails or two payloads collide | RFC 8785-style JCS; numbers coerced to decimal strings; strict proof schema | `lib/vrp/canonical.js` |
+| 3 | **Key in env/repo** — anyone with producer access mints proofs | Theater | KMS asymmetric `kms:Sign`; non-exportable key material; `keyId` in envelope | `lib/vrp/sign.js` |
+| 4 | **Replay / proof reuse** — old proof attached to new path | Stale provenance | `pipeline_run_id`, `chunk_sequence`, `not_before`/`not_after`, table identity + snapshot id | `lib/vrp/generate.js` |
+| 5 | **Cosmetic snapshot id** — `snap-${Date.now()}` not real Iceberg id | Pin doesn't resolve | Glue Iceberg metadata `current-snapshot-id` or monotonic `iceberg-snapshots.json` | `lib/aws/glue-iceberg.js` |
+| 6 | **Self-reported agent inputs** — agent lists proofs it didn't read | Attestation theater | Proof-aware gateway: verify proof → serve rows → HMAC `gatewayToken`; attestations reject declared `inputProofs` by default | `lib/vrp/proof-gateway.js`, `decision-attestation.js` |
+| 7 | **Multiset hides column corruption** — default `["id"]`, unlisted columns invisible | Silent pass | All columns hashed by default; explicit `identityFields` to narrow; `schema_fingerprint` in proof | `lib/vrp/fields.js` |
+| 8 | **Fail-open PASS** — empty workload or catch → PASS | Manufactured confidence | Fail closed: empty → `UNVERIFIED`; exceptions → `UNVERIFIED`/`FAIL`; signing errors → `signing_failed` | `lib/pvdm-run-summary.js`, `services/pvdm-runtime/` |
+
+**Honest hierarchy** (what actually carries the trust claim):
+
+1. **Load-bearing:** Attack 1 (content-bound sink) + Attack 6 (gateway-enforced inputs) — without these, the chain is signed self-attestation.
+2. **Custody:** Attack 3 — KMS or it's theater; trust = key policy + CloudTrail, not “no trust required.”
+3. **Correctness:** Attacks 2, 4, 5, 7, 8 — hardening that prevents subtle false PASS.
+
+### Trust model
+
+VRP proofs are **not** “no trust required.” They reduce risk when all of the following hold:
+
+1. **Sink binding** — Proofs include per-chunk Parquet footer digests and Iceberg manifest digests; `verifyVrpProof(proof, { localPath })` recomputes footer SHA-256 from persisted bytes.
+2. **Signing custody** — Production signing uses **AWS KMS** (`VRP_KMS_KEY_ID`, `kms:Sign`); key material is non-exportable. Publish the public key out-of-band; trust KMS key policy + CloudTrail.
+3. **Canonical payloads** — RFC 8785-style JCS (`lib/vrp/canonical.js`) over a strict schema (strings; numbers as decimal strings; no floats/undefined).
+4. **Freshness** — Proofs carry `pipeline_run_id`, `chunk_sequence`, `not_before` / `not_after`, and catalog table + Iceberg snapshot identity.
 5. **Fail closed** — Exceptions and empty workloads yield `UNVERIFIED`, never `PASS`. KMS signing failures yield `signing_failed` and block deploy.
-6. **Sink read-back** — Source multiset is hashed pre-write; sink multiset is hashed after reading persisted **Parquet** chunk bytes (`lib/vrp/parquet-chunk.js`, `lib/vrp/chunk-store.js`). Proofs bind `digest_type: parquet_footer` (last 4 KiB SHA-256). Shallow in-memory copies are rejected (`sink_materialization: "read_back"`).
-7. **Proof persistence** — `proofS3Uri` is emitted only when a signed proof is written (`lib/vrp/proof-store.js`). Optional S3 upload with Object Lock (`VRP_OBJECT_LOCK_MODE`, `VRP_OBJECT_LOCK_RETAIN_DAYS`).
-8. **Transparency log** — Issued proofs append to local JSONL **and** S3 per-proof objects when `PROOF_BUCKET` is set (`lib/vrp/transparency-log.js`). Async S3 lookup for gateway verification.
-9. **Snapshot pinning** — Proofs bind `iceberg_snapshot_id` from Glue Iceberg metadata (`lib/aws/glue-iceberg.js`) or monotonic catalog state + `snapshot_pin` SQL; consumers must read `FOR SYSTEM_VERSION AS OF <id>`.
-10. **Enforced inputs** — Agent/decision attestations require `gatewayToken` from the proof-aware data gateway (`lib/vrp/proof-gateway.js`). Declared `inputProofs` are rejected unless `VRP_ALLOW_DECLARED_INPUTS=true` (tests only).
-
-| Attack surface | Mitigation in CogniMesh |
-|----------------|-------------------------|
-| Self-reported sink hash | Parquet footer digests + manifest digest; verifier recomputes from persisted bytes |
-| Naive JSON canonicalization | JCS in `lib/vrp/canonical.js` |
-| Key in env/repo | KMS asymmetric signing in `lib/vrp/sign.js` |
-| Replay / stale proof | `not_before`/`not_after`, `pipeline_run_id`, Iceberg snapshot id |
-| Cosmetic snapshot id | Real Glue `current-snapshot-id` or monotonic `data/iceberg-snapshots.json` |
-| Default `["id"]` field | All columns by default; explicit `identityFields` required to narrow |
-| Fail-open PASS on error | `lib/pvdm-run-summary.js` + empty workload → `UNVERIFIED` |
-| Self-declared agent inputs | Proof gateway stamps served rows; attestations bind `gatewayToken` |
+6. **Sink read-back** — Source multiset hashed pre-write; sink multiset hashed after reading persisted **Parquet** bytes (`lib/vrp/parquet-chunk.js`, `lib/vrp/chunk-store.js`). `sink_materialization: "read_back"` required.
+7. **Proof persistence** — `proofS3Uri` emitted only when a signed proof is written (`lib/vrp/proof-store.js`). Optional S3 Object Lock (`VRP_OBJECT_LOCK_MODE`, `VRP_OBJECT_LOCK_RETAIN_DAYS`).
+8. **Transparency log** — Issued proofs append to local JSONL **and** S3 per-proof objects when `PROOF_BUCKET` is set (`lib/vrp/transparency-log.js`).
+9. **Snapshot pinning** — Real `iceberg_snapshot_id` from Glue or catalog state + `snapshot_pin` SQL (`FOR SYSTEM_VERSION AS OF <id>`).
+10. **Enforced inputs** — Decision attestations require `gatewayToken` from the proof-aware data gateway. Declared `inputProofs` rejected unless `VRP_ALLOW_DECLARED_INPUTS=true` (tests only).
 
 Environment:
 
@@ -187,21 +223,118 @@ Consumers can verify a proof **without AWS credentials** using the producer's pu
 node scripts/verify-vrp-proof.js path/to/proof.json --public-key producer-public.pem
 ```
 
-API: `verifyVrpProof(proof, { publicKeyPem })` in [`lib/vrp/verify.js`](../lib/vrp/verify.js) — checks multiset binding, validity window, and signature.
+`verifyVrpProof(proof, { publicKeyPem, localPath })` in [`lib/vrp/verify.js`](../lib/vrp/verify.js) checks:
 
-Agent MCP endpoints:
+- multiset binding (`source_hash === sink_hash`, `sink_materialization: read_back`)
+- validity window (`not_before` / `not_after`)
+- Parquet footer digest re-hash when `localPath` is supplied
+- cryptographic signature (when present)
+- optional transparency log membership
+
+Agent MCP / API endpoints:
 
 | Endpoint | Purpose |
 |----------|---------|
 | `POST /mcp/gateway/serve` | Verify proof, serve pinned snapshot rows, return `gatewayToken` |
+| `POST /api/v1/gateway/serve` | Same semantics (auth required) |
 | `POST /mcp/verify-proof` | Offline-style VRP proof verification |
 | `POST /mcp/verify-attestation` | Verify decision attestation signature + output hash |
 
-API gateway: `POST /api/v1/gateway/serve` (same semantics, auth required).
+---
 
-### Decision attestation (agent layer)
+## PVDM-A: carrying proof into agent decisions
 
-[`lib/vrp/decision-attestation.js`](../lib/vrp/decision-attestation.js) binds agent decisions to **gateway-served** VRP input proofs. Pass `gatewayToken` from `serveProofGatedDataset` to `POST /mcp/invoke` — attestations record `gateway_enforced: true` on each input binding.
+PVDM proves the **data** is intact. It says nothing about what an **agent** then does with that data. The recurring failure mode in agentic systems is *verified inputs feeding an unverifiable decision*: an LLM reads a clean dataset, produces an action, and there is no way for a downstream consumer to confirm the decision was computed only from proven inputs, or that the decision record was not altered afterward.
+
+**PVDM-A** (Decision Attestation) extends the proof chain one hop past the data layer. It is a distinct extension — not a fifth PVDM phase — but it shares the same custody model and fail-closed semantics.
+
+> **Decision invariant**
+>
+> `mint_attestation ⟹ every input proof verifies offline = PASS`
+>
+> An attestation is never minted over an input proof that fails verification. Fail closed.
+
+### What it binds
+
+When the agent runtime produces a decision, it signs an attestation body (`lib/vrp/decision-attestation.js`, `attestation_version: "1"`):
+
+| Field | Meaning |
+|-------|---------|
+| `session_id` | Agent session the decision belongs to |
+| `decision_id` | Stable id for this decision (idempotency key) |
+| `nonce` | Per-attestation UUID to bind uniqueness |
+| `pipeline_run_id` | Run that produced the consumed data |
+| `iceberg_snapshot_id` | The exact table snapshot the agent read |
+| `inputs[]` | Normalized binding of each verified VRP proof: `pipeline_run_id`, `chunk_sequence`, `table`, `schema_fingerprint`, `source_hash`, `sink_hash`, `manifest_digest`, `file_digest_count`, `gateway_enforced`, `gateway_served_at`, `gateway_row_count` |
+| `output_hash` | JCS SHA-256 of the agent output (hash, not raw content) |
+| `tool_calls_hash` | JCS SHA-256 of the tool-call list |
+| `not_before` / `not_after` | Validity window |
+| `signed_at` | Issue time |
+| `signing` | KMS or dev-Ed25519 signature envelope (same custody model as VRP) |
+
+### Flow
+
+```mermaid
+sequenceDiagram
+    participant GW as Proof gateway
+    participant DS as Proven dataset (VRP)
+    participant AG as Bedrock agent
+    participant AT as Attestation engine
+    participant C as Consumer (offline)
+
+    DS->>GW: proof + snapshot pin
+    GW->>GW: verifyVrpProof + serve rows
+    GW-->>AG: rows + gatewayToken
+    AG->>AT: output + tool calls + gatewayToken
+    AT->>AT: resolveGatewayInputs (fail closed)
+    alt all inputs PASS
+        AT-->>AG: signed Decision Attestation
+    else any input fails
+        AT-->>AG: verdict FAIL, no attestation
+    end
+    C->>C: verifyDecisionAttestation(att, publicKey)
+```
+
+### Gateway: served, not declared
+
+Attack 6 is addressed at the **data-access boundary**:
+
+1. Consumer calls `serveProofGatedDataset({ proof, sessionId, localPath })` — verifies the VRP proof, reads pinned snapshot materialization, returns rows + HMAC `gatewayToken`.
+2. Agent invocation passes `gatewayToken` (not raw `inputProofs`) to `POST /mcp/invoke`.
+3. `buildDecisionAttestation` resolves the token → verified proof; each `inputs[]` entry records `gateway_enforced: true`.
+
+Declared `inputProofs` are **rejected by default** (`VRP_ALLOW_DECLARED_INPUTS=true` only in tests). This closes the loophole where a compromised agent reads unproven data but lists only proven inputs in the attestation.
+
+### Verification
+
+`verifyDecisionAttestation(attestation, options)` returns `VERIFIED` only when **all** of these hold:
+
+- `attestation_version` is supported,
+- validity window is current (`not_before` / `not_after`),
+- the signature verifies against the public key,
+- at least one input binding is present,
+- (optional) recomputed `output_hash` matches the supplied output,
+- (optional) recomputed `tool_calls_hash` matches the supplied tool calls.
+
+Live endpoints:
+
+| Endpoint | Purpose |
+|----------|---------|
+| `POST /mcp/gateway/serve` | Verify proof, serve rows, mint `gatewayToken` |
+| `POST /mcp/invoke` (with `sessionId` + `gatewayToken`) | Mints signed attestation alongside agent result |
+| `POST /mcp/verify-attestation` | Verifies attestation signature + hashes |
+
+### What it proves — and what it does not
+
+- **Proves:** the decision was computed only from inputs whose VRP proofs verify (via gateway token when enforcement is on), against a named snapshot, under a recorded tool-call set, and that the decision record has not been altered since signing (output/tool-call hashes + signature).
+- **Does not prove:** that the decision is *semantically correct*. An LLM's judgment cannot be cryptographically proven right. The attestation establishes **provenance and integrity of the decision context**, not correctness of the conclusion.
+
+### Remaining honest limits
+
+- **Mandatory enforcement on every agent path** — gateway + attestation are implemented; making them mandatory on all production agent invocations is an operational policy choice (disable `VRP_ALLOW_DECLARED_INPUTS` in prod).
+- **Attestation transparency log** — VRP proofs append to the transparency log today; extending the same log to decision attestations is a future hardening step for replay detection across the agent layer.
+
+Implementation: [`lib/vrp/decision-attestation.js`](../lib/vrp/decision-attestation.js) · [`lib/vrp/proof-gateway.js`](../lib/vrp/proof-gateway.js) · wired in [`services/agent-mcp/server.js`](../services/agent-mcp/server.js)
 
 ---
 
