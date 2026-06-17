@@ -166,7 +166,7 @@ Independent review identified eight ways a naive “signed multiset hash” coul
 
 | # | Attack | Risk | Mitigation (shipped) | Implementation |
 |---|--------|------|----------------------|----------------|
-| 1 | **Forgeable hash** — signature over self-reported count hash, not real sink bytes | Signed self-attestation | Content-addressable sink: Parquet footer digests + manifest digest; verifier recomputes multiset from read-back | `lib/vrp/parquet-chunk.js`, `chunk-store.js`, `verify.js` |
+| 1 | **Forgeable hash** — signature over self-reported count hash, not real sink bytes | Signed self-attestation | Content-addressable sink: Parquet footer or NDJSON full-file digests + manifest digest; verifier recomputes from read-back | `lib/vrp/parquet-chunk.js`, `chunk-store.js`, `verify.js` |
 | 2 | **Naive canonical JSON** — floats, key order, Unicode footguns | Valid sig fails or two payloads collide | RFC 8785-style JCS; numbers coerced to decimal strings; strict proof schema | `lib/vrp/canonical.js` |
 | 3 | **Key in env/repo** — anyone with producer access mints proofs | Theater | KMS asymmetric `kms:Sign`; non-exportable key material; `keyId` in envelope | `lib/vrp/sign.js` |
 | 4 | **Replay / proof reuse** — old proof attached to new path | Stale provenance | `pipeline_run_id`, `chunk_sequence`, `not_before`/`not_after`, table identity + snapshot id | `lib/vrp/generate.js` |
@@ -190,7 +190,7 @@ VRP proofs are **not** “no trust required.” They reduce risk when all of the
 3. **Canonical payloads** — RFC 8785-style JCS (`lib/vrp/canonical.js`) over a strict schema (strings; numbers as decimal strings; no floats/undefined).
 4. **Freshness** — Proofs carry `pipeline_run_id`, `chunk_sequence`, `not_before` / `not_after`, and catalog table + Iceberg snapshot identity.
 5. **Fail closed** — Exceptions and empty workloads yield `UNVERIFIED`, never `PASS`. KMS signing failures yield `signing_failed` and block deploy.
-6. **Sink read-back** — Source multiset hashed pre-write; sink multiset hashed after reading persisted **Parquet** bytes (`lib/vrp/parquet-chunk.js`, `lib/vrp/chunk-store.js`). `sink_materialization: "read_back"` required.
+6. **Sink read-back** — Source multiset hashed pre-write; sink multiset hashed after reading persisted bytes (`lib/vrp/parquet-chunk.js`, `lib/vrp/chunk-store.js`). Parquet footer digest via `@dsnp/parquetjs` when available; **NDJSON full-file digest fallback** on clean installs where legacy `parquetjs`/thrift breaks. `sink_materialization: "read_back"` required.
 7. **Proof persistence** — `proofS3Uri` emitted only when a signed proof is written (`lib/vrp/proof-store.js`). Optional S3 Object Lock (`VRP_OBJECT_LOCK_MODE`, `VRP_OBJECT_LOCK_RETAIN_DAYS`).
 8. **Transparency log** — Issued proofs append to local JSONL **and** S3 per-proof objects when `PROOF_BUCKET` is set (`lib/vrp/transparency-log.js`).
 9. **Snapshot pinning** — Real `iceberg_snapshot_id` from Glue or catalog state + `snapshot_pin` SQL (`FOR SYSTEM_VERSION AS OF <id>`).
@@ -208,6 +208,8 @@ Environment:
 | `VRP_S3_PERSIST` | Enable S3 persistence (default on when bucket set) |
 | `VRP_OBJECT_LOCK_MODE` / `VRP_OBJECT_LOCK_RETAIN_DAYS` | S3 Object Lock on proof/transparency objects |
 | `VRP_UPLOAD_PARQUET` | Upload Parquet chunks to lakehouse S3 URI (`true`) |
+| `VRP_FORCE_NDJSON` / `VRP_SINK_FORMAT=ndjson` | Force durable NDJSON read-back (full-file digest) |
+| `VRP_PARQUET_REQUIRED` | Set `true` to fail instead of NDJSON fallback when Parquet errors |
 | `GLUE_ICEBERG_ENABLED` | Set `false` to skip Glue; use `data/iceberg-snapshots.json` |
 | `VRP_GATEWAY_SECRET` | HMAC secret for gateway tokens |
 | `VRP_ALLOW_DECLARED_INPUTS` | Allow self-declared `inputProofs` in attestations (tests only) |
