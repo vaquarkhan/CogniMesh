@@ -241,6 +241,24 @@ app.post("/api/v1/access-requests/:id/reject", requireAuth, (req, res) => {
   res.json(result);
 });
 
+app.post("/api/v1/gateway/serve", requireAuth, async (req, res) => {
+  const { serveProofGatedDataset, ProofGatewayError } = require("../../lib/vrp/proof-gateway");
+  try {
+    const { sessionId, proof, localPath, limit } = req.body || {};
+    const result = await serveProofGatedDataset({ sessionId, proof, localPath, limit });
+    res.json({
+      rows: result.rows,
+      gatewayToken: result.gatewayToken,
+      gatewayStamp: result.gatewayStamp,
+      proofId: result.proof?.proof_id,
+      verification: result.verification,
+    });
+  } catch (err) {
+    const status = err instanceof ProofGatewayError ? 403 : 400;
+    res.status(status).json({ error: err.message, code: err.code || "PROOF_GATEWAY_DENIED" });
+  }
+});
+
 app.get("/api/v1/products/:id/consumer-detail", requireAuth, async (req, res) => {
   const { athenaConsoleUrl, parseSchemaFromManifest, sampleRowsFromSchema } = require("../../lib/athena-link");
   let product = null;
@@ -264,6 +282,11 @@ app.get("/api/v1/products/:id/consumer-detail", requireAuth, async (req, res) =>
     sampleRows,
     athenaUrl: athenaConsoleUrl({ database, table }),
     proofGated: /pattern:\s*vaquar/.test(manifestYaml) || /qualityPolicyId/.test(manifestYaml),
+    gateway: {
+      serveEndpoint: "/api/v1/gateway/serve",
+      mcpServeEndpoint: "/mcp/gateway/serve",
+      requiresGatewayToken: true,
+    },
     access,
   });
 });

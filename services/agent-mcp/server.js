@@ -7,6 +7,7 @@ const http = require("http");
 const { BedrockRuntimeClient, InvokeModelCommand } = require("@aws-sdk/client-bedrock-runtime");
 const { verifyVrpProof } = require("../../lib/vrp/verify");
 const { buildDecisionAttestation, verifyDecisionAttestation } = require("../../lib/vrp/decision-attestation");
+const { serveProofGatedDataset, ProofGatewayError } = require("../../lib/vrp/proof-gateway");
 
 const PORT = process.env.PORT || 3100;
 const REGION = process.env.AWS_REGION || "us-east-1";
@@ -40,7 +41,18 @@ const tools = [
   },
 ];
 
-async function invokeBedrockAgent({ pipelineId, mediaUri, idempotencyKey, prompt, sessionId, decisionId, inputProofs, icebergSnapshotId }) {
+async function invokeBedrockAgent({
+  pipelineId,
+  mediaUri,
+  idempotencyKey,
+  prompt,
+  sessionId,
+  decisionId,
+  inputProofs,
+  gatewayToken,
+  gatewayTokens,
+  icebergSnapshotId,
+}) {
   const body = JSON.stringify({
     anthropic_version: "bedrock-2023-05-31",
     max_tokens: 1024,
@@ -83,12 +95,15 @@ async function invokeBedrockAgent({ pipelineId, mediaUri, idempotencyKey, prompt
   const toolCalls = [{ name: "cognimesh_invoke_agent", pipelineId, mediaUri, idempotencyKey }];
   const outputPayload = agentResult.result;
 
-  if (sessionId && Array.isArray(inputProofs) && inputProofs.length) {
+  const tokens = gatewayToken ? [gatewayToken] : gatewayTokens || [];
+  if (sessionId && (tokens.length || (Array.isArray(inputProofs) && inputProofs.length))) {
     const attestationResult = await buildDecisionAttestation({
       sessionId,
       decisionId: decisionId || idempotencyKey,
       pipelineRunId: pipelineId,
       inputProofs,
+      gatewayToken: tokens[0],
+      gatewayTokens: tokens,
       outputPayload,
       toolCalls,
       icebergSnapshotId,
@@ -149,6 +164,28 @@ const server = http.createServer(async (req, res) => {
       return json(200, result);
     } catch (e) {
       return json(400, { error: e.message });
+    }
+  }
+
+  if (req.url === "/mcp/gateway/serve" && req.method === "POST") {
+    try {
+      const body = await readBody(req);
+      const result = await serveProofGatedDataset({
+        proof: body.proof,
+        sessionId: body.sessionId,
+        localPath: body.localPath,
+        limit: body.limit,
+      });
+      return json(200, {
+        rows: result.rows,
+        gatewayToken: result.gatewayToken,
+        gatewayStamp: result.gatewayStamp,
+        proofId: result.proof?.proof_id,
+        verification: result.verification,
+      });
+    } catch (e) {
+      const code = e instanceof ProofGatewayError ? 403 : 400;
+      return json(code, { error: e.message, code: e.code || "PROOF_GATEWAY_DENIED" });
     }
   }
 

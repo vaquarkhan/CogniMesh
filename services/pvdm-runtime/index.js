@@ -6,6 +6,7 @@ const path = require("path");
 const yaml = require("js-yaml");
 const { resolveVrpFields } = require("../../lib/vrp/fields");
 const { writeChunkRecords, readChunkRecords } = require("../../lib/vrp/chunk-store");
+const { commitIcebergSnapshot } = require("../../lib/aws/glue-iceberg");
 const { persistProof } = require("../../lib/vrp/proof-store");
 const { appendTransparencyEntry } = require("../../lib/vrp/transparency-log");
 const vrp = require("../../lib/vrp/generate");
@@ -66,8 +67,8 @@ class IceGuardWriter {
     this.committedChunks = [];
   }
 
-  writeChunk(chunkId, records, stagingUri, isolationId) {
-    const persisted = writeChunkRecords(chunkId, records, stagingUri, { isolationId });
+  async writeChunk(chunkId, records, stagingUri, isolationId) {
+    const persisted = await writeChunkRecords(chunkId, records, stagingUri, { isolationId });
     const checkpoint = {
       chunkId,
       recordCount: records.length,
@@ -82,6 +83,8 @@ class IceGuardWriter {
       parquetUri: persisted.parquetUri,
       localPath: persisted.localPath,
       writeSha256: persisted.sha256,
+      footer_sha256: persisted.footer_sha256,
+      digest_type: persisted.digest_type,
     };
   }
 
@@ -112,18 +115,24 @@ async function generateVRP(sourceRows, sinkRows, identityFieldsOrOptions, conten
 const validateThenCommit = vrp.validateThenCommit;
 
 /** GlueCatalogConnector - metadata commit only after VRP PASS */
-function commitMetadata(vrpResult, catalog, options = {}) {
+async function commitMetadata(vrpResult, catalog, options = {}) {
   validateThenCommit(vrpResult);
   const proof = vrpResult.proof || {};
-  const snapshotId =
-    options.icebergSnapshotId ||
-    proof.iceberg_snapshot_id ||
-    String(BigInt(`0x${crypto.randomBytes(8).toString("hex")}`));
+  const committed =
+    options.icebergSnapshotId && options.manifestDigest
+      ? {
+          snapshotId: options.icebergSnapshotId,
+          manifestDigest: options.manifestDigest,
+          source: options.snapshotSource || "provided",
+        }
+      : await commitIcebergSnapshot(catalog, proof);
   return {
     committed: true,
     database: catalog.database,
     table: catalog.table,
-    snapshot_id: snapshotId,
+    snapshot_id: committed.snapshotId,
+    manifest_digest: committed.manifestDigest,
+    snapshot_source: committed.source,
     proof_ref: proof.multiset?.source_hash || proof.source_hash,
   };
 }
@@ -192,23 +201,25 @@ async function runPvdmWorkload(workload) {
     }
 
     const chunkDrafts = [];
-    const snapshotId =
-      workload.iceberg_snapshot_id ||
-      String(BigInt(`0x${crypto.randomBytes(8).toString("hex")}`));
 
     for (let i = resume_offset; i < rows.length; i += chunkSize) {
       const slice = rows.slice(i, i + chunkSize);
       const chunkId = Math.floor(i / chunkSize);
       const staging = spec.target?.location || "s3://cognimesh-staging";
-      const { parquetUri, localPath, writeSha256 } = iceguard.writeChunk(chunkId, slice, staging, runId);
+      const { parquetUri, localPath, writeSha256, footer_sha256, digest_type } = await iceguard.writeChunk(
+        chunkId,
+        slice,
+        staging,
+        runId
+      );
 
-      const readBack = readChunkRecords(localPath);
-      if (readBack.sha256 !== writeSha256) {
+      const readBack = await readChunkRecords(localPath);
+      if (readBack.sha256 !== writeSha256 && readBack.footer_sha256 !== footer_sha256) {
         return {
           outcome: "verification_failed",
           workload_id: runId,
           vrp_verdict: "FAIL",
-          message: "sink read-back digest mismatch after write",
+          message: "sink read-back Parquet footer digest mismatch after write",
         };
       }
 
@@ -220,7 +231,13 @@ async function runPvdmWorkload(workload) {
         chunkId,
         catalog,
         parquetUri,
-        sinkFileDigest: { sha256: readBack.sha256, row_count: readBack.rows.length },
+        sinkFileDigest: {
+          sha256: readBack.sha256,
+          footer_sha256: readBack.footer_sha256,
+          full_sha256: readBack.full_sha256,
+          digest_type: readBack.digest_type || digest_type,
+          row_count: readBack.rows.length,
+        },
         sign: false,
       });
 
@@ -234,8 +251,10 @@ async function runPvdmWorkload(workload) {
         };
       }
 
-      chunkDrafts.push({ chunkId, parquetUri, localPath, readBack, slice });
+      chunkDrafts.push({ chunkId, parquetUri, localPath, readBack, slice, prelimProof: prelim.proof });
     }
+
+    const catalogCommit = await commitIcebergSnapshot(catalog, chunkDrafts[chunkDrafts.length - 1]?.prelimProof || {});
 
     const chunks = [];
     let lastProof = null;
@@ -250,8 +269,15 @@ async function runPvdmWorkload(workload) {
         chunkId: draft.chunkId,
         catalog,
         parquetUri: draft.parquetUri,
-        sinkFileDigest: { sha256: draft.readBack.sha256, row_count: draft.readBack.rows.length },
-        icebergSnapshotId: snapshotId,
+        manifestDigest: catalogCommit.manifestDigest,
+        sinkFileDigest: {
+          sha256: draft.readBack.sha256,
+          footer_sha256: draft.readBack.footer_sha256,
+          full_sha256: draft.readBack.full_sha256,
+          digest_type: draft.readBack.digest_type,
+          row_count: draft.readBack.rows.length,
+        },
+        icebergSnapshotId: catalogCommit.snapshotId,
         sign: process.env.VRP_SIGN_ON_GENERATE !== "false",
       });
 
@@ -270,8 +296,8 @@ async function runPvdmWorkload(workload) {
       chunks.push({ chunkId: draft.chunkId, parquetUri: draft.parquetUri, proof: vrpResult.proof });
 
       if (vrpResult.proof?.signing?.signature) {
-        appendTransparencyEntry(vrpResult.proof);
-        proofPersisted = persistProof(vrpResult.proof, {
+        await appendTransparencyEntry(vrpResult.proof);
+        proofPersisted = await persistProof(vrpResult.proof, {
           domain: contractMeta.domain,
           name: contractMeta.name,
           proofBucket: process.env.PROOF_BUCKET,
@@ -279,7 +305,11 @@ async function runPvdmWorkload(workload) {
       }
     }
 
-    const meta = commitMetadata({ verdict: "PASS", proof: lastProof }, catalog, { icebergSnapshotId: snapshotId });
+    const meta = await commitMetadata({ verdict: "PASS", proof: lastProof }, catalog, {
+      icebergSnapshotId: catalogCommit.snapshotId,
+      manifestDigest: catalogCommit.manifestDigest,
+      snapshotSource: catalogCommit.source,
+    });
 
     return {
       outcome: "committed",

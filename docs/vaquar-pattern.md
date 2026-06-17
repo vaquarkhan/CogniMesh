@@ -143,21 +143,22 @@ VRP proofs are **not** “no trust required.” They reduce risk when:
 3. **Canonical payloads** — Proof bodies use RFC 8785-style JCS (`lib/vrp/canonical.js`) over a strict schema (strings + integers; no floats).
 4. **Freshness** — Proofs carry `pipeline_run_id`, `chunk_sequence`, `not_before` / `not_after`, and a catalog table identity to limit replay.
 5. **Fail closed** — Exceptions and empty workloads yield `UNVERIFIED`, never `PASS`. KMS signing failures yield `signing_failed` and block deploy.
-6. **Sink read-back** — Source multiset is hashed pre-write; sink multiset is hashed after reading persisted chunk bytes from storage (`lib/vrp/chunk-store.js`). Shallow in-memory copies are rejected (`sink_materialization: "read_back"`).
-7. **Proof persistence** — `proofS3Uri` is emitted only when a signed proof is written (`lib/vrp/proof-store.js`). No fabricated URIs.
-8. **Transparency log** — Issued proofs append to `data/vrp-transparency-log.jsonl` for replay detection (`lib/vrp/transparency-log.js`).
-9. **Snapshot pinning** — Proofs bind `iceberg_snapshot_id` + `snapshot_pin` SQL; consumers must read `FOR SYSTEM_VERSION AS OF <id>`.
-10. **Enforced inputs (roadmap)** — Agent/decision attestations must list inputs **served** by a proof-aware data gateway, not self-declared.
+6. **Sink read-back** — Source multiset is hashed pre-write; sink multiset is hashed after reading persisted **Parquet** chunk bytes (`lib/vrp/parquet-chunk.js`, `lib/vrp/chunk-store.js`). Proofs bind `digest_type: parquet_footer` (last 4 KiB SHA-256). Shallow in-memory copies are rejected (`sink_materialization: "read_back"`).
+7. **Proof persistence** — `proofS3Uri` is emitted only when a signed proof is written (`lib/vrp/proof-store.js`). Optional S3 upload with Object Lock (`VRP_OBJECT_LOCK_MODE`, `VRP_OBJECT_LOCK_RETAIN_DAYS`).
+8. **Transparency log** — Issued proofs append to local JSONL **and** S3 per-proof objects when `PROOF_BUCKET` is set (`lib/vrp/transparency-log.js`). Async S3 lookup for gateway verification.
+9. **Snapshot pinning** — Proofs bind `iceberg_snapshot_id` from Glue Iceberg metadata (`lib/aws/glue-iceberg.js`) or monotonic catalog state + `snapshot_pin` SQL; consumers must read `FOR SYSTEM_VERSION AS OF <id>`.
+10. **Enforced inputs** — Agent/decision attestations require `gatewayToken` from the proof-aware data gateway (`lib/vrp/proof-gateway.js`). Declared `inputProofs` are rejected unless `VRP_ALLOW_DECLARED_INPUTS=true` (tests only).
 
 | Attack surface | Mitigation in CogniMesh |
 |----------------|-------------------------|
-| Self-reported sink hash | File digests + manifest digest fields; verifier recomputes from S3/Iceberg |
+| Self-reported sink hash | Parquet footer digests + manifest digest; verifier recomputes from persisted bytes |
 | Naive JSON canonicalization | JCS in `lib/vrp/canonical.js` |
 | Key in env/repo | KMS asymmetric signing in `lib/vrp/sign.js` |
-| Replay / stale proof | `not_before`/`not_after`, `pipeline_run_id`, UUID snapshot id |
-| Cosmetic snapshot id | `crypto.randomUUID()` until real Iceberg snapshot id from catalog commit |
+| Replay / stale proof | `not_before`/`not_after`, `pipeline_run_id`, Iceberg snapshot id |
+| Cosmetic snapshot id | Real Glue `current-snapshot-id` or monotonic `data/iceberg-snapshots.json` |
 | Default `["id"]` field | All columns by default; explicit `identityFields` required to narrow |
 | Fail-open PASS on error | `lib/pvdm-run-summary.js` + empty workload → `UNVERIFIED` |
+| Self-declared agent inputs | Proof gateway stamps served rows; attestations bind `gatewayToken` |
 
 Environment:
 
@@ -167,6 +168,14 @@ Environment:
 | `VRP_SIGNING_MODE` | `kms` (default when key set) or `dev` (ephemeral Ed25519, local only) |
 | `VRP_PROOF_TTL_SEC` | Proof validity window (default 86400) |
 | `VRP_SIGN_ON_GENERATE` | Set `false` to skip signing in tests |
+| `PROOF_BUCKET` / `PROOF_BUCKET_NAME` | S3 bucket for proofs + transparency log objects |
+| `VRP_S3_PERSIST` | Enable S3 persistence (default on when bucket set) |
+| `VRP_OBJECT_LOCK_MODE` / `VRP_OBJECT_LOCK_RETAIN_DAYS` | S3 Object Lock on proof/transparency objects |
+| `VRP_UPLOAD_PARQUET` | Upload Parquet chunks to lakehouse S3 URI (`true`) |
+| `GLUE_ICEBERG_ENABLED` | Set `false` to skip Glue; use `data/iceberg-snapshots.json` |
+| `VRP_GATEWAY_SECRET` | HMAC secret for gateway tokens |
+| `VRP_ALLOW_DECLARED_INPUTS` | Allow self-declared `inputProofs` in attestations (tests only) |
+| `VRP_REQUIRE_TRANSPARENCY_LOG` | Gateway requires transparency log entry |
 
 Implementation: [`lib/vrp/`](../lib/vrp/)
 
@@ -184,14 +193,15 @@ Agent MCP endpoints:
 
 | Endpoint | Purpose |
 |----------|---------|
+| `POST /mcp/gateway/serve` | Verify proof, serve pinned snapshot rows, return `gatewayToken` |
 | `POST /mcp/verify-proof` | Offline-style VRP proof verification |
 | `POST /mcp/verify-attestation` | Verify decision attestation signature + output hash |
 
+API gateway: `POST /api/v1/gateway/serve` (same semantics, auth required).
+
 ### Decision attestation (agent layer)
 
-[`lib/vrp/decision-attestation.js`](../lib/vrp/decision-attestation.js) binds agent decisions to **verified** VRP input proofs (not self-declared). When `sessionId` + `inputProofs` are passed to `POST /mcp/invoke`, the agent runtime mints a signed attestation over output hash + tool-call hash.
-
-Honest limit: inputs are only as trustworthy as the proofs supplied — a proof-aware data gateway that stamps served proofs at the access boundary is still required for fully enforced provenance.
+[`lib/vrp/decision-attestation.js`](../lib/vrp/decision-attestation.js) binds agent decisions to **gateway-served** VRP input proofs. Pass `gatewayToken` from `serveProofGatedDataset` to `POST /mcp/invoke` — attestations record `gateway_enforced: true` on each input binding.
 
 ---
 

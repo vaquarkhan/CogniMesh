@@ -17,6 +17,7 @@ python/build/
 data/
 .pvdm-staging/
 .pvdm-proofs/
+.gateway-proof-cache/
 
 # Internal & maintainer-only docs (not for end users)
 REVIEW.md
