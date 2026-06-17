@@ -166,6 +166,29 @@ Environment:
 
 Implementation: [`lib/vrp/`](../lib/vrp/)
 
+### Offline verification
+
+Consumers can verify a proof **without AWS credentials** using the producer's published public key:
+
+```bash
+node scripts/verify-vrp-proof.js path/to/proof.json --public-key producer-public.pem
+```
+
+API: `verifyVrpProof(proof, { publicKeyPem })` in [`lib/vrp/verify.js`](../lib/vrp/verify.js) — checks multiset binding, validity window, and signature.
+
+Agent MCP endpoints:
+
+| Endpoint | Purpose |
+|----------|---------|
+| `POST /mcp/verify-proof` | Offline-style VRP proof verification |
+| `POST /mcp/verify-attestation` | Verify decision attestation signature + output hash |
+
+### Decision attestation (agent layer)
+
+[`lib/vrp/decision-attestation.js`](../lib/vrp/decision-attestation.js) binds agent decisions to **verified** VRP input proofs (not self-declared). When `sessionId` + `inputProofs` are passed to `POST /mcp/invoke`, the agent runtime mints a signed attestation over output hash + tool-call hash.
+
+Honest limit: inputs are only as trustworthy as the proofs supplied — a proof-aware data gateway that stamps served proofs at the access boundary is still required for fully enforced provenance.
+
 ---
 
 ## Durable execution model

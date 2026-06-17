@@ -15,6 +15,8 @@ CogniMesh’s highest-value loop: **prove → deploy → consume**.
 | PVDM flow visualization | ✅ | Physical → Verify → Metadata diagram |
 | Trends (pass rate, drop %) | ✅ | Run observability dashboard |
 | Deploy-time proof summary | ✅ | Deploy panel · **Vaquar tab** (`VrpProofPanel`) |
+| Offline VRP verify | ✅ | `lib/vrp/verify.js` · `scripts/verify-vrp-proof.js` |
+| Agent decision attestation | ✅ | `lib/vrp/decision-attestation.js` · Agent MCP `/mcp/invoke` |
 
 **Try it:** Deploy any Vaquar/medallion pattern → **Run History** → expand a run → **Vaquar** tab on deploy panel.
 

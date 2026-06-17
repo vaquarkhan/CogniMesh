@@ -26,7 +26,7 @@ Portal dev server runs on **http://localhost:3000** (see `portal/vite.config.js`
 
 ```bash
 npm run test:unit           # Node unit tests (lib, API gateway, platform, VRP security)
-npm run test:vrp-security   # VRP fail-closed, JCS, KMS signing
+npm run test:vrp-security   # VRP fail-closed, JCS, KMS signing, offline verify, decision attestation
 npm run test:pvdm           # PVDM runtime integration
 npm run test:portal-unit    # Portal vitest
 npm run test:portal-e2e     # Playwright (Operations + Approvals)

@@ -5,6 +5,8 @@ require("dotenv").config();
 
 const http = require("http");
 const { BedrockRuntimeClient, InvokeModelCommand } = require("@aws-sdk/client-bedrock-runtime");
+const { verifyVrpProof } = require("../../lib/vrp/verify");
+const { buildDecisionAttestation, verifyDecisionAttestation } = require("../../lib/vrp/decision-attestation");
 
 const PORT = process.env.PORT || 3100;
 const REGION = process.env.AWS_REGION || "us-east-1";
@@ -38,7 +40,7 @@ const tools = [
   },
 ];
 
-async function invokeBedrockAgent({ pipelineId, mediaUri, idempotencyKey, prompt }) {
+async function invokeBedrockAgent({ pipelineId, mediaUri, idempotencyKey, prompt, sessionId, decisionId, inputProofs, icebergSnapshotId }) {
   const body = JSON.stringify({
     anthropic_version: "bedrock-2023-05-31",
     max_tokens: 1024,
@@ -50,6 +52,7 @@ async function invokeBedrockAgent({ pipelineId, mediaUri, idempotencyKey, prompt
     ],
   });
 
+  let agentResult;
   try {
     const res = await bedrock.send(
       new InvokeModelCommand({
@@ -60,9 +63,9 @@ async function invokeBedrockAgent({ pipelineId, mediaUri, idempotencyKey, prompt
       })
     );
     const text = JSON.parse(Buffer.from(res.body).toString());
-    return { ok: true, modelId: MODEL_ID, result: text };
+    agentResult = { ok: true, modelId: MODEL_ID, result: text };
   } catch (err) {
-    return {
+    agentResult = {
       ok: false,
       stub: true,
       modelId: MODEL_ID,
@@ -76,6 +79,29 @@ async function invokeBedrockAgent({ pipelineId, mediaUri, idempotencyKey, prompt
       },
     };
   }
+
+  const toolCalls = [{ name: "cognimesh_invoke_agent", pipelineId, mediaUri, idempotencyKey }];
+  const outputPayload = agentResult.result;
+
+  if (sessionId && Array.isArray(inputProofs) && inputProofs.length) {
+    const attestationResult = await buildDecisionAttestation({
+      sessionId,
+      decisionId: decisionId || idempotencyKey,
+      pipelineRunId: pipelineId,
+      inputProofs,
+      outputPayload,
+      toolCalls,
+      icebergSnapshotId,
+    });
+    return {
+      ...agentResult,
+      attestation: attestationResult.attestation,
+      attestationVerdict: attestationResult.verdict,
+      attestationError: attestationResult.error || null,
+    };
+  }
+
+  return agentResult;
 }
 
 async function listProducts(domain) {
@@ -120,6 +146,37 @@ const server = http.createServer(async (req, res) => {
     try {
       const body = await readBody(req);
       const result = await invokeBedrockAgent(body);
+      return json(200, result);
+    } catch (e) {
+      return json(400, { error: e.message });
+    }
+  }
+
+  if (req.url === "/mcp/verify-proof" && req.method === "POST") {
+    try {
+      const body = await readBody(req);
+      const proof = body.proof || body;
+      const result = verifyVrpProof(proof, {
+        publicKeyPem: body.publicKeyPem,
+        now: body.now,
+        requireSignature: body.requireSignature,
+      });
+      return json(200, result);
+    } catch (e) {
+      return json(400, { error: e.message });
+    }
+  }
+
+  if (req.url === "/mcp/verify-attestation" && req.method === "POST") {
+    try {
+      const body = await readBody(req);
+      const attestation = body.attestation || body;
+      const result = verifyDecisionAttestation(attestation, {
+        publicKeyPem: body.publicKeyPem,
+        outputPayload: body.outputPayload,
+        toolCalls: body.toolCalls,
+        now: body.now,
+      });
       return json(200, result);
     } catch (e) {
       return json(400, { error: e.message });

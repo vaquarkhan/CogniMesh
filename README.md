@@ -180,6 +180,8 @@ For screenshots and filters, see [Zero-code portal](#zero-code-portal) below. Fo
 | **IceGuard checkpoints** | Durable rollback on failed commits |
 | **Run History + observability** | VRP badges, drop trends, pass rate, S3 proof/console deep links |
 | **Deploy Vaquar tab** | Full proof panel at deploy time |
+| **Offline VRP verify** | `lib/vrp/verify.js` + `scripts/verify-vrp-proof.js` |
+| **Agent decision attestation** | `lib/vrp/decision-attestation.js` · Agent MCP `/mcp/invoke` |
 
 → [The Vaquar Pattern](docs/vaquar-pattern.md) · [Top 3 product loop](docs/TOP3_FEATURES.md)
 
@@ -624,7 +626,7 @@ npm start
 
 ```bash
 npm run test:unit         # 90+ unit tests (platform, API, compiler, gate, VRP security)
-npm run test:vrp-security # VRP fail-closed, JCS canonicalization, KMS signing
+npm run test:vrp-security # VRP fail-closed, JCS, KMS signing, offline verify, decision attestation
 npm run test:portal-e2e   # Playwright: Operations panel + approvals
 npm test                  # offline integration (no servers)
 npm run dev:api           # API only: embedded catalog, no Java
