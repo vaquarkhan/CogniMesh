@@ -131,7 +131,40 @@ sequenceDiagram
 |---------|---------|
 | `committed` | All chunks verified; metadata updated |
 | `verification_failed` | VRP FAIL; no snapshot |
+| `unverified` | Empty workload, filtered-to-zero, or PVDM not run — **not** PASS |
 | `rolled_back` | Runtime error; IceGuard checkpoints reverted |
+
+### Trust model (honest)
+
+VRP proofs are **not** “no trust required.” They reduce risk when:
+
+1. **Sink binding** — Proofs include per-chunk file digests and (when integrated) Iceberg manifest digests so an independent verifier can recompute the sink multiset from durable storage, not a self-reported hash alone.
+2. **Signing custody** — Production signing uses **AWS KMS** (`VRP_KMS_KEY_ID`, `kms:Sign`); key material is non-exportable. Trust shifts to KMS key policy + CloudTrail, not env-var private keys.
+3. **Canonical payloads** — Proof bodies use RFC 8785-style JCS (`lib/vrp/canonical.js`) over a strict schema (strings + integers; no floats).
+4. **Freshness** — Proofs carry `pipeline_run_id`, `chunk_sequence`, `not_before` / `not_after`, and a catalog table identity to limit replay.
+5. **Fail closed** — Exceptions and empty workloads yield `UNVERIFIED`, never `PASS`.
+6. **Enforced inputs (roadmap)** — Agent/decision attestations must list inputs **served** by a proof-aware data gateway, not self-declared. Provenance you enforce beats provenance you declare.
+
+| Attack surface | Mitigation in CogniMesh |
+|----------------|-------------------------|
+| Self-reported sink hash | File digests + manifest digest fields; verifier recomputes from S3/Iceberg |
+| Naive JSON canonicalization | JCS in `lib/vrp/canonical.js` |
+| Key in env/repo | KMS asymmetric signing in `lib/vrp/sign.js` |
+| Replay / stale proof | `not_before`/`not_after`, `pipeline_run_id`, UUID snapshot id |
+| Cosmetic snapshot id | `crypto.randomUUID()` until real Iceberg snapshot id from catalog commit |
+| Default `["id"]` field | All columns by default; explicit `identityFields` required to narrow |
+| Fail-open PASS on error | `lib/pvdm-run-summary.js` + empty workload → `UNVERIFIED` |
+
+Environment:
+
+| Variable | Purpose |
+|----------|---------|
+| `VRP_KMS_KEY_ID` | KMS asymmetric key for production signing |
+| `VRP_SIGNING_MODE` | `kms` (default when key set) or `dev` (ephemeral Ed25519, local only) |
+| `VRP_PROOF_TTL_SEC` | Proof validity window (default 86400) |
+| `VRP_SIGN_ON_GENERATE` | Set `false` to skip signing in tests |
+
+Implementation: [`lib/vrp/`](../lib/vrp/)
 
 ---
 
@@ -247,6 +280,9 @@ npm run test:vaquar
 
 # PVDM runtime unit tests (VRP, IceGuard, commit)
 npm run test:pvdm
+
+# VRP security hardening (fail-closed, JCS, KMS signing, field resolution)
+npm run test:vrp-security
 
 # Generate mesh.yaml from example contract
 npm run vaquar:apply -- contracts/examples/structured-cdc-pipeline.yaml

@@ -1589,9 +1589,11 @@ body {
 .vrp-badge { font-size: 0.65rem; padding: 0.1rem 0.35rem; border-radius: 4px; font-weight: 700; }
 .vrp-pass { background: #064e3b; color: #6ee7b7; }
 .vrp-fail { background: #450a0a; color: #fca5a5; }
+.vrp-unverified { background: #422006; color: #fcd34d; }
 .vrp-unknown { background: #334155; color: #94a3b8; }
 .vrp-pass-text { color: #6ee7b7; }
 .vrp-fail-text { color: #fca5a5; }
+.vrp-unverified-text { color: #fcd34d; }
 .proof-gated-tag { color: #fbbf24; margin-left: 0.35rem; }
 .proof-gated-banner { background: #422006; border: 1px solid #b45309; color: #fde68a; padding: 0.35rem 0.5rem; border-radius: 6px; font-size: 0.8rem; }
 .execution-run-header-btn { width: 100%; text-align: left; background: transparent; border: none; color: inherit; cursor: pointer; padding: 0; }

@@ -15,7 +15,8 @@ function formatTs(ts) {
 
 function VrpBadge({ verdict }) {
   const v = verdict || "UNKNOWN";
-  const cls = v === "PASS" ? "vrp-pass" : v === "FAIL" ? "vrp-fail" : "vrp-unknown";
+  const cls =
+    v === "PASS" ? "vrp-pass" : v === "FAIL" ? "vrp-fail" : v === "UNVERIFIED" ? "vrp-unverified" : "vrp-unknown";
   return <span className={`vrp-badge ${cls}`}>VRP {v}</span>;
 }
 

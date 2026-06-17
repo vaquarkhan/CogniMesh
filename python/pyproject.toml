@@ -29,6 +29,7 @@ dev = ["pytest>=8.0"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+addopts = "-p no:logfire"
 
 [project.scripts]
 cognimesh = "cognimesh.cli:main"

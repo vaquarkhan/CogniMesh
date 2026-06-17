@@ -176,7 +176,7 @@ For screenshots and filters, see [Zero-code portal](#zero-code-portal) below. Fo
 |---------|----------------|
 | **Integrity gate** | Design-time policy checks before anything hits AWS |
 | **PVDM runtime** | Physical → Verify → Durable → Metadata. Proof before Iceberg commit. |
-| **VRP verification** | Cryptographic row proof with PASS/FAIL per run |
+| **VRP verification** | Multiset proof with PASS/FAIL/UNVERIFIED per run (fail-closed; KMS signing in prod) |
 | **IceGuard checkpoints** | Durable rollback on failed commits |
 | **Run History + observability** | VRP badges, drop trends, pass rate, S3 proof/console deep links |
 | **Deploy Vaquar tab** | Full proof panel at deploy time |
@@ -623,7 +623,8 @@ npm start
 ### Tests
 
 ```bash
-npm run test:unit         # 74+ unit tests (platform, API, compiler, gate)
+npm run test:unit         # 90+ unit tests (platform, API, compiler, gate, VRP security)
+npm run test:vrp-security # VRP fail-closed, JCS canonicalization, KMS signing
 npm run test:portal-e2e   # Playwright: Operations panel + approvals
 npm test                  # offline integration (no servers)
 npm run dev:api           # API only: embedded catalog, no Java
@@ -668,6 +669,7 @@ CogniMesh/
 │   ├── vaquar/             # contract → mesh · PVDM SFN
 │   ├── contract-builder/   # Graph → deploy orchestration
 │   ├── integrity-gate/     # Design-time rules
+│   ├── vrp/                # VRP proofs · JCS · KMS signing
 │   └── platform/           # Operations APIs · store · copilot · plugins
 ├── docs/
 │   └── vaquar-pattern.md   # ⭐ The Vaquar Pattern (author: Vaquarkhan)

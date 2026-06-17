@@ -41,9 +41,10 @@ def handler(event, context):
         source_rows = event.get("source_rows", [])
         if not source_rows:
             return {
-                "outcome": "committed",
+                "outcome": "unverified",
                 "workload_id": event.get("workload_id", "py-stub"),
-                "message": "Install serverless-data-mesh for full PVDM; pass source_rows to Node runtime",
+                "vrp_verdict": "UNVERIFIED",
+                "message": "Empty workload — nothing to verify (install serverless-data-mesh for full PVDM)",
                 "pattern": "vaquar-pvdm-stub",
             }
         return {

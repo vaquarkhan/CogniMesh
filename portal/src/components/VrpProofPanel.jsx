@@ -12,7 +12,7 @@ export default function VrpProofPanel({ pvdmSummary, vaquar, aws }) {
   return (
     <div className="vrp-proof-panel">
       <div className="vrp-proof-header">
-        <span className={`vrp-badge ${verdict === "PASS" ? "vrp-pass" : verdict === "FAIL" ? "vrp-fail" : "vrp-unknown"}`}>
+        <span className={`vrp-badge ${verdict === "PASS" ? "vrp-pass" : verdict === "FAIL" ? "vrp-fail" : verdict === "UNVERIFIED" ? "vrp-unverified" : "vrp-unknown"}`}>
           VRP {verdict}
         </span>
         {summary.proofGated && <span className="proof-gated-tag">🛡 Proof-gated Iceberg commit</span>}

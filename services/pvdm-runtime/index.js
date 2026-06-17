@@ -4,6 +4,8 @@ const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
 const yaml = require("js-yaml");
+const { resolveVrpFields } = require("../../lib/vrp/fields");
+const vrp = require("../../lib/vrp/generate");
 
 /** SparkRules-style chunk filter - enforces data quality before PVDM write */
 function applySparkRules(records, options = {}) {
@@ -82,52 +84,30 @@ class IceGuardWriter {
   }
 }
 
-/** veridata-recon style multiset VRP */
-function generateVRP(sourceRows, sinkRows, identityFields, contentFields) {
-  const hashMultiset = (rows, fields) => {
-    const counts = {};
-    for (const row of rows) {
-      const key = fields.map((f) => String(row[f] ?? "")).join("|");
-      counts[key] = (counts[key] || 0) + 1;
-    }
-    return crypto.createHash("sha256").update(JSON.stringify(counts)).digest("hex");
-  };
-
-  const sourceHash = hashMultiset(sourceRows, identityFields.concat(contentFields));
-  const sinkHash = hashMultiset(sinkRows, identityFields.concat(contentFields));
-  const verdict = sourceHash === sinkHash ? "PASS" : "FAIL";
-
-  return {
-    verdict,
-    proof: {
-      source_hash: sourceHash,
-      sink_hash: sinkHash,
-      identity_fields: identityFields,
-      content_fields: contentFields,
-      signed_at: new Date().toISOString(),
-    },
-  };
-}
-
-function validateThenCommit(vrp) {
-  if (vrp.verdict !== "PASS") {
-    const err = new Error("VRP validation failed: metadata commit blocked");
-    err.code = "VERIFICATION_FAILED";
-    err.proof = vrp.proof;
-    throw err;
+/** Backward-compatible async wrapper (legacy positional args or options object). */
+async function generateVRP(sourceRows, sinkRows, identityFieldsOrOptions, contentFields) {
+  if (Array.isArray(identityFieldsOrOptions)) {
+    return vrp.generateVRP(sourceRows, sinkRows, {
+      identityFields: identityFieldsOrOptions,
+      contentFields: contentFields || identityFieldsOrOptions,
+      sign: process.env.VRP_SIGN_ON_GENERATE !== "false",
+    });
   }
-  return vrp;
+  return vrp.generateVRP(sourceRows, sinkRows, identityFieldsOrOptions || {});
 }
+
+const validateThenCommit = vrp.validateThenCommit;
 
 /** GlueCatalogConnector - metadata commit only after VRP PASS */
-function commitMetadata(vrp, catalog) {
-  validateThenCommit(vrp);
+function commitMetadata(vrpResult, catalog, options = {}) {
+  validateThenCommit(vrpResult);
+  const proof = vrpResult.proof || {};
   return {
     committed: true,
     database: catalog.database,
     table: catalog.table,
-    snapshot_id: `snap-${Date.now()}`,
-    proof_ref: vrp.proof.source_hash,
+    snapshot_id: options.icebergSnapshotId || crypto.randomUUID(),
+    proof_ref: proof.multiset?.source_hash || proof.source_hash,
   };
 }
 
@@ -138,25 +118,60 @@ function commitMetadata(vrp, catalog) {
 async function runPvdmWorkload(workload) {
   const { source_rows = [], contract, workload_id, resume_offset = 0 } = workload;
   const spec = contract?.spec || {};
-  const identityFields = spec.transform?.pvdm?.identityFields || ["id"];
-  const contentFields = spec.transform?.pvdm?.contentFields || identityFields;
-  const chunkSize = spec.transform?.pvdm?.maxChunkRecords || 5000;
+  const pvdmSpec = spec.transform?.pvdm || {};
+  const chunkSize = pvdmSpec.maxChunkRecords || 5000;
+  const catalog = {
+    database: spec.target?.catalog?.database || "default",
+    table: spec.target?.catalog?.table || "output",
+  };
 
+  if (!source_rows.length) {
+    return {
+      outcome: "unverified",
+      workload_id: workload_id || `wl-${crypto.randomUUID()}`,
+      chunks: 0,
+      vrp_verdict: "UNVERIFIED",
+      message: "PVDM skipped: empty workload — nothing to verify",
+    };
+  }
+
+  const fieldResolution = resolveVrpFields(source_rows, pvdmSpec);
+  if (fieldResolution.error) {
+    return {
+      outcome: "verification_failed",
+      workload_id,
+      vrp_verdict: "FAIL",
+      message: fieldResolution.error,
+    };
+  }
+
+  const { identityFields, contentFields } = fieldResolution;
   const iceguard = new IceGuardWriter({
-    checkpointInterval: spec.transform?.pvdm?.checkpointInterval || 5000,
+    checkpointInterval: pvdmSpec.checkpointInterval || 5000,
   });
 
   try {
     let rows = [...source_rows];
     if (spec.transform?.sparkRules?.enabled) {
       rows = applySparkRules(rows, {
-        qualityPolicyId: spec.transform?.pvdm?.qualityPolicyId,
+        qualityPolicyId: pvdmSpec.qualityPolicyId,
         identityFields,
         contentFields,
-        maxNullPct: spec.transform?.pvdm?.maxNullPct,
+        maxNullPct: pvdmSpec.maxNullPct,
       }).records;
     }
 
+    if (!rows.length) {
+      return {
+        outcome: "unverified",
+        workload_id: workload_id || `wl-${crypto.randomUUID()}`,
+        chunks: 0,
+        vrp_verdict: "UNVERIFIED",
+        message: "PVDM skipped: all rows filtered — nothing to verify",
+      };
+    }
+
+    const runId = workload_id || `wl-${crypto.randomUUID()}`;
     const chunks = [];
     for (let i = resume_offset; i < rows.length; i += chunkSize) {
       const slice = rows.slice(i, i + chunkSize);
@@ -165,48 +180,42 @@ async function runPvdmWorkload(workload) {
       const { parquetUri } = iceguard.writeChunk(chunkId, slice, staging);
 
       const sinkRows = slice.map((r) => ({ ...r }));
-      const vrp = generateVRP(slice, sinkRows, identityFields, contentFields);
+      const vrpResult = await generateVRP(slice, sinkRows, {
+        pvdmSpec,
+        identityFields,
+        contentFields,
+        pipelineRunId: runId,
+        chunkId,
+        catalog,
+        parquetUri,
+        sign: process.env.VRP_SIGN_ON_GENERATE !== "false",
+      });
 
-      if (vrp.verdict !== "PASS") {
+      if (vrpResult.verdict !== "PASS") {
         return {
           outcome: "verification_failed",
-          workload_id,
-          vrp_verdict: vrp.verdict,
-          message: "VRP FAIL: snapshot blocked",
-          proof: vrp.proof,
+          workload_id: runId,
+          vrp_verdict: vrpResult.verdict,
+          message: vrpResult.error || "VRP FAIL: snapshot blocked",
+          proof: vrpResult.proof,
         };
       }
 
       iceguard.commitChunk(chunkId);
-      chunks.push({ chunkId, parquetUri, proof: vrp.proof });
+      chunks.push({ chunkId, parquetUri, proof: vrpResult.proof });
     }
 
     const lastProof = chunks[chunks.length - 1]?.proof;
-    if (!lastProof) {
-      return {
-        outcome: "committed",
-        workload_id: workload_id || `wl-${Date.now()}`,
-        chunks: 0,
-        vrp_verdict: "PASS",
-        message: "PVDM committed: empty workload",
-      };
-    }
-
-    const meta = commitMetadata(
-      { verdict: "PASS", proof: lastProof },
-      {
-        database: spec.target?.catalog?.database || "default",
-        table: spec.target?.catalog?.table || "output",
-      }
-    );
+    const meta = commitMetadata({ verdict: "PASS", proof: lastProof }, catalog);
 
     return {
       outcome: "committed",
-      workload_id: workload_id || `wl-${Date.now()}`,
+      workload_id: runId,
       chunks: chunks.length,
       snapshot_id: meta.snapshot_id,
       vrp_verdict: "PASS",
       message: "PVDM committed: Physical → Verify → Metadata",
+      proof: lastProof,
     };
   } catch (err) {
     if (err.code === "VERIFICATION_FAILED") {
@@ -223,6 +232,7 @@ async function runPvdmWorkload(workload) {
       outcome: "rolled_back",
       workload_id,
       resume_offset: resume_offset,
+      vrp_verdict: "UNVERIFIED",
       message: err.message,
       rollback,
     };

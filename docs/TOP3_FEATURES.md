@@ -8,7 +8,7 @@ CogniMesh’s highest-value loop: **prove → deploy → consume**.
 
 | Requirement | Status | Where |
 |-------------|--------|--------|
-| VRP PASS/FAIL per run | ✅ | Run History · VRP badge per run |
+| VRP PASS/FAIL/UNVERIFIED per run | ✅ | Run History · VRP badge per run (fail-closed) |
 | Rows processed vs dropped (SparkRules) | ✅ | Run list + observability dashboard |
 | Proof/checkpoint S3 links | ✅ | Expand run · **Open in S3 Console** links |
 | Proof-gated Iceberg commit | ✅ | 🛡 tag on runs + marketplace products |

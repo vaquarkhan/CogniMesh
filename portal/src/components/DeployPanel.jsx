@@ -58,7 +58,20 @@ export default function DeployPanel({ result, loading, error, token }) {
           )}
           {result.pvdmSummary && (
             <>
-              <p>✓ VRP verdict: <strong className={result.pvdmSummary.vrpVerdict === "PASS" ? "vrp-pass-text" : "vrp-fail-text"}>{result.pvdmSummary.vrpVerdict}</strong></p>
+              <p>
+                ✓ VRP verdict:{" "}
+                <strong
+                  className={
+                    result.pvdmSummary.vrpVerdict === "PASS"
+                      ? "vrp-pass-text"
+                      : result.pvdmSummary.vrpVerdict === "FAIL"
+                        ? "vrp-fail-text"
+                        : "vrp-unverified-text"
+                  }
+                >
+                  {result.pvdmSummary.vrpVerdict}
+                </strong>
+              </p>
               <p>✓ Rows: {result.pvdmSummary.rowsWritten} written · {result.pvdmSummary.rowsDropped} dropped (DQ)</p>
               {result.pvdmSummary.proofGated && <p>✓ Proof-gated Iceberg commit</p>}
             </>

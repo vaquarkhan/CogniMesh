@@ -33,7 +33,7 @@ const rows = [
 
 (async () => {
   console.log("1. VRP PASS");
-  const vrp = generateVRP(rows, rows, ["order_id"], ["order_id", "amount"]);
+  const vrp = await generateVRP(rows, rows, ["order_id"], ["order_id", "amount"]);
   if (vrp.verdict !== "PASS") throw new Error("VRP should pass");
   validateThenCommit(vrp);
   console.log("   ok");
