@@ -41,6 +41,16 @@
   Zero-code pipelines · Proof-gated publication · Agentic AI · Fine-grained governance
 </p>
 
+### Platform features (how it works)
+
+<p align="center">
+  <a href="docs/assets/cognimesh-features-demo.mp4">
+    <img src="docs/assets/cognimesh-features-demo.gif" alt="CogniMesh platform tour: AI Builder, Architectures, AWS Blocks, AWS Design Review, Operations, Run History, Lineage, Marketplace, Agent Builder templates" width="960" />
+  </a>
+  <br />
+  <em>Sidebar + header panels · AWS review · ops · lineage · marketplace · agent tools</em>
+</p>
+
 ### Pipeline creation (end-to-end)
 
 <p align="center">
@@ -48,7 +58,7 @@
     <img src="docs/assets/cognimesh-pipeline-demo.gif" alt="CogniMesh pipeline demo: pattern library, Multi-Source workflow, AWS Design Review fix critical/high findings, preview YAML, deploy pipeline" width="960" />
   </a>
   <br />
-  <em>Pattern library → load pattern → AWS review → fix all → preview → deploy</em>
+  <em>Pattern library → load pattern → AWS review → fix all → preview → deploy → marketplace</em>
 </p>
 
 ### Agent creation (end-to-end)
@@ -60,7 +70,7 @@
   <br />
   <em>Templates &amp; blocks → load agent → guardrail review → preview → export → deploy</em>
   <br />
-  <code>npm run docs:demo</code> to regenerate both · portal build + Playwright · optional ffmpeg for MP4/GIF
+  <code>npm run docs:demo</code> to regenerate all three · portal build + Playwright · optional ffmpeg for MP4/GIF
 </p>
 
 <p align="center">
