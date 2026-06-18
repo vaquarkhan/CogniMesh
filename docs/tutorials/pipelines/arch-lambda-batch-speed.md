@@ -1,7 +1,7 @@
 # Lambda Architecture (λ) - Batch + Speed Layers
 
 <p align="center">
-  <img src="../../images/cog2.jpeg" alt="Lambda Architecture (λ) - Batch + Speed Layers - CogniMesh canvas" width="720" />
+  <img src="../../images/cog2-lambda-canvas.png" alt="Lambda Architecture (λ) - Batch + Speed Layers - CogniMesh canvas" width="720" />
   <br /><em>Batch view + real-time speed layer · merge at query</em>
 </p>
 

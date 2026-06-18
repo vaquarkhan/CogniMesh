@@ -20,7 +20,7 @@
 </p>
 
 <p align="center">
-  <strong>📦 Python SDK: install anytime from <a href="https://pypi.org/project/cognimesh/">PyPI</a></strong>
+  <strong>Python SDK: install anytime from <a href="https://pypi.org/project/cognimesh/">PyPI</a></strong>
 </p>
 
 <p align="center">
@@ -65,9 +65,9 @@
 **In one sentence:** *Design visually → verify before publish (when Vaquar path enabled) → operate with lineage and access control → let consumers discover governed data products.*
 
 <p align="center">
-  <a href="docs/README-business-stewards.md"><strong>📘 Business &amp; data steward guide</strong></a>
+  <a href="docs/README-business-stewards.md"><strong>Business &amp; data steward guide</strong></a>
   &nbsp;·&nbsp;
-  <a href="docs/README-business-stewards.md#for-c-suite--executive-leadership"><strong>👔 C-suite summary (2 min)</strong></a>
+  <a href="docs/README-business-stewards.md#for-c-suite--executive-leadership"><strong>C-suite summary (2 min)</strong></a>
   &nbsp;·&nbsp; plain language · no code required
 </p>
 
@@ -122,12 +122,12 @@
 
 <p align="center">
   <a href="docs/POSITIONING.md"><b>Positioning &amp; roadmap</b></a> ·
-  <a href="docs/README-business-stewards.md"><b>📘 Business &amp; steward guide</b></a> ·
-  <a href="docs/FAQ.md"><b>❓ FAQ</b></a> ·
-  <a href="docs/vaquar-pattern.md"><b>⭐ The Vaquar Pattern</b></a> ·
+  <a href="docs/README-business-stewards.md"><b>Business &amp; steward guide</b></a> ·
+  <a href="docs/FAQ.md"><b>FAQ</b></a> ·
+  <a href="docs/vaquar-pattern.md"><b>The Vaquar Pattern</b></a> ·
   <a href="docs/vaquar-pattern.md#data-examples"><b>Data examples</b></a> ·
   <a href="docs/vaquar-pattern.md#vrp-features"><b>VRP features</b></a> ·
-  <a href="docs/PIPELINE_E2E_DIAGRAM.md"><b>📐 Pipeline E2E Diagram</b></a> ·
+  <a href="docs/PIPELINE_E2E_DIAGRAM.md"><b>Pipeline E2E Diagram</b></a> ·
   <a href="docs/drag-drop-pipeline-flow.md">Drag-and-drop E2E</a> ·
   <a href="docs/data-contract-spec.md">Data Contract</a> ·
   <a href="infra/terraform/README.md">Terraform</a> ·
@@ -315,21 +315,21 @@ Open **Operations** in the portal header as your control tower after deploy:
 
 ## Table of contents
 
-| | Section |
-|---|---------|
-| ✨ | [Why CogniMesh: feature list](#why-cognimesh-everything-in-one-place) |
-| 🏗️ | [System architecture](#system-architecture) |
-| 📐 | [Pipeline E2E diagram](docs/PIPELINE_E2E_DIAGRAM.md) |
-| 🔄 | [End-to-end journey](#end-to-end-journey) |
-| 🖥️ | [Zero-code portal](#zero-code-portal) · **[Tutorials](docs/tutorials/README.md)** · [Pattern catalog](docs/PORTAL_UI.md) · [Agent Builder](docs/AGENT_BUILDER.md) |
-| 🔐 | [Security](#security-cognito) |
-| ⭐ | [Vaquar Pattern](docs/vaquar-pattern.md) · [Top 3 features](docs/TOP3_FEATURES.md) |
-| 🔀 | [Dual pipeline model](#dual-pipeline-model) |
-| 🏪 | [Marketplace](#marketplace--governance) |
-| ☁️ | [Terraform](#aws-infrastructure-terraform) |
-| 📦 | [Distribution](#distribution) |
-| 🚀 | [Quick start](#quick-start) |
-| 📚 | [Documentation](#documentation) |
+| Section |
+|---------|
+| [Why CogniMesh: feature list](#why-cognimesh-everything-in-one-place) |
+| [System architecture](#system-architecture) |
+| [Pipeline E2E diagram](docs/PIPELINE_E2E_DIAGRAM.md) |
+| [End-to-end journey](#end-to-end-journey) |
+| [Zero-code portal](#zero-code-portal) · **[Tutorials](docs/tutorials/README.md)** · [Pattern catalog](docs/PORTAL_UI.md) · [Agent Builder](docs/AGENT_BUILDER.md) |
+| [Security](#security-cognito) |
+| [Vaquar Pattern](docs/vaquar-pattern.md) · [Top 3 features](docs/TOP3_FEATURES.md) |
+| [Dual pipeline model](#dual-pipeline-model) |
+| [Marketplace](#marketplace--governance) |
+| [Terraform](#aws-infrastructure-terraform) |
+| [Distribution](#distribution) |
+| [Quick start](#quick-start) |
+| [Documentation](#documentation) |
 
 ---
 
@@ -345,28 +345,28 @@ flowchart TB
     classDef market fill:#d97706,stroke:#b45309,color:#fff
 
     subgraph CP["① Orchestration Control Plane"]
-        Portal["🖥️ Zero-Code Portal"]
-        Cognito["🔐 Cognito · invite-only"]
-        GW["🌐 API Gateway :4000"]
+        Portal["Zero-Code Portal"]
+        Cognito["Cognito · invite-only"]
+        GW["API Gateway :4000"]
         Portal --> Cognito & GW
     end
 
     subgraph PE["② Pipeline Engine"]
-        Compiler["📄 Contract Compiler"]
-        Gate["✅ Integrity Gate"]
-        SFN["⚡ Step Functions"]
+        Compiler["Contract Compiler"]
+        Gate["Integrity Gate"]
+        SFN["Step Functions"]
         GW --> Compiler --> Gate --> SFN
     end
 
     subgraph CL["③ Cognitive Layer"]
-        RT["🔄 EKS Runtime"]
-        Agent["🤖 Bedrock · MCP"]
+        RT["EKS Runtime"]
+        Agent["Bedrock · MCP"]
         SFN -->|"agentic"| RT --> Agent
     end
 
     subgraph MG["④ Marketplace"]
-        Cat["📦 Catalog"]
-        LF["🛡️ Lake Formation"]
+        Cat["Catalog"]
+        LF["Lake Formation"]
         Cat --> LF
     end
 
@@ -393,7 +393,7 @@ flowchart TB
 ```mermaid
 sequenceDiagram
     autonumber
-    actor User as 👤 User
+    actor User as User
     participant Portal as Portal
     participant API as API
     participant Gate as Integrity Gate
@@ -426,12 +426,12 @@ Visual pipeline designer with a **pattern library** ([27 ready-made canvases](#p
 ### Portal screenshots
 
 <p align="center">
-  <img src="docs/images/cog1.jpeg" alt="CogniMesh portal - Data Mesh Customer 360 canvas, Architectures pattern library, pipeline settings" width="720" />
+  <img src="docs/images/cog1-datamesh-canvas.png" alt="CogniMesh portal - Data Mesh Customer 360 canvas, Architectures pattern library, pipeline settings" width="720" />
   <br /><em>Architectures tab · Multi-domain Data Mesh (Customer 360) · Three AWS accounts · Commerce RDS / Inventory Kafka / CRM S3 → Mesh integrity gate → Iceberg gold</em>
 </p>
 
 <p align="center">
-  <img src="docs/images/cog2.jpeg" alt="CogniMesh portal - Lambda architecture batch and speed layers on canvas" width="720" />
+  <img src="docs/images/cog2-lambda-canvas.png" alt="CogniMesh portal - Lambda architecture batch and speed layers on canvas" width="720" />
   <br /><em>Lambda (λ) architecture - Parallel batch (S3 → Glue ETL → Iceberg) + speed (Kinesis → Flink → Iceberg) → Merge → Athena serving view</em>
 </p>
 
@@ -560,7 +560,7 @@ flowchart LR
 
 | Block | Status |
 |-------|--------|
-| Integrity gate · SparkRules · IceGuard · VRP · Durable SFN · Metadata commit | ✅ |
+| Integrity gate · SparkRules · IceGuard · VRP · Durable SFN · Metadata commit | Done |
 
 **Read the full pattern spec:** [docs/vaquar-pattern.md](docs/vaquar-pattern.md)
 
@@ -729,7 +729,7 @@ CogniMesh/
 │   ├── vrp/                # VRP proofs · JCS · KMS signing
 │   └── platform/           # Operations APIs · store · copilot · plugins
 ├── docs/
-│   └── vaquar-pattern.md   # ⭐ The Vaquar Pattern (author: Vaquarkhan)
+│   └── vaquar-pattern.md   # The Vaquar Pattern (author: Vaquarkhan)
 ├── infra/terraform/          # Production IaC
 ├── contracts/examples/     # Sample pipelines
 └── rules/                    # Integrity gate policies

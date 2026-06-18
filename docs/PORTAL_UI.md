@@ -5,20 +5,17 @@
 ### Architecture canvases
 
 <p align="center">
-  <img src="../images/cog1.jpeg" alt="CogniMesh portal - Data Mesh Customer 360 workflow" width="720" />
+  <img src="../images/cog1-datamesh-canvas.png" alt="CogniMesh portal - Data Mesh Customer 360 workflow" width="720" />
   <br /><em><strong>Data Mesh - Customer 360</strong> · Three AWS accounts (commerce / supply / CRM) · Parallel Commerce RDS, Inventory Kafka, CRM S3 → Merge → enrichment → Mesh gate → Iceberg gold</em>
 </p>
 
 <p align="center">
-  <img src="../images/cog2.jpeg" alt="CogniMesh portal - Lambda batch and speed layers" width="720" />
+  <img src="../images/cog2-lambda-canvas.png" alt="CogniMesh portal - Lambda batch and speed layers" width="720" />
   <br /><em><strong>Lambda (λ) architecture</strong> · Batch layer (S3 history → Glue ETL → Iceberg) + speed layer (Kinesis → Flink window → Iceberg) → Merge → Athena UNION view</em>
 </p>
 
 <p align="center">
-  <img src="../images/cog1-datamesh-canvas.png" alt="Data Mesh canvas (automated capture)" width="360" />
-  &nbsp;
-  <img src="../images/cog2-lambda-canvas.png" alt="Lambda canvas (automated capture)" width="360" />
-  <br /><em>Playwright auto-captures (same patterns) · <code>npm run docs:screenshots</code></em>
+  <em>Playwright auto-captures · regenerate with <code>npm run docs:screenshots</code> (requires <code>npm run build --prefix portal</code> first)</em>
 </p>
 
 ### AI Builder & Agent Builder

@@ -15,6 +15,31 @@ const sinkNode = {
 };
 
 describe("PropertiesPanel", () => {
+  it("renders RDS source fields without throwing", () => {
+    const rdsNode = {
+      id: "source-rds",
+      data: {
+        label: "RDS Orders",
+        blockType: "source",
+        sourceType: "rds",
+        database: "orders_db",
+        table: "orders",
+        cdcEnabled: true,
+        primaryKey: "order_id",
+      },
+    };
+    render(
+      <PropertiesPanel
+        node={rdsNode}
+        onChange={() => {}}
+        pipelineMeta={{ name: "multi-source-mesh", domain: "commerce", version: "1.0.0" }}
+        onMetaChange={() => {}}
+      />
+    );
+    expect(screen.getByDisplayValue("orders_db")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("orders")).toBeInTheDocument();
+  });
+
   it("renders sink encryption dropdown and updates value", () => {
     const onChange = vi.fn();
     render(

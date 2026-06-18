@@ -1,6 +1,7 @@
 import { PIPELINE_META_TIPS, tipFor } from "../lib/field-tips";
 import { QUALITY_POLICIES, SCHEMA_EVOLUTION_POLICIES } from "../lib/data-quality-presets";
 import { AWS_SERVICES, PROCESSING_MODES } from "../lib/aws-services";
+import { SOURCE_TYPES, TRANSFORM_TYPES, TARGET_TYPES, EXECUTION_MODES } from "../lib/block-types";
 import { applyProcessingTemplate } from "../lib/processing-templates";
 import DataPreviewButton from "./DataPreviewButton";
 import BusinessRulesEditor from "./BusinessRulesEditor";
@@ -10,9 +11,6 @@ const SINK_ENCRYPTION_OPTIONS = [
   { value: "AES256", label: "AES256 (S3 default)" },
   { value: "aws:kms", label: "AWS KMS" },
 ];
-const TRANSFORM_TYPES = ["spark_sql", "glue_etl", "glue_streaming", "agentic", "passthrough"];
-const TARGET_TYPES = ["s3", "iceberg", "redshift", "delta"];
-const EXECUTION_MODES = ["batch", "stream"];
 const AWS_SERVICE_KEYS = Object.keys(AWS_SERVICES);
 
 function Field({ label, tip, children }) {
@@ -234,7 +232,7 @@ export default function PropertiesPanel({
         <>
           <Field label="Source type" tip={tipFor("source", "sourceType")}>
             <select
-              value={d.sourceType}
+              value={d.sourceType || SOURCE_TYPES[0]}
               onChange={(e) => update({ sourceType: e.target.value, detail: e.target.value })}
             >
               {SOURCE_TYPES.map((t) => (

@@ -1,7 +1,7 @@
 # CogniMesh Tutorials
 
 <p align="center">
-  <img src="../images/cog1.jpeg" alt="Data Mesh pipeline" width="360" />
+  <img src="../images/cog1-datamesh-canvas.png" alt="Data Mesh pipeline" width="360" />
   &nbsp;
   <img src="../images/portal-agent-builder-full.png" alt="Agent Builder" width="360" />
 </p>
@@ -188,8 +188,8 @@ flowchart LR
 
 | Image | Topic |
 |-------|-------|
-| [cog1.jpeg](../images/cog1.jpeg) | Data Mesh Customer 360 |
-| [cog2.jpeg](../images/cog2.jpeg) | Lambda λ architecture |
+| [cog1-datamesh-canvas.png](../images/cog1-datamesh-canvas.png) | Data Mesh Customer 360 |
+| [cog2-lambda-canvas.png](../images/cog2-lambda-canvas.png) | Lambda λ architecture |
 | [portal-ai-pipeline-designer.png](../images/portal-ai-pipeline-designer.png) | AI pipeline designer |
 | [portal-agent-builder-full.png](../images/portal-agent-builder-full.png) | Agent Builder |
 

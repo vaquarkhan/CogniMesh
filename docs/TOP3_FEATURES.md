@@ -2,37 +2,37 @@
 
 CogniMesh’s highest-value loop: **prove → deploy → consume**.
 
-## 1. Run observability with VRP proof ✅
+## 1. Run observability with VRP proof
 
 **Outcome:** Users go from “I drew a pipeline” to “I proved this dataset is correct.”
 
 | Requirement | Status | Where |
 |-------------|--------|--------|
-| VRP PASS/FAIL/UNVERIFIED per run | ✅ | Run History · VRP badge per run (fail-closed) |
-| Rows processed vs dropped (SparkRules) | ✅ | Run list + observability dashboard |
-| Proof/checkpoint S3 links | ✅ | Expand run · **Open in S3 Console** links |
-| Proof-gated Iceberg commit | ✅ | 🛡 tag on runs + marketplace products |
-| PVDM flow visualization | ✅ | Physical → Verify → Metadata diagram |
-| Trends (pass rate, drop %) | ✅ | Run observability dashboard |
-| Deploy-time proof summary | ✅ | Deploy panel · **Vaquar tab** (`VrpProofPanel`) |
-| Offline VRP verify | ✅ | `lib/vrp/verify.js` · `scripts/verify-vrp-proof.js` |
-| Agent decision attestation | ✅ | `lib/vrp/decision-attestation.js` · Agent MCP `/mcp/invoke` |
+| VRP PASS/FAIL/UNVERIFIED per run | Done | Run History · VRP badge per run (fail-closed) |
+| Rows processed vs dropped (SparkRules) | Done | Run list + observability dashboard |
+| Proof/checkpoint S3 links | Done | Expand run · **Open in S3 Console** links |
+| Proof-gated Iceberg commit | Done | Proof-gated tag on runs + marketplace products |
+| PVDM flow visualization | Done | Physical → Verify → Metadata diagram |
+| Trends (pass rate, drop %) | Done | Run observability dashboard |
+| Deploy-time proof summary | Done | Deploy panel · **Vaquar tab** (`VrpProofPanel`) |
+| Offline VRP verify | Done | `lib/vrp/verify.js` · `scripts/verify-vrp-proof.js` |
+| Agent decision attestation | Done | `lib/vrp/decision-attestation.js` · Agent MCP `/mcp/invoke` |
 
 **Try it:** Deploy any Vaquar/medallion pattern → **Run History** → expand a run → **Vaquar** tab on deploy panel.
 
 ---
 
-## 2. AWS deploy with live status ✅ (needs AWS env)
+## 2. AWS deploy with live status (needs AWS env)
 
 **Outcome:** Deploy → Step Functions ARN → live Running/Succeeded/Failed + AWS Console link.
 
 | Requirement | Status | Where |
 |-------------|--------|--------|
-| Create/update state machine | ✅ | `lib/aws/stepfunctions-deploy.js` |
-| Start execution (optional) | ✅ | `AWS_DEPLOY_EXECUTE=true` |
-| Poll DescribeExecution | ✅ | `lib/aws/sfn-execution-status.js` |
-| Live status in portal | ✅ | Deploy banner (auto-poll) · Run History |
-| AWS Console deep link | ✅ | Step Functions + S3 proof links |
+| Create/update state machine | Done | `lib/aws/stepfunctions-deploy.js` |
+| Start execution (optional) | Done | `AWS_DEPLOY_EXECUTE=true` |
+| Poll DescribeExecution | Done | `lib/aws/sfn-execution-status.js` |
+| Live status in portal | Done | Deploy banner (auto-poll) · Run History |
+| AWS Console deep link | Done | Step Functions + S3 proof links |
 
 **Enable real AWS:**
 
@@ -47,19 +47,19 @@ Without these, deploy still compiles + registers catalog + records **local VRP p
 
 ---
 
-## 3. Consumer mesh experience ✅
+## 3. Consumer mesh experience
 
 **Outcome:** Two-sided marketplace - producers publish, consumers discover and query.
 
 | Requirement | Status | Where |
 |-------------|--------|--------|
-| Schema + sample rows | ✅ | Marketplace → click product |
-| Request access | ✅ | Request Access button |
-| Steward approval UI | ✅ | Header → **Approvals** |
-| Lake Formation grant on approve | ✅ | Simulated locally · real when `AWS_DEPLOY_ENABLED` |
-| Open in Athena | ✅ | Pre-filled `SELECT * … LIMIT 10` link |
-| Access status for consumer | ✅ | Pending / approved / rejected in product detail |
-| Proof-gated product banner | ✅ | Marketplace detail modal |
+| Schema + sample rows | Done | Marketplace → click product |
+| Request access | Done | Request Access button |
+| Steward approval UI | Done | Header → **Approvals** |
+| Lake Formation grant on approve | Done | Simulated locally · real when `AWS_DEPLOY_ENABLED` |
+| Open in Athena | Done | Pre-filled `SELECT * … LIMIT 10` link |
+| Access status for consumer | Done | Pending / approved / rejected in product detail |
+| Proof-gated product banner | Done | Marketplace detail modal |
 
 **Try it:** Deploy pipeline → **Marketplace** → open product → **Request Access** → **Approvals** → Approve → refresh product (access: approved + LF SELECT).
 

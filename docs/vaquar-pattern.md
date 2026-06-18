@@ -74,7 +74,7 @@ flowchart LR
     M["④ Metadata<br/><small>Glue / Iceberg commit</small>"]
 
     P --> V --> D --> M
-    V -.->|FAIL| X["❌ Blocked"]
+    V -.->|FAIL| X["Blocked"]
 
     class P physical
     class V verify

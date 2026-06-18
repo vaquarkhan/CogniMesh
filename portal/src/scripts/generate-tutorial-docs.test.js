@@ -19,9 +19,9 @@ const SKIP_PIPELINE = new Set(["pick", "customize", "connect", "preview", "deplo
 const SKIP_AGENT = new Set(["blank-agent"]);
 
 const PIPELINE_IMAGES = {
-  "arch-datamesh-multi-domain": "images/cog1.jpeg",
+  "arch-datamesh-multi-domain": "images/cog1-datamesh-canvas.png",
   "arch-datamesh-domain-product": "images/cog1-datamesh-canvas.png",
-  "arch-lambda-batch-speed": "images/cog2.jpeg",
+  "arch-lambda-batch-speed": "images/cog2-lambda-canvas.png",
   "arch-kappa-stream-only": "assets/portal-overview.png",
   "vaquar-cdc-orders": "assets/portal-overview.png",
   "medallion-full-stack": "assets/portal-canvas-datamesh.png",
@@ -314,7 +314,7 @@ function writeIndex(pipelines, agents) {
   let md = `# CogniMesh Tutorials
 
 <p align="center">
-  <img src="../images/cog1.jpeg" alt="Data Mesh pipeline" width="360" />
+  <img src="../images/cog1-datamesh-canvas.png" alt="Data Mesh pipeline" width="360" />
   &nbsp;
   <img src="../images/portal-agent-builder-full.png" alt="Agent Builder" width="360" />
 </p>
@@ -377,8 +377,8 @@ flowchart LR
 
 | Image | Topic |
 |-------|-------|
-| [cog1.jpeg](../images/cog1.jpeg) | Data Mesh Customer 360 |
-| [cog2.jpeg](../images/cog2.jpeg) | Lambda λ architecture |
+| [cog1-datamesh-canvas.png](../images/cog1-datamesh-canvas.png) | Data Mesh Customer 360 |
+| [cog2-lambda-canvas.png](../images/cog2-lambda-canvas.png) | Lambda λ architecture |
 | [portal-ai-pipeline-designer.png](../images/portal-ai-pipeline-designer.png) | AI pipeline designer |
 | [portal-agent-builder-full.png](../images/portal-agent-builder-full.png) | Agent Builder |
 

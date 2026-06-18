@@ -1,7 +1,7 @@
 # Data Mesh - Multi-Domain Parallel
 
 <p align="center">
-  <img src="../../images/cog1.jpeg" alt="Data Mesh - Multi-Domain Parallel - CogniMesh canvas" width="720" />
+  <img src="../../images/cog1-datamesh-canvas.png" alt="Data Mesh - Multi-Domain Parallel - CogniMesh canvas" width="720" />
   <br /><em>3 domain ACs → merge → federated gold</em>
 </p>
 

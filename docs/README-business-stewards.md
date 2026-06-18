@@ -122,7 +122,7 @@ CogniMesh targets organizations already on **AWS** that want **domain-owned data
 *Optional:* show **Operations** dashboard for health and audit export.
 
 <p align="center">
-  <a href="assets/cognimesh-features-demo.mp4">▶ Watch platform tour (GIF)</a>
+  <a href="assets/cognimesh-features-demo.mp4">Watch platform tour (GIF)</a>
 </p>
 
 ---

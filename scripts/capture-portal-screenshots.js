@@ -71,6 +71,21 @@ async function loadMeshPattern(page) {
   await sleep(1200);
 }
 
+/** Single source → transform → sink (graph-to-contract requires exactly one of each). */
+async function loadSimplePreviewPattern(page) {
+  await page.locator(".designer-mode-switch button", { hasText: "Data Pipeline" }).click();
+  await sleep(300);
+  await page.locator(".sidebar-tabs button", { hasText: "Architectures" }).click();
+  await sleep(300);
+  await page.locator(".pattern-search").fill("RDS CDC → Iceberg");
+  await sleep(400);
+  const useBtn = page
+    .locator('.pattern-card:has-text("RDS CDC") button.pattern-use-btn')
+    .first();
+  if ((await useBtn.count()) > 0) await useBtn.click();
+  await sleep(1200);
+}
+
 async function captureDeveloperDocs(page) {
   console.log("Capturing developer guide screenshots → docs/images/dev/");
 
@@ -145,11 +160,16 @@ async function captureDeveloperDocs(page) {
   await sleep(500);
   await page.screenshot({ path: path.join(DEV, "10-aws-design-review.png") });
 
-  // ── Dev 11: Preview YAML panel ──
+  // ── Dev 11: Preview YAML panel (needs single-transform graph; mesh has 3 transforms) ──
+  await loadSimplePreviewPattern(page);
   const previewBtn = page.locator(".header-actions button").filter({ hasText: "Preview YAML" });
   if ((await previewBtn.count()) > 0) {
     await previewBtn.click();
-    await sleep(2000);
+    await page
+      .locator('.deploy-panel h2:has-text("Preview result")')
+      .waitFor({ timeout: 15000 })
+      .catch(() => {});
+    await sleep(500);
     await shot(page, ".deploy-panel", path.join(DEV, "11-preview-yaml-panel.png"));
     if (!(await page.locator(".deploy-panel").count())) {
       await page.screenshot({ path: path.join(DEV, "11-preview-yaml-panel.png") });
@@ -275,7 +295,7 @@ async function main() {
   fs.mkdirSync(DEV, { recursive: true });
 
   const api = spawnProc("node", ["services/api-gateway/server.js"], {
-    env: { ...process.env, AUTH_DISABLED: "true" },
+    env: { ...process.env, AUTH_DISABLED: "true", CSRF_DISABLED: "true" },
   });
   const portal = spawnProc("npm", ["run", "preview", "--prefix", "portal", "--", "--host"], {});
 
