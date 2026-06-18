@@ -12,15 +12,21 @@ function nodeForFinding(finding, nodes) {
 function patchForFinding(finding, node, pipelineMeta) {
   const id = finding.id;
 
+  if (id.startsWith("setup.rds_secret")) {
+    return null;
+  }
   if (id.startsWith("sec.secrets_manager") && node) {
-    if (node.data?.rdsProvisioningMode === "provision") return null;
+    if (node.data?.rdsProvisioningMode === "existing") return null;
     return {
       nodeId: node.id,
       propertyPatch: { rdsProvisioningMode: "provision" },
     };
   }
+  if (id.startsWith("setup.rds_network")) {
+    return null;
+  }
   if (id.startsWith("sec.rds_private") && node) {
-    if (node.data?.rdsProvisioningMode === "provision") return null;
+    if (node.data?.rdsProvisioningMode === "existing") return null;
     return {
       nodeId: node.id,
       propertyPatch: { rdsProvisioningMode: "provision", privateSubnet: true },

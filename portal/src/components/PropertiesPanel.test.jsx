@@ -8,6 +8,8 @@ const sinkNode = {
     label: "Iceberg Gold",
     blockType: "sink",
     targetType: "iceberg",
+    sinkProvisioningMode: "provision",
+    encryption: "AES256",
     location: "s3://lake/gold/",
     catalogDatabase: "gold",
     catalogTable: "orders",
@@ -15,6 +17,22 @@ const sinkNode = {
 };
 
 describe("PropertiesPanel", () => {
+  it("renders RDS guided setup with create-new default", () => {
+    render(
+      <PropertiesPanel
+        node={{
+          id: "source-rds",
+          data: { blockType: "source", sourceType: "rds", database: "db", table: "t" },
+        }}
+        onChange={() => {}}
+        pipelineMeta={{ name: "t", domain: "d", version: "1.0.0", awsRegion: "us-east-1" }}
+        onMetaChange={() => {}}
+      />
+    );
+    expect(screen.getByTestId("rds-resource-setup")).toBeInTheDocument();
+    expect(screen.getByText(/Create new database/i)).toBeInTheDocument();
+  });
+
   it("renders RDS source fields without throwing", () => {
     const rdsNode = {
       id: "source-rds",
@@ -71,6 +89,18 @@ describe("PropertiesPanel", () => {
     expect(onMetaChange).toHaveBeenCalledWith(
       expect.objectContaining({ enableLakeFormation: true })
     );
+  });
+
+  it("shows AWS deploy region in pipeline settings", () => {
+    render(
+      <PropertiesPanel
+        node={null}
+        onChange={() => {}}
+        pipelineMeta={{ name: "test", domain: "commerce", version: "1.0.0", awsRegion: "ap-southeast-1" }}
+        onMetaChange={() => {}}
+      />
+    );
+    expect(screen.getByTestId("pipeline-aws-region")).toHaveValue("ap-southeast-1");
   });
 
   it("shows Apply fix on AWS findings", () => {

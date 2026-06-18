@@ -5,6 +5,7 @@
 
 import { EXTRA_PATTERNS } from "./patterns/extra-patterns";
 import { ARCHITECTURE_PATTERNS } from "./patterns/architecture-patterns";
+import { normalizeGraphNodes } from "./resource-provisioning";
 export { ARCHITECTURE_LABELS } from "./patterns/helpers";
 export { ARCHITECTURE_TYPES } from "./aws-services";
 
@@ -613,7 +614,7 @@ export function instantiatePattern(pattern) {
     animated: true,
   }));
   return {
-    nodes,
+    nodes: normalizeGraphNodes(nodes),
     edges,
     pipelineMeta: { ...pattern.pipelineMeta },
     patternId: pattern.id,

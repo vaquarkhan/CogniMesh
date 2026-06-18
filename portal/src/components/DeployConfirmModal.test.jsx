@@ -10,6 +10,8 @@ describe("DeployConfirmModal", () => {
       <DeployConfirmModal
         open
         pipelineName="orders-cdc"
+        awsRegion="eu-west-1"
+        onRegionChange={() => {}}
         awsReview={{ overall: { score: 90, grade: { label: "Good" }, criticalCount: 0, deployBlocked: false } }}
         awsDeployCheck={{ enabled: false, roleConfigured: false, message: "Local only" }}
         impact={{ deployBlocked: false, blastRadius: "low", recommendation: "Safe" }}
@@ -18,7 +20,8 @@ describe("DeployConfirmModal", () => {
         onCancel={onCancel}
       />
     );
-    fireEvent.click(screen.getByRole("button", { name: /Yes, deploy/i }));
+    expect(screen.getByTestId("deploy-aws-region")).toHaveValue("eu-west-1");
+    fireEvent.click(screen.getByRole("button", { name: /Yes, deploy to eu-west-1/i }));
     expect(onConfirm).toHaveBeenCalled();
   });
 

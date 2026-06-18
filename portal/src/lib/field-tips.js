@@ -6,6 +6,7 @@ export const PIPELINE_META_TIPS = {
   version: "Semver x.y.z - bump when you change schema or logic.",
   schemaEvolutionPolicy: "How to handle source schema changes: compatible allows new nullable columns; strict rejects drift.",
   piiClassification: "Drives governance rules - high/restricted PII requires column masks in the contract.",
+  awsRegion: "AWS region for Step Functions, RDS Terraform, Secrets Manager ARNs, and regional resources on deploy.",
 };
 
 export const BLOCK_TIPS = {

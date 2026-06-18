@@ -29,4 +29,22 @@ describe("pipeline-patterns", () => {
     expect(inst.nodes).toHaveLength(0);
     expect(inst.edges).toHaveLength(0);
   });
+
+  it("all library patterns default create (provision) for RDS, S3, and sinks", () => {
+    for (const pattern of PIPELINE_PATTERNS) {
+      const inst = instantiatePattern(pattern);
+      for (const n of inst.nodes) {
+        const d = n.data || {};
+        if (d.blockType === "source" && (d.sourceType === "rds" || d.sourceType === "mysql")) {
+          expect(d.rdsProvisioningMode, `${pattern.id} RDS`).toBe("provision");
+        }
+        if (d.blockType === "source" && d.sourceType === "s3") {
+          expect(d.sourceProvisioningMode, `${pattern.id} S3 source`).toBe("provision");
+        }
+        if (d.blockType === "sink" && (d.targetType === "s3" || d.targetType === "iceberg")) {
+          expect(d.sinkProvisioningMode, `${pattern.id} sink`).toBe("provision");
+        }
+      }
+    }
+  });
 });

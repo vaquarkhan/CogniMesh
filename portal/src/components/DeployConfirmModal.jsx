@@ -1,6 +1,11 @@
+import { AWS_REGIONS } from "../lib/aws-regions";
+import FormField from "./FormField";
+
 export default function DeployConfirmModal({
   open,
   pipelineName,
+  awsRegion,
+  onRegionChange,
   awsReview,
   awsDeployCheck,
   impact,
@@ -13,6 +18,7 @@ export default function DeployConfirmModal({
   const blocked = awsReview?.overall?.deployBlocked || impact?.deployBlocked;
   const critical = awsReview?.overall?.criticalCount || 0;
   const awsMisconfigured = awsDeployCheck?.enabled && !awsDeployCheck?.roleConfigured;
+  const region = awsRegion || "us-east-1";
 
   return (
     <div className="modal-backdrop" role="presentation" onClick={onCancel}>
@@ -28,13 +34,30 @@ export default function DeployConfirmModal({
           and register a data product in the marketplace.
         </p>
 
+        <FormField
+          label="AWS region"
+          tip="Regional resources (Step Functions, RDS Terraform, Secrets Manager) are created in this region."
+        >
+          <select
+            data-testid="deploy-aws-region"
+            value={region}
+            onChange={(e) => onRegionChange?.(e.target.value)}
+          >
+            {AWS_REGIONS.map((r) => (
+              <option key={r.id} value={r.id}>
+                {r.id} — {r.label}
+              </option>
+            ))}
+          </select>
+        </FormField>
+
         {awsDeployCheck && (
           <div className={`deploy-aws-readiness ${awsMisconfigured ? "deploy-aws-readiness-warn" : ""}`}>
             <p>
               <strong>AWS Step Functions:</strong>{" "}
               {awsDeployCheck.enabled
                 ? awsDeployCheck.roleConfigured
-                  ? "enabled — state machine will be created or updated"
+                  ? `enabled — state machine in ${region}`
                   : "misconfigured on API server"
                 : "local compile only (AWS deploy off)"}
             </p>
@@ -108,7 +131,7 @@ export default function DeployConfirmModal({
             Cancel
           </button>
           <button type="button" className="deploy-btn" onClick={onConfirm} disabled={blocked || impactLoading}>
-            {blocked ? "Fix issues first" : "Yes, deploy"}
+            {blocked ? "Fix issues first" : `Yes, deploy to ${region}`}
           </button>
         </div>
       </div>

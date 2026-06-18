@@ -261,7 +261,11 @@ export async function getApiHealth() {
   const data = await parseJsonResponse(res, "Health");
   if (data?.status === "error") return null;
   if (data && (data.userPoolId != null || data.authDisabled != null)) {
-    return { status: "ok", auth: data.authDisabled ? "disabled" : "cognito" };
+    return {
+      status: "ok",
+      auth: data.authDisabled ? "disabled" : "cognito",
+      region: data.region || null,
+    };
   }
   const res2 = await apiFetch("/api/health");
   const deep = await parseJsonResponse(res2, "Health");

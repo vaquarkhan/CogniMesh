@@ -3,15 +3,13 @@ import { PIPELINE_META_TIPS, tipFor } from "../lib/field-tips";
 import { QUALITY_POLICIES, SCHEMA_EVOLUTION_POLICIES } from "../lib/data-quality-presets";
 import { AWS_SERVICES, PROCESSING_MODES } from "../lib/aws-services";
 import { SOURCE_TYPES, TRANSFORM_TYPES, TARGET_TYPES, EXECUTION_MODES } from "../lib/block-types";
+import { AWS_REGIONS } from "../lib/aws-regions";
 import { applyProcessingTemplate } from "../lib/processing-templates";
 import DataPreviewButton from "./DataPreviewButton";
 import BusinessRulesEditor from "./BusinessRulesEditor";
+import { RdsResourceSetup, SinkResourceSetup, S3SourceResourceSetup } from "./ResourceSetupWizard";
+import { isS3LikeSink, isS3Source } from "../lib/resource-provisioning";
 
-const SINK_ENCRYPTION_OPTIONS = [
-  { value: "", label: "Not set (review will flag)" },
-  { value: "AES256", label: "AES256 (S3 default)" },
-  { value: "aws:kms", label: "AWS KMS" },
-];
 const AWS_SERVICE_KEYS = Object.keys(AWS_SERVICES);
 
 export default function PropertiesPanel({
@@ -48,6 +46,19 @@ export default function PropertiesPanel({
             onChange={(e) => onMetaChange({ ...pipelineMeta, domain: e.target.value })}
             placeholder="commerce"
           />
+        </FormField>
+        <FormField label="AWS deploy region" tip={PIPELINE_META_TIPS.awsRegion}>
+          <select
+            data-testid="pipeline-aws-region"
+            value={pipelineMeta.awsRegion || "us-east-1"}
+            onChange={(e) => onMetaChange({ ...pipelineMeta, awsRegion: e.target.value })}
+          >
+            {AWS_REGIONS.map((r) => (
+              <option key={r.id} value={r.id}>
+                {r.id} — {r.label}
+              </option>
+            ))}
+          </select>
         </FormField>
         <FormField label="Version" tip={PIPELINE_META_TIPS.version}>
           <input
@@ -106,7 +117,9 @@ export default function PropertiesPanel({
               <li><strong>Publisher</strong> {pipelineMeta.meshAccounts.publisher}</li>
             </ul>
             {pipelineMeta.awsRegion && (
-              <p className="properties-hint">Default region: <strong>{pipelineMeta.awsRegion}</strong></p>
+              <p className="properties-hint">
+                Deploy region: <strong>{pipelineMeta.awsRegion}</strong>
+              </p>
             )}
           </div>
         )}
@@ -232,94 +245,12 @@ export default function PropertiesPanel({
             </select>
           </FormField>
           {(d.sourceType === "rds" || d.sourceType === "mysql") && (
-            <>
-              <FormField
-                label="RDS database"
-                tip="Use existing for databases already in your account. Create new provisions RDS + Secrets Manager via Terraform on deploy."
-              >
-                <select
-                  data-testid="rds-provisioning-mode"
-                  value={d.rdsProvisioningMode || "existing"}
-                  onChange={(e) =>
-                    update({
-                      rdsProvisioningMode: e.target.value,
-                      ...(e.target.value === "provision"
-                        ? { secretArn: "", vpcSecurityGroup: "" }
-                        : {}),
-                    })
-                  }
-                >
-                  <option value="existing">Use existing RDS / MySQL</option>
-                  <option value="provision">Create new (Terraform via pipeline)</option>
-                </select>
-              </FormField>
-              {d.rdsProvisioningMode === "provision" ? (
-                <p className="props-rds-provision-hint properties-hint">
-                  CogniMesh generates Terraform for private RDS, security groups, and Secrets Manager.
-                  ARNs below are optional overrides after apply.
-                </p>
-              ) : (
-                <p className="props-rds-existing-hint properties-hint">
-                  Existing databases require a Secrets Manager ARN — AWS Design Review flags this as critical until set.
-                </p>
-              )}
-              <FormField label="Database" tip={tipFor("source", "database")}>
-                <input value={d.database || ""} onChange={(e) => update({ database: e.target.value })} />
-              </FormField>
-              <FormField label="Table" tip={tipFor("source", "table")}>
-                <input value={d.table || ""} onChange={(e) => update({ table: e.target.value })} />
-              </FormField>
-              <FormField label="CDC enabled" tip={tipFor("source", "cdcEnabled")}>
-                <input
-                  type="checkbox"
-                  checked={!!d.cdcEnabled}
-                  onChange={(e) => update({ cdcEnabled: e.target.checked })}
-                />
-              </FormField>
-              {d.cdcEnabled && (
-                <FormField label="Primary key (comma-separated)" tip={tipFor("source", "primaryKey")}>
-                  <input value={d.primaryKey || ""} onChange={(e) => update({ primaryKey: e.target.value })} />
-                </FormField>
-              )}
-              <FormField
-                label={
-                  d.rdsProvisioningMode === "provision"
-                    ? "Secrets Manager ARN (optional)"
-                    : "Secrets Manager ARN"
-                }
-                tip={
-                  d.rdsProvisioningMode === "provision"
-                    ? "Filled automatically from Terraform output after apply"
-                    : "Required for AWS security review — never embed passwords"
-                }
-              >
-                <input
-                  value={d.secretArn || ""}
-                  onChange={(e) => update({ secretArn: e.target.value })}
-                  placeholder={
-                    d.rdsProvisioningMode === "provision"
-                      ? "Auto from terraform output (optional)"
-                      : "arn:aws:secretsmanager:us-east-1:123456789012:secret:db-creds"
-                  }
-                />
-              </FormField>
-              <FormField
-                label={
-                  d.rdsProvisioningMode === "provision"
-                    ? "VPC security group (optional)"
-                    : "VPC security group"
-                }
-                tip="Private subnet deployment for RDS"
-              >
-                <input
-                  value={d.vpcSecurityGroup || ""}
-                  onChange={(e) => update({ vpcSecurityGroup: e.target.value })}
-                  placeholder={d.rdsProvisioningMode === "provision" ? "From Terraform (optional)" : "sg-0abc123"}
-                />
-              </FormField>
-            </>
+            <RdsResourceSetup data={d} onChange={update} pipelineMeta={pipelineMeta} />
           )}
-          {(d.sourceType === "media_url" || d.sourceType === "s3" || d.sourceType === "kafka" || d.sourceType === "kinesis") && (
+          {isS3Source(d) && (
+            <S3SourceResourceSetup data={d} onChange={update} pipelineMeta={pipelineMeta} />
+          )}
+          {(d.sourceType === "media_url" || d.sourceType === "kafka" || d.sourceType === "kinesis") && (
             <FormField label="Endpoint / stream / topic" tip={tipFor("source", "endpoint")}>
               <input
                 value={d.endpoint || ""}
@@ -443,7 +374,11 @@ export default function PropertiesPanel({
         </>
       )}
 
-      {d.blockType === "sink" && (
+      {d.blockType === "sink" && isS3LikeSink(d) && (
+        <SinkResourceSetup data={d} onChange={update} pipelineMeta={pipelineMeta} />
+      )}
+
+      {d.blockType === "sink" && !isS3LikeSink(d) && (
         <>
           <FormField label="Target type" tip={tipFor("sink", "targetType")}>
             <select value={d.targetType} onChange={(e) => update({ targetType: e.target.value, detail: e.target.value })}>
@@ -454,30 +389,8 @@ export default function PropertiesPanel({
               ))}
             </select>
           </FormField>
-          <FormField label="S3 location" tip={tipFor("sink", "location")}>
+          <FormField label="Location" tip={tipFor("sink", "location")}>
             <input value={d.location || ""} onChange={(e) => update({ location: e.target.value })} />
-          </FormField>
-          <FormField label="Catalog database" tip={tipFor("sink", "catalogDatabase")}>
-            <input value={d.catalogDatabase || ""} onChange={(e) => update({ catalogDatabase: e.target.value })} />
-          </FormField>
-          <FormField label="Catalog table" tip={tipFor("sink", "catalogTable")}>
-            <input value={d.catalogTable || ""} onChange={(e) => update({ catalogTable: e.target.value })} />
-          </FormField>
-          <FormField
-            label="Encryption at rest"
-            tip="AES256 or KMS on lakehouse buckets — required by AWS Design Review for S3 targets."
-          >
-            <select
-              data-testid="sink-encryption"
-              value={d.encryption || ""}
-              onChange={(e) => update({ encryption: e.target.value || undefined })}
-            >
-              {SINK_ENCRYPTION_OPTIONS.map((opt) => (
-                <option key={opt.value || "unset"} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
           </FormField>
         </>
       )}

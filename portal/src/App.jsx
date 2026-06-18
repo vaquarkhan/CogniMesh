@@ -20,6 +20,8 @@ import {
   generatePipelineTerraform,
   downloadTextFile,
 } from "./lib/infrastructure-export";
+import { normalizeGraphNodes, normalizeNodeData } from "./lib/resource-provisioning";
+import { DEFAULT_AWS_REGION } from "./lib/aws-regions";
 import { analyzeImpact } from "./lib/platform-api";
 import AwsDesignReviewHUD from "./components/AwsDesignReviewHUD";
 import { validateBlocks, isWorkflowGraph } from "./lib/validate-blocks";
@@ -91,6 +93,7 @@ export default function App() {
     version: "1.0.0",
     schemaEvolutionPolicy: "compatible",
     piiClassification: "medium",
+    awsRegion: DEFAULT_AWS_REGION,
   });
   const [activePatternId, setActivePatternId] = useState(null);
   const [patternTips, setPatternTips] = useState([]);
@@ -202,7 +205,13 @@ export default function App() {
     (async () => {
       try {
         const health = await getApiHealth();
-        if (!cancelled) setApiHealth(health);
+        if (cancelled) return;
+        setApiHealth(health);
+        if (health?.region) {
+          setPipelineMeta((m) =>
+            m.awsRegion && m.awsRegion !== DEFAULT_AWS_REGION ? m : { ...m, awsRegion: health.region }
+          );
+        }
       } catch {
         if (!cancelled) setApiHealth(null);
       }
@@ -228,16 +237,20 @@ export default function App() {
 
   const applyPattern = useCallback(
     (instance) => {
-      nodeIds.sync(instance.nodes);
-      setNodes(instance.nodes);
+      const normalizedNodes = normalizeGraphNodes(instance.nodes);
+      nodeIds.sync(normalizedNodes);
+      setNodes(normalizedNodes);
       setEdges(instance.edges);
-      setPipelineMeta(instance.pipelineMeta);
+      setPipelineMeta({
+        ...instance.pipelineMeta,
+        awsRegion: instance.pipelineMeta?.awsRegion || DEFAULT_AWS_REGION,
+      });
       setActivePatternId(instance.patternId);
       setPatternTips(instance.tips || []);
       setHasPreviewed(false);
       setSelectedId(null);
       setDeployError(null);
-      const snap = snapshot(instance.nodes, instance.edges);
+      const snap = snapshot(normalizedNodes, instance.edges);
       setHistory([snap]);
       setHistoryIndex(0);
       const pattern = getPatternById(instance.patternId);
@@ -307,7 +320,7 @@ export default function App() {
         id: nodeIds.next(),
         type: "pipeline",
         position,
-        data: { ...block.defaults },
+        data: normalizeNodeData({ ...block.defaults }),
       };
 
       setNodes((nds) => {
@@ -536,6 +549,7 @@ export default function App() {
         name: data.contract.metadata.name || m.name,
         domain: data.contract.metadata.domain || m.domain,
         version: data.contract.metadata.version || m.version,
+        awsRegion: data.contract.metadata.awsRegion || m.awsRegion,
       }));
     }
     success(data.message || "Rolled back to saved version");
@@ -633,6 +647,8 @@ export default function App() {
       <DeployConfirmModal
         open={showDeployConfirm}
         pipelineName={pipelineMeta.name}
+        awsRegion={pipelineMeta.awsRegion || DEFAULT_AWS_REGION}
+        onRegionChange={(awsRegion) => setPipelineMeta((m) => ({ ...m, awsRegion }))}
         awsReview={awsReview}
         awsDeployCheck={apiHealth?.checks?.aws_deploy}
         impact={deployImpact}

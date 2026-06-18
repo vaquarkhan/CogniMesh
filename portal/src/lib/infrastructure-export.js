@@ -14,8 +14,33 @@ function isRdsSource(data) {
   return st === "rds" || st === "mysql";
 }
 
+function isS3LikeSink(data) {
+  return data?.blockType === "sink" && (data?.targetType === "s3" || data?.targetType === "iceberg");
+}
+
+function isS3Source(data) {
+  return data?.blockType === "source" && data?.sourceType === "s3";
+}
+
 function rdsMode(data) {
-  return data?.rdsProvisioningMode === "provision" ? "provision" : "existing";
+  return data?.rdsProvisioningMode === "existing" ? "existing" : "provision";
+}
+
+function sinkMode(data) {
+  return data?.sinkProvisioningMode === "existing" ? "existing" : "provision";
+}
+
+function s3SourceMode(data) {
+  return data?.sourceProvisioningMode === "existing" ? "existing" : "provision";
+}
+
+function parseS3Bucket(uri) {
+  const match = String(uri || "").trim().match(/^s3:\/\/([a-z0-9.\-_]+)/i);
+  return match ? match[1] : null;
+}
+
+function terraformResourceId(value) {
+  return slugify(value).replace(/-/g, "_");
 }
 
 function listProvisionRds(nodes) {
@@ -24,16 +49,70 @@ function listProvisionRds(nodes) {
   );
 }
 
+function collectProvisionS3Buckets(nodes, pipelineMeta) {
+  const prefix = slugify(pipelineMeta.name || "cognimesh");
+  const domain = slugify(pipelineMeta.domain || "default");
+  const buckets = new Map();
+
+  for (const n of nodes || []) {
+    const d = n.data || {};
+    if (isS3Source(d) && s3SourceMode(d) === "provision") {
+      const bucket = parseS3Bucket(d.endpoint) || `cognimesh-${domain}-${prefix}-landing`;
+      buckets.set(bucket, { encryption: "AES256", label: d.label || n.id, kind: "source" });
+    }
+    if (isS3LikeSink(d) && sinkMode(d) === "provision") {
+      const bucket =
+        parseS3Bucket(d.location) ||
+        `cognimesh-${domain}-${prefix}-${slugify(d.catalogTable || d.label || "output")}`;
+      buckets.set(bucket, {
+        encryption: d.encryption || "AES256",
+        label: d.label || n.id,
+        kind: "sink",
+      });
+    }
+  }
+
+  return buckets;
+}
+
+function appendS3BucketTerraform(lines, bucketName, meta, domain) {
+  const id = terraformResourceId(bucketName);
+  const sse = meta.encryption === "aws:kms" ? "aws:kms" : "AES256";
+
+  lines.push(
+    `# S3 bucket: ${meta.label} (${meta.kind})`,
+    `resource "aws_s3_bucket" "${id}" {`,
+    `  bucket = "${bucketName}"`,
+    `  tags = { ManagedBy = "cognimesh", Domain = "${domain}" }`,
+    "}",
+    `resource "aws_s3_bucket_server_side_encryption_configuration" "${id}" {`,
+    `  bucket = aws_s3_bucket.${id}.id`,
+    "  rule { apply_server_side_encryption_by_default {",
+    `    sse_algorithm = "${sse}"`,
+    "  } }",
+    "}",
+    `resource "aws_s3_bucket_public_access_block" "${id}" {`,
+    `  bucket = aws_s3_bucket.${id}.id`,
+    "  block_public_acls = true block_public_policy = true",
+    "  ignore_public_acls = true restrict_public_buckets = true",
+    "}",
+    `output "${id}_bucket_arn" { value = aws_s3_bucket.${id}.arn }`,
+    ""
+  );
+}
+
 export function generatePipelineTerraform({ nodes, pipelineMeta = {} }) {
   const prefix = slugify(pipelineMeta.name || "cognimesh");
   const domain = slugify(pipelineMeta.domain || "default");
+  const awsRegion = pipelineMeta.awsRegion || "us-east-1";
   const sources = listProvisionRds(nodes);
+  const s3Buckets = collectProvisionS3Buckets(nodes, pipelineMeta);
 
-  if (!sources.length) {
+  if (!sources.length && !s3Buckets.size) {
     return {
       status: "empty",
       message:
-        "No RDS sources set to Create new (Terraform). In Properties → RDS database → Create new.",
+        "No resources set to Create new (Terraform). In Properties, choose Create new for RDS, S3 source, or S3/Iceberg sink blocks.",
       hcl: "",
     };
   }
@@ -48,6 +127,8 @@ export function generatePipelineTerraform({ nodes, pipelineMeta = {} }) {
     '    random = { source = "hashicorp/random" }',
     "  }",
     "}",
+    "",
+    'provider "aws" { region = var.aws_region }',
     "",
   ];
 
@@ -102,7 +183,12 @@ export function generatePipelineTerraform({ nodes, pipelineMeta = {} }) {
     );
   }
 
+  for (const [bucketName, meta] of s3Buckets) {
+    appendS3BucketTerraform(lines, bucketName, meta, domain);
+  }
+
   lines.push(
+    `variable "aws_region" { type = string default = "${awsRegion}" }`,
     'variable "vpc_id" { type = string }',
     'variable "private_subnet_ids" { type = list(string) }',
     'variable "glue_security_group_id" { type = string }',
@@ -110,7 +196,7 @@ export function generatePipelineTerraform({ nodes, pipelineMeta = {} }) {
     ""
   );
 
-  return { status: "success", hcl: lines.join("\n"), provisionCount: sources.length };
+  return { status: "success", hcl: lines.join("\n"), provisionCount: sources.length + s3Buckets.size };
 }
 
 function escapeXml(text) {
