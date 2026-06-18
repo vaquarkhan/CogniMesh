@@ -225,6 +225,7 @@ async function runPvdmWorkload(workload) {
 
       const prelim = await generateVRP(slice, readBack.rows, {
         pvdmSpec,
+        contract,
         identityFields,
         contentFields,
         pipelineRunId: runId,
@@ -246,8 +247,12 @@ async function runPvdmWorkload(workload) {
           outcome: "verification_failed",
           workload_id: runId,
           vrp_verdict: prelim.verdict,
-          message: prelim.error || "VRP FAIL: source/sink multiset mismatch after read-back",
+          message:
+            prelim.divergence?.message ||
+            prelim.error ||
+            "VRP FAIL: transform verification failed after read-back",
           proof: prelim.proof,
+          localization: prelim.divergence || prelim.proof?.failure_localization,
         };
       }
 
@@ -263,6 +268,7 @@ async function runPvdmWorkload(workload) {
     for (const draft of chunkDrafts) {
       const vrpResult = await generateVRP(draft.slice, draft.readBack.rows, {
         pvdmSpec,
+        contract,
         identityFields,
         contentFields,
         pipelineRunId: runId,
@@ -286,8 +292,12 @@ async function runPvdmWorkload(workload) {
           outcome: "verification_failed",
           workload_id: runId,
           vrp_verdict: vrpResult.verdict,
-          message: vrpResult.error || "VRP FAIL: snapshot blocked",
+          message:
+            vrpResult.divergence?.message ||
+            vrpResult.error ||
+            "VRP FAIL: transform verification blocked snapshot",
           proof: vrpResult.proof,
+          localization: vrpResult.divergence || vrpResult.proof?.failure_localization,
         };
       }
 
@@ -296,12 +306,27 @@ async function runPvdmWorkload(workload) {
       chunks.push({ chunkId: draft.chunkId, parquetUri: draft.parquetUri, proof: vrpResult.proof });
 
       if (vrpResult.proof?.signing?.signature) {
-        await appendTransparencyEntry(vrpResult.proof);
+        try {
+          await appendTransparencyEntry(vrpResult.proof);
+        } catch (err) {
+          const transparencyErr = new Error(`VRP transparency log failed: ${err.message}`);
+          transparencyErr.code = "TRANSPARENCY_FAILED";
+          throw transparencyErr;
+        }
         proofPersisted = await persistProof(vrpResult.proof, {
           domain: contractMeta.domain,
           name: contractMeta.name,
           proofBucket: process.env.PROOF_BUCKET,
         });
+        if (
+          process.env.VRP_FAIL_CLOSED === "true" &&
+          process.env.PROOF_BUCKET &&
+          !proofPersisted?.persisted
+        ) {
+          const persistErr = new Error("VRP proof persistence failed — publish blocked");
+          persistErr.code = "PERSIST_FAILED";
+          throw persistErr;
+        }
       }
     }
 
@@ -323,9 +348,13 @@ async function runPvdmWorkload(workload) {
       proofPersisted: Boolean(proofPersisted?.persisted),
     };
   } catch (err) {
-    if (err.code === "SIGNING_FAILED") {
+    if (
+      err.code === "SIGNING_FAILED" ||
+      err.code === "TRANSPARENCY_FAILED" ||
+      err.code === "PERSIST_FAILED"
+    ) {
       return {
-        outcome: "signing_failed",
+        outcome: err.code === "SIGNING_FAILED" ? "signing_failed" : "publish_blocked",
         workload_id,
         vrp_verdict: "FAIL",
         message: err.message,

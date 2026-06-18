@@ -1,0 +1,97 @@
+{
+  "proof_version": "3",
+  "pipeline_run_id": "conformance-identity",
+  "chunk_sequence": "0",
+  "table": {
+    "catalog_database": "default",
+    "catalog_table": "output"
+  },
+  "environment_binding": {
+    "aws_account_id": "local",
+    "environment": "dev",
+    "table_uuid": "a44789f55d754ebb44b0f5ad1a89a2d361a22a4fd13419b6c53acc0632b4687b",
+    "region": "us-east-1"
+  },
+  "contract_binding": null,
+  "iceberg_snapshot_id": "1001",
+  "snapshot_pin": {
+    "sql": "-- Pin to proven snapshot 1001\nSELECT * FROM \"default\".\"output\" /* snapshot_id=1001 */",
+    "snapshot_id": "1001",
+    "engine": "athena",
+    "note": "Use Iceberg snapshot metadata or time travel with snapshot_id from proof"
+  },
+  "schema_fingerprint": "6f37d16371651dfe5584196e0365622eb7f30c93ecf2fc7af11fcb68136b850a",
+  "multiset": {
+    "identity_fields": [
+      "id"
+    ],
+    "content_fields": [
+      "id",
+      "amount"
+    ],
+    "source_hash": "f81c96c0f970555801112837d6b58a1c4f609288691988cda936444637bd42ba",
+    "sink_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+    "sink_materialization": "read_back",
+    "mode": "identity"
+  },
+  "transform_verification": {
+    "mode": "identity",
+    "invariants": [
+      {
+        "id": "derived_sum",
+        "expression": "SUM(amount) * 1",
+        "source_value": "1000",
+        "expected_sink_value": "1000",
+        "actual_sink_value": "1000",
+        "tolerance": "0",
+        "pass": true
+      },
+      {
+        "id": "row_count",
+        "expression": "COUNT(source) == COUNT(sink)",
+        "source_value": "1",
+        "expected_sink_value": "1",
+        "actual_sink_value": "1",
+        "tolerance": "0",
+        "pass": true
+      }
+    ],
+    "group_lineage_hash": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "transform_content_hash": "8c7a544b54c857d341976663c1721f00cca7e05d854a3cf7bd33d65a9b829fcc",
+    "numeric_model": "minor_units_for_money"
+  },
+  "reproducible_computation": {
+    "claim_version": "1",
+    "statement": "output is the deterministic result of transform T over signed inputs I",
+    "transform_content_hash": "8c7a544b54c857d341976663c1721f00cca7e05d854a3cf7bd33d65a9b829fcc",
+    "input_proof_ids": [],
+    "output_logical_hash": "f81c96c0f970555801112837d6b58a1c4f609288691988cda936444637bd42ba",
+    "pipeline_run_id": "conformance-identity"
+  },
+  "sink_artifacts": {
+    "manifest_digest": null,
+    "logical_content": {
+      "logical_content_hash": "f81c96c0f970555801112837d6b58a1c4f609288691988cda936444637bd42ba",
+      "row_count": "1",
+      "compaction_safe": true
+    },
+    "file_digests": [
+      {
+        "uri": "s3://fixture/identity.parquet",
+        "sha256": "fixture",
+        "full_sha256": "fixture",
+        "footer_sha256": "fixture",
+        "digest_type": "parquet_footer",
+        "row_count": "1",
+        "physical_binding": "secondary"
+      }
+    ]
+  },
+  "failure_localization": null,
+  "not_before": "2026-06-18T00:58:35.111Z",
+  "not_after": "2026-06-19T00:58:35.111Z",
+  "ttl_sec": 86400,
+  "signed_at": "2026-06-18T00:58:35.111Z",
+  "proof_id": "a02379e711847194889a9cef741c02db81a94c84f8c4a07dce496d6084f297d2",
+  "signing": null
+}

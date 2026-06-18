@@ -87,7 +87,7 @@ These map directly to portal screens — no custom BI required to start:
 | “Who approved consumer access?” | **Approvals** log with steward identity |
 | “Can we roll back a bad deploy?” | **Version diff and rollback** on the pipeline canvas |
 
-*Honest limit:* CogniMesh proves **data integrity and decision context**, not that an LLM’s business judgment is correct.
+*Honest limits:* CogniMesh proves **data integrity and decision context**, not that an LLM’s business judgment is correct. For **aggregations and joins**, today’s check is row-preserving multiset match — verifying transform **rules** (control totals, per-group lineage) is on the [roadmap](vaquar-pattern.md#hardening-roadmap).
 
 ### Investment framing (build vs assemble)
 
@@ -237,6 +237,7 @@ CogniMesh uses the **[Vaquar Pattern](vaquar-pattern.md)** — proof before publ
 **What proof does not prove**
 
 - That business rules or ML models are “correct” — only that data was not silently corrupted in the pipe.
+- That an **aggregation or join** allocated amounts to the right groups — multiset match is for **row-preserving** pipelines; transform-rule verification is [planned](vaquar-pattern.md#multiset-equality-vs-transform-verification), not live yet.
 - That an AI agent’s **judgment** is right — only that it used **verified inputs** when attestations are enforced.
 
 For AI-heavy flows, CogniMesh also supports **decision attestations**: a signed record that an agent’s output was produced from gateway-verified data, not self-declared inputs.
@@ -308,6 +309,7 @@ A lake stores files. CogniMesh adds **contracts, proof before publish, marketpla
 | Top 3 workflows (prove → deploy → consume) | [TOP3_FEATURES.md](TOP3_FEATURES.md) |
 | Steward agent template (optional automation) | [CogniMesh Data Steward tutorial](tutorials/agents/cognimesh-steward.md) |
 | Technical proof specification | [Vaquar Pattern](vaquar-pattern.md) |
+| Hardening roadmap (honest limits + what's next) | [Vaquar Pattern — roadmap](vaquar-pattern.md#hardening-roadmap) |
 | Portal button map | [PORTAL_UI.md](PORTAL_UI.md) |
 | Local demo setup | [GETTING_STARTED.md](GETTING_STARTED.md) |
 

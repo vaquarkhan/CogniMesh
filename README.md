@@ -119,6 +119,7 @@
 <p align="center">
   <a href="docs/README-business-stewards.md"><b>📘 Business &amp; steward guide</b></a> ·
   <a href="docs/vaquar-pattern.md"><b>⭐ The Vaquar Pattern</b></a> ·
+  <a href="docs/vaquar-pattern.md#hardening-roadmap"><b>🛣 Hardening roadmap</b></a> ·
   <a href="docs/PIPELINE_E2E_DIAGRAM.md"><b>📐 Pipeline E2E Diagram</b></a> ·
   <a href="docs/drag-drop-pipeline-flow.md">Drag-and-drop E2E</a> ·
   <a href="docs/data-contract-spec.md">Data Contract</a> ·
