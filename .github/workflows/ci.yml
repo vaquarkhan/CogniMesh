@@ -26,6 +26,13 @@ jobs:
           done
           exit 1
 
+      - name: npm audit (critical)
+        run: npm audit --omit=dev --audit-level=critical
+
+      - name: npm audit report (high, informational)
+        continue-on-error: true
+        run: npm audit --omit=dev --audit-level=high
+
       - name: Lint
         run: npm run lint
 

@@ -23,6 +23,17 @@ variable "enable_lakeformation" {
   default = true
 }
 
+variable "sensitive_kms_key_arn" {
+  type        = string
+  default     = null
+  description = "CMK for checkpoint/proof buckets; grants decrypt to domain writer."
+}
+
+variable "enable_eks" {
+  type    = bool
+  default = false
+}
+
 variable "tags" {
   type    = map(string)
   default = {}
@@ -52,32 +63,53 @@ resource "aws_iam_role_policy" "pipeline_orchestrator" {
 
   policy = jsonencode({
     Version = "2012-10-17"
-    Statement = [
-      {
+    Statement = concat(
+      [
+        {
+          Sid    = "InvokeMeshLambdas"
+          Effect = "Allow"
+          Action = ["lambda:InvokeFunction"]
+          Resource = [
+            "arn:aws:lambda:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:function:${var.name_prefix}-*",
+          ]
+        },
+        {
+          Sid    = "GlueJobRuns"
+          Effect = "Allow"
+          Action = [
+            "glue:StartJobRun",
+            "glue:GetJobRun",
+          ]
+          Resource = [
+            "arn:aws:glue:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:job/${var.name_prefix}-*",
+          ]
+        },
+        {
+          # Step Functions log delivery requires these actions on Resource "*".
+          Sid    = "StepFunctionsLogDelivery"
+          Effect = "Allow"
+          Action = [
+            "logs:CreateLogDelivery",
+            "logs:GetLogDelivery",
+            "logs:UpdateLogDelivery",
+            "logs:DeleteLogDelivery",
+            "logs:ListLogDeliveries",
+            "logs:PutResourcePolicy",
+            "logs:DescribeResourcePolicies",
+            "logs:DescribeLogGroups",
+          ]
+          Resource = "*"
+        },
+      ],
+      var.enable_eks ? [{
+        Sid    = "EksRunJob"
         Effect = "Allow"
-        Action = [
-          "lambda:InvokeFunction",
-          "glue:StartJobRun",
-          "glue:GetJobRun",
-          "eks:RunJob",
+        Action = ["eks:RunJob"]
+        Resource = [
+          "arn:aws:eks:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:cluster/${var.name_prefix}-*",
         ]
-        Resource = "*"
-      },
-      {
-        Effect = "Allow"
-        Action = [
-          "logs:CreateLogDelivery",
-          "logs:GetLogDelivery",
-          "logs:UpdateLogDelivery",
-          "logs:DeleteLogDelivery",
-          "logs:ListLogDeliveries",
-          "logs:PutResourcePolicy",
-          "logs:DescribeResourcePolicies",
-          "logs:DescribeLogGroups",
-        ]
-        Resource = "*"
-      },
-    ]
+      }] : []
+    )
   })
 }
 
@@ -151,6 +183,14 @@ resource "aws_iam_role_policy" "domain_writer_data" {
         Effect   = "Allow"
         Action   = ["lakeformation:GetDataAccess"]
         Resource = "*"
+      }] : [],
+      var.sensitive_kms_key_arn != null ? [{
+        Sid    = "KmsSensitiveBuckets"
+        Effect = "Allow"
+        Action = [
+          "kms:Decrypt", "kms:Encrypt", "kms:GenerateDataKey", "kms:DescribeKey",
+        ]
+        Resource = [var.sensitive_kms_key_arn]
       }] : []
     )
   })

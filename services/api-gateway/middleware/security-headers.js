@@ -12,6 +12,9 @@ function securityHeaders(req, res, next) {
     "Content-Security-Policy",
     "default-src 'none'; frame-ancestors 'none'; base-uri 'none'"
   );
+  if (process.env.NODE_ENV === "production" || process.env.FORCE_HSTS === "true") {
+    res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
+  }
   next();
 }
 

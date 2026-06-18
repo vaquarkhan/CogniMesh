@@ -2,6 +2,8 @@
 
 const path = require("path");
 require("../../lib/load-env").loadRepoEnv({ root: path.join(__dirname, "../..") });
+const { exitOnProductionAuthMisconfig } = require("../../lib/auth-production-guard");
+exitOnProductionAuthMisconfig();
 require("../../lib/tracing-otel").initOtel();
 
 const express = require("express");
@@ -276,11 +278,17 @@ app.get("/api/v1/products/:id/consumer-detail", requireAuth, async (req, res) =>
   const tableMatch = manifestYaml.match(/catalogTable:\s*(\S+)/);
   const database = dbMatch?.[1] || product?.domain || "default";
   const table = tableMatch?.[1] || product?.name || "output";
+  let athenaUrl = null;
+  try {
+    athenaUrl = athenaConsoleUrl({ database, table });
+  } catch {
+    athenaUrl = null;
+  }
   res.json({
     product: product || { id: req.params.id, name: req.params.id },
     schema,
     sampleRows,
-    athenaUrl: athenaConsoleUrl({ database, table }),
+    athenaUrl,
     proofGated: /pattern:\s*vaquar/.test(manifestYaml) || /qualityPolicyId/.test(manifestYaml),
     gateway: {
       serveEndpoint: "/api/v1/gateway/serve",

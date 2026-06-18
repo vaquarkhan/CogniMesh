@@ -1,6 +1,6 @@
 # CogniMesh Terraform: Production Infrastructure
 
-Vaquar Pattern–aligned IaC for CogniMesh. Module layout mirrors [aws-serverless-datamesh-framework](https://github.com/vaquarkhan/aws-serverless-datamesh-framework) conventions.
+Vaquar Pattern-aligned IaC for CogniMesh. Module layout mirrors [aws-serverless-datamesh-framework](https://github.com/vaquarkhan/aws-serverless-datamesh-framework) conventions.
 
 **Pattern spec:** [docs/vaquar-pattern.md](../../docs/vaquar-pattern.md) (The Vaquar Pattern by Vaquarkhan)
 
@@ -8,73 +8,118 @@ Vaquar Pattern–aligned IaC for CogniMesh. Module layout mirrors [aws-serverles
 
 | Module | Responsibility |
 |--------|----------------|
-| `networking` | VPC, private/public subnets |
-| `storage` | Checkpoint, proof, lakehouse, bronze/silver/gold S3 (encrypted, no public access) |
-| `iam` | Pipeline orchestrator + domain writer roles (LF-aware) |
+| `networking` | VPC, public/private subnets, IGW, NAT |
+| `storage` | Checkpoint/proof/lakehouse/medallion S3; optional KMS CMK for proofs |
+| `iam` | Pipeline orchestrator + domain writer roles (LF + KMS aware) |
 | `glue` | Glue Data Catalog database |
 | `dynamodb` | Marketplace product registry |
 | `orchestration` | Step Functions with integrity-gate-first ASL |
 | `governance` | Lake Formation consumer SELECT + steward grant policy |
 | `messaging` | SQS DLQ for pipeline failures |
-| `cognito` | **Admin-only users**: self-registration disabled |
+| `cognito` | Admin-only users (no self-registration), MFA configurable |
 | `lambda` | Integrity gate + domain writer Lambda functions |
-| `eks` | EKS cluster for cognitive runtime workloads |
-| `portal-cdn` | S3 origin + CloudFront distribution for portal static assets |
+| `eks` | EKS cluster for cognitive runtime (opt-in) |
+| `portal-cdn` | S3 + CloudFront OAC, security headers, optional WAF, `/api/*` proxy |
+| `api-service` | ECS Fargate + public ALB for `cognimesh-api` (private tasks) |
+| `security-logging` | CloudTrail + GuardDuty (optional) |
+| `bootstrap/remote-state` | One-time S3 + DynamoDB + KMS for Terraform state |
 
 ## Environments
 
 ```
 environments/
   dev/    # Auto-named S3 buckets, networking, glue, dynamodb
-  prod/   # Full stack with feature flags
+  prod/   # Full stack with security feature flags
 ```
 
-## Production deploy
+## Production deploy sequence
+
+**Do not apply prod without remote state and the API tier** unless you are only experimenting in a sandbox account.
+
+### 1. Bootstrap remote state (once per account/region)
 
 ```bash
-# Lambda zips are built automatically during terraform plan/apply (external data source).
-# To build locally for inspection:
-npm run package:lambda
-npm run test:lambda-zips
+cd infra/terraform/bootstrap/remote-state
+terraform init && terraform apply
+terraform output backend_hcl   # paste into environments/prod/backend.hcl
+```
 
+### 2. Configure prod
+
+```bash
 cd environments/prod
 cp terraform.tfvars.example terraform.tfvars
+cp backend.hcl.example backend.hcl   # fill from bootstrap output
 # Edit bucket names (globally unique) and default_admin_email
+```
 
-terraform init
+### 3. Init, plan, apply
+
+```bash
+terraform init -backend-config=backend.hcl
 terraform plan
 terraform apply
 ```
 
-### Cognito default user
+Lambda zips are built automatically during plan/apply (external data source). To build locally:
 
-- `allow_admin_create_user_only = true`: **no self-registration**
+```bash
+npm run package:lambda
+npm run test:lambda-zips
+```
+
+### 4. Post-apply: Cognito callback + portal upload
+
+Add the CloudFront URL to Cognito callback/logout URLs (or re-apply with updated `portal_callback_urls`):
+
+```bash
+terraform output portal_cloudfront_url
+```
+
+Build and sync the portal (no `VITE_API_URL` needed when `enable_api_service` proxies `/api/*` via CloudFront):
+
+```bash
+cd portal && npm ci && npm run build
+aws s3 sync dist/ s3://$(cd ../infra/terraform/environments/prod && terraform output -raw portal_bucket) --delete
+```
+
+## Feature flags (prod defaults)
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `enable_cognito` | `true` | Cognito user pool + SPA client |
+| `cognito_mfa_configuration` | `ON` | Enforce MFA for admin portal users |
+| `enable_step_functions` | `true` | Pipeline orchestrator SFN |
+| `enable_lake_formation_governance` | `true` | LF consumer permissions |
+| `enable_integrity_gate_lambda` | `true` | Integrity gate + domain writer Lambdas |
+| `enable_eks` | `false` | EKS for cognitive pipelines only |
+| `enable_portal_cdn` | `true` | CloudFront + S3 portal hosting |
+| `enable_waf` | `true` | WAFv2 on CloudFront (OWASP + rate limit; adds cost) |
+| `enable_api_service` | `true` | ECS Fargate API (requires `enable_platform_ops`) |
+| `enable_platform_ops` | `true` | Athena workgroup, platform DynamoDB, API IAM role |
+| `enable_kms_for_sensitive_buckets` | `true` | CMK for checkpoint + proof buckets |
+| `enable_security_logging` | `true` | CloudTrail + GuardDuty modules |
+
+Set `enable_waf = false` to reduce monthly cost if you accept L7 exposure on the portal.
+
+## Cognito default user
+
+- `allow_admin_create_user_only = true`: no self-registration
 - Terraform creates one admin user with a random initial password
-- Retrieve credentials:
 
 ```bash
 terraform output -raw cognito_default_admin_initial_password
 terraform output cognito_default_admin_username
 ```
 
-Wire portal/API:
+## Security defaults
 
-```bash
-export COGNITO_USER_POOL_ID=$(terraform output -raw cognito_user_pool_id)
-export COGNITO_CLIENT_ID=$(terraform output -raw cognito_client_id)
-export AUTH_DISABLED=false
-```
-
-## Feature flags (prod)
-
-| Variable | Default | Purpose |
-|----------|---------|---------|
-| `enable_cognito` | `true` | Cognito user pool + SPA client |
-| `enable_step_functions` | `true` | Pipeline orchestrator SFN |
-| `enable_lake_formation_governance` | `true` | LF consumer permissions |
-| `enable_integrity_gate_lambda` | `true` | Integrity gate + domain writer Lambdas |
-| `enable_eks` | `true` | EKS cluster for cognitive pipelines |
-| `enable_portal_cdn` | `true` | CloudFront + S3 portal hosting |
+- **State:** S3 backend with versioning, SSE-KMS, DynamoDB locking (after bootstrap)
+- **Portal:** OAC (SigV4), HTTPS redirect, response headers (HSTS, X-Frame-Options, etc.), optional WAF
+- **API:** ECS tasks in private subnets; ALB in public subnets; `AUTH_DISABLED=false` in container env
+- **S3:** versioning, public access blocked; checkpoint/proof use customer-managed KMS when enabled
+- **Cognito:** 12+ char password policy, MFA on by default in prod, no public sign-up
+- **Detective:** CloudTrail (multi-region, log validation) + GuardDuty when `enable_security_logging`
 
 ## Vaquar Pattern alignment
 
@@ -83,10 +128,3 @@ Rules (integrity-gate) → Physical (Glue/Lambda) → Verify (VRP) → Metadata 
 ```
 
 CogniMesh Step Functions template starts with `IntegrityGate` state before extract/transform/load.
-
-## Security defaults
-
-- S3: versioning, AES256 encryption, public access blocked
-- Cognito: 12+ char password policy, optional MFA, no public sign-up
-- DynamoDB: PITR + server-side encryption
-- SQS DLQ: KMS alias

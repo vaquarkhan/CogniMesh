@@ -1,0 +1,9 @@
+# Copy to backend.hcl (gitignored) after running bootstrap/remote-state.
+# terraform init -backend-config=backend.hcl
+
+bucket         = "cognimesh-tfstate-ACCOUNT_ID"
+key            = "prod/terraform.tfstate"
+region         = "us-east-1"
+dynamodb_table = "cognimesh-tfstate-lock"
+encrypt        = true
+kms_key_id     = "arn:aws:kms:us-east-1:ACCOUNT_ID:key/KEY_ID"

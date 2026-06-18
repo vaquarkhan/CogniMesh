@@ -3,6 +3,21 @@ locals {
   tags = {
     Domain = "platform"
   }
+  # Include portal_cloudfront_url in portal_callback_urls after first apply (updates Cognito + API CORS).
+  api_cors_origins = distinct(compact(var.portal_callback_urls))
+  api_environment = {
+    NODE_ENV                  = "production"
+    AWS_REGION                = var.aws_region
+    CATALOG_STORAGE           = "memory"
+    CATALOG_FALLBACK          = "embedded"
+    COGNITO_USER_POOL_ID      = try(module.cognito[0].user_pool_id, "")
+    COGNITO_CLIENT_ID         = try(module.cognito[0].client_id, "")
+    PLATFORM_STORE            = try(module.platform_ops[0].platform_env.PLATFORM_STORE, "file")
+    PLATFORM_DYNAMODB_TABLE   = try(module.platform_ops[0].platform_env.PLATFORM_DYNAMODB_TABLE, "")
+    ATHENA_WORKGROUP          = try(module.platform_ops[0].platform_env.ATHENA_WORKGROUP, "")
+    ATHENA_OUTPUT_LOCATION    = try(module.platform_ops[0].platform_env.ATHENA_OUTPUT_LOCATION, "")
+    AWS_BEDROCK_AGENT_ROLE_ARN = try(module.platform_ops[0].platform_env.AWS_BEDROCK_AGENT_ROLE_ARN, "")
+  }
 }
 
 data "aws_caller_identity" "current" {}
@@ -19,16 +34,28 @@ module "networking" {
 module "storage" {
   source = "../../modules/storage"
 
-  name_prefix               = var.name_prefix
-  checkpoint_bucket_name    = var.checkpoint_bucket_name
-  proof_bucket_name         = var.proof_bucket_name
-  lakehouse_bucket_name     = var.lakehouse_bucket_name
-  bronze_bucket_name        = var.bronze_bucket_name
-  silver_bucket_name        = var.silver_bucket_name
-  gold_bucket_name          = var.gold_bucket_name
-  checkpoint_retention_days = 30
-  proof_retention_days      = 90
-  tags                      = local.tags
+  name_prefix                      = var.name_prefix
+  checkpoint_bucket_name           = var.checkpoint_bucket_name
+  proof_bucket_name                = var.proof_bucket_name
+  lakehouse_bucket_name            = var.lakehouse_bucket_name
+  bronze_bucket_name               = var.bronze_bucket_name
+  silver_bucket_name               = var.silver_bucket_name
+  gold_bucket_name                 = var.gold_bucket_name
+  checkpoint_retention_days        = 30
+  proof_retention_days             = 90
+  enable_kms_for_sensitive_buckets = var.enable_kms_for_sensitive_buckets
+  tags                             = local.tags
+}
+
+module "security_logging" {
+  count  = var.enable_security_logging ? 1 : 0
+  source = "../../modules/security-logging"
+
+  name_prefix       = var.name_prefix
+  enable_cloudtrail = var.enable_cloudtrail
+  enable_guardduty  = var.enable_guardduty
+  enable_config     = var.enable_config
+  tags              = local.tags
 }
 
 module "messaging" {
@@ -47,6 +74,8 @@ module "iam" {
   lakehouse_bucket_arn  = module.storage.lakehouse_bucket_arn
   glue_database_name    = var.glue_database_name
   enable_lakeformation  = var.enable_lake_formation_governance
+  sensitive_kms_key_arn = module.storage.sensitive_kms_key_arn
+  enable_eks            = var.enable_eks
   tags                  = local.tags
 }
 
@@ -94,6 +123,7 @@ module "cognito" {
   default_admin_email  = var.default_admin_email
   portal_callback_urls = var.portal_callback_urls
   portal_logout_urls   = var.portal_logout_urls
+  mfa_configuration    = var.cognito_mfa_configuration
   tags                 = local.tags
 }
 
@@ -146,11 +176,40 @@ module "platform_ops" {
   tags                  = local.tags
 }
 
+module "api_service" {
+  count  = var.enable_api_service && var.enable_platform_ops ? 1 : 0
+  source = "../../modules/api-service"
+
+  name_prefix        = var.name_prefix
+  vpc_id             = module.networking.vpc_id
+  public_subnet_ids  = module.networking.public_subnet_ids
+  private_subnet_ids = module.networking.private_subnet_ids
+  container_image    = var.api_container_image
+  task_role_arn      = module.platform_ops[0].api_platform_role_arn
+  environment        = local.api_environment
+  cors_origins       = local.api_cors_origins
+  desired_count      = var.api_desired_count
+  enable_waf         = var.enable_waf
+  waf_rate_limit     = var.waf_rate_limit
+  tags               = local.tags
+
+  depends_on = [module.platform_ops]
+}
+
 module "portal_cdn" {
   count  = var.enable_portal_cdn ? 1 : 0
   source = "../../modules/portal-cdn"
 
-  name_prefix        = var.name_prefix
-  portal_bucket_name = var.portal_bucket_name
-  tags               = local.tags
+  providers = {
+    aws.us_east_1 = aws.us_east_1
+  }
+
+  name_prefix         = var.name_prefix
+  portal_bucket_name  = var.portal_bucket_name
+  enable_waf          = var.enable_waf
+  waf_rate_limit      = var.waf_rate_limit
+  api_origin_domain   = try(module.api_service[0].api_alb_dns, "")
+  tags                = local.tags
+
+  depends_on = [module.api_service]
 }

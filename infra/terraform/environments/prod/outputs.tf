@@ -91,6 +91,34 @@ output "api_platform_role_arn" {
   value = try(module.platform_ops[0].api_platform_role_arn, null)
 }
 
+output "portal_cloudfront_url" {
+  value = try(module.portal_cdn[0].cloudfront_url, null)
+}
+
+output "portal_waf_enabled" {
+  value = try(module.portal_cdn[0].waf_enabled, false)
+}
+
+output "api_url" {
+  value = try(module.api_service[0].api_url, null)
+}
+
+output "api_alb_dns" {
+  value = try(module.api_service[0].api_alb_dns, null)
+}
+
+output "api_waf_enabled" {
+  value = try(module.api_service[0].waf_enabled, false)
+}
+
+output "sensitive_kms_key_arn" {
+  value = module.storage.sensitive_kms_key_arn
+}
+
+output "cloudtrail_bucket" {
+  value = try(module.security_logging[0].cloudtrail_bucket, null)
+}
+
 output "platform_env" {
   value     = try(module.platform_ops[0].platform_env, {})
   sensitive = false

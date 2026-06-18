@@ -92,11 +92,70 @@ variable "portal_bucket_name" {
 }
 
 variable "enable_eks" {
+  type        = bool
+  default     = false
+  description = "EKS for cognitive Go runtime only; keep false unless using agentic pipelines."
+}
+
+variable "enable_portal_cdn" {
   type    = bool
   default = true
 }
 
-variable "enable_portal_cdn" {
+variable "enable_waf" {
+  type        = bool
+  default     = true
+  description = "AWS WAF on CloudFront portal (managed OWASP + rate limit). Adds monthly cost."
+}
+
+variable "waf_rate_limit" {
+  type    = number
+  default = 2000
+}
+
+variable "enable_api_service" {
+  type        = bool
+  default     = true
+  description = "ECS Fargate + ALB hosting cognimesh-api (requires enable_platform_ops)."
+}
+
+variable "api_container_image" {
+  type    = string
+  default = "ghcr.io/vaquarkhan/cognimesh-api:1.0.0"
+}
+
+variable "api_desired_count" {
+  type    = number
+  default = 2
+}
+
+variable "cognito_mfa_configuration" {
+  type        = string
+  default     = "ON"
+  description = "Cognito MFA: ON (required), OPTIONAL, or OFF."
+}
+
+variable "enable_kms_for_sensitive_buckets" {
+  type    = bool
+  default = true
+}
+
+variable "enable_security_logging" {
+  type    = bool
+  default = true
+}
+
+variable "enable_cloudtrail" {
+  type    = bool
+  default = true
+}
+
+variable "enable_guardduty" {
+  type    = bool
+  default = true
+}
+
+variable "enable_config" {
   type    = bool
   default = true
 }

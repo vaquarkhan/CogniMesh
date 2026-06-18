@@ -15,13 +15,23 @@ glue_database_name         = "cognimesh_mesh"
 consumer_principal_arn     = "arn:aws:iam::ACCOUNT_ID:role/cognimesh-consumer"
 
 enable_cognito = true
+cognito_mfa_configuration = "ON"
 enable_step_functions = true
 enable_lake_formation_governance = true
 enable_integrity_gate_lambda = true
-enable_eks = true
+enable_eks = false
 enable_portal_cdn = true
+enable_waf = true
+enable_api_service = true
+enable_platform_ops = true
+enable_kms_for_sensitive_buckets = true
+enable_security_logging = true
+enable_config = true
 
 portal_callback_urls = ["http://localhost:3000/", "https://portal.yourcompany.com/"]
+# After first apply, add terraform output portal_cloudfront_url here and re-apply.
 
 portal_bucket_name = "cognimesh-prod-portal-UNIQUE"
 portal_logout_urls   = ["http://localhost:3000/", "https://portal.yourcompany.com/"]
+
+# Remote state: see backend.hcl.example and bootstrap/remote-state/

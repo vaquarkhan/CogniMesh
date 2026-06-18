@@ -1,6 +1,7 @@
 "use strict";
 
 const { CognitoJwtVerifier } = require("aws-jwt-verify");
+const { isProductionRuntime } = require("../../../lib/auth-production-guard");
 
 let verifier = null;
 
@@ -22,6 +23,12 @@ function getVerifier() {
 
 async function requireAuth(req, res, next) {
   if (process.env.AUTH_DISABLED === "true") {
+    if (isProductionRuntime()) {
+      return res.status(503).json({
+        status: "error",
+        errors: ["Authentication bypass is not allowed in production."],
+      });
+    }
     req.auth = { userEmail: "local-dev@cognimesh.local", sub: "local-dev" };
     return next();
   }
