@@ -41,6 +41,49 @@
   Zero-code pipelines · Proof-gated publication · Agentic AI · Fine-grained governance
 </p>
 
+---
+
+## Start here (plain English)
+
+**Version 1.0.0** — CogniMesh is a **control plane for trustworthy data products on AWS**. You design pipelines in a visual portal (no coding required to start), the platform checks your design, runs the pipeline, and **only publishes data to the marketplace when integrity checks pass**.
+
+| If you are… | Read this first |
+|-------------|-----------------|
+| **C-suite / executive (CEO, CFO, CDO, CISO)** | **[Business guide — C-suite summary](docs/README-business-stewards.md#for-c-suite--executive-leadership)** (2 min) |
+| **Business / product owner** | **[Business & steward guide](docs/README-business-stewards.md)** (plain language only) |
+| **Data steward / governance** | **[Business & steward guide](docs/README-business-stewards.md)** — approvals, proof, marketplace, audit |
+| **Engineer / architect** | [At a glance](#at-a-glance), [Quick start](#quick-start), [Repository layout](#repository-layout), [Vaquar Pattern](docs/vaquar-pattern.md) |
+
+**The problem:** Teams ship dashboards and datasets that *look* fine but nobody can prove the numbers match the source. When something breaks, you discover it in production—not at publish time.
+
+**What CogniMesh does:** You drag blocks on a canvas (sources → transforms → outputs). CogniMesh turns that into a governed **data contract**, runs it on AWS, and attaches a **cryptographic proof** that source and published data match—before the product goes live in the **marketplace**.
+
+**In one sentence:** *Design visually → prove before publish → operate with lineage and access control → let consumers discover governed data products.*
+
+<p align="center">
+  <a href="docs/README-business-stewards.md"><strong>📘 Business &amp; data steward guide</strong></a>
+  &nbsp;·&nbsp;
+  <a href="docs/README-business-stewards.md#for-c-suite--executive-leadership"><strong>👔 C-suite summary (2 min)</strong></a>
+  &nbsp;·&nbsp; plain language · no code required
+</p>
+
+<details>
+<summary><strong>Key terms (non-technical)</strong></summary>
+
+| Term | Plain meaning |
+|------|----------------|
+| **Data product** | A governed dataset (or API) your team owns and others can subscribe to |
+| **Marketplace** | Catalog where consumers find and request access to data products |
+| **Proof / Vaquar Pattern** | Evidence that published data was not silently changed or dropped in the pipeline |
+| **Agent** | An AI assistant (e.g. Bedrock) that reads your data and takes actions—with guardrails |
+| **Data contract** | Machine-readable rules for what the pipeline must do (generated from your canvas) |
+
+</details>
+
+> **Technical documentation** — install commands, APIs, Terraform, and runtime details begin after the platform demos below.
+
+---
+
 ### Platform features (how it works)
 
 <p align="center">
@@ -74,6 +117,7 @@
 </p>
 
 <p align="center">
+  <a href="docs/README-business-stewards.md"><b>📘 Business &amp; steward guide</b></a> ·
   <a href="docs/vaquar-pattern.md"><b>⭐ The Vaquar Pattern</b></a> ·
   <a href="docs/PIPELINE_E2E_DIAGRAM.md"><b>📐 Pipeline E2E Diagram</b></a> ·
   <a href="docs/drag-drop-pipeline-flow.md">Drag-and-drop E2E</a> ·
@@ -85,6 +129,8 @@
 ---
 
 ## At a glance
+
+> **Business summary:** Visual designer → governance checks → AWS execution → proof before publish → marketplace. No YAML required to start.
 
 CogniMesh lets **business users** design data pipelines in a visual portal. The platform generates **`DataContract.yaml`**, runs governance checks, compiles **AWS Step Functions**, registers products in a **marketplace**, and deploys to AWS when enabled.
 
