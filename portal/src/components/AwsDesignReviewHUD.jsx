@@ -126,8 +126,11 @@ function FindingRow({
             <div className="aws-ai-fix-box">
               <strong>AI fix guide</strong>
               <p>{fixPlan.aiExplanation}</p>
+              {fixPlan.mode === "amazon_q" && (
+                <span className="properties-hint">Amazon Q · AMAZON_Q_FIX_ENABLED</span>
+              )}
               {fixPlan.mode === "llm" && (
-                <span className="properties-hint">Bedrock · COPILOT_LLM_ENABLED</span>
+                <span className="properties-hint">Amazon Bedrock · COPILOT_LLM_ENABLED</span>
               )}
             </div>
           )}

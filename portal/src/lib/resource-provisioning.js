@@ -9,7 +9,13 @@ export function isRdsSource(data) {
 }
 
 export function isS3LikeSink(data) {
-  return data?.blockType === "sink" && (data?.targetType === "s3" || data?.targetType === "iceberg");
+  if (data?.blockType !== "sink") return false;
+  if (data?.targetType === "s3" || data?.targetType === "iceberg") return true;
+  return /^s3:\/\//i.test(data?.location || "");
+}
+
+export function hasResourceSetupWizard(data) {
+  return isRdsSource(data) || isS3Source(data) || isS3LikeSink(data);
 }
 
 export function isS3Source(data) {

@@ -1850,6 +1850,17 @@ textarea:focus-visible,
   margin: 0.5rem 0;
 }
 
+.properties-resource-banner {
+  margin: 0.5rem 0 0.75rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid rgba(16, 185, 129, 0.45);
+  background: rgba(16, 185, 129, 0.1);
+  font-size: 0.85rem;
+}
+.properties-resource-banner strong { display: block; margin-bottom: 0.25rem; }
+.properties-resource-banner p { margin: 0; color: #cbd5e1; }
+
 .resource-setup-wizard {
   margin: 0.75rem 0 1rem;
   padding: 0.75rem;

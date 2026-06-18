@@ -123,6 +123,14 @@ cd portal && npm ci && npm run build
 aws s3 sync dist/ s3://$(cd ../infra/terraform/environments/prod && terraform output -raw portal_bucket) --delete
 ```
 
+Or from repo root:
+
+```bash
+PORTAL_S3_BUCKET=your-portal-bucket CLOUDFRONT_DISTRIBUTION_ID=E123ABC npm run deploy:portal
+```
+
+**CI auto-deploy:** set repository variable `PORTAL_DEPLOY_ENABLED=true`, secrets `PORTAL_S3_BUCKET`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and optional variable `CLOUDFRONT_DISTRIBUTION_ID`. Pushes to `portal/**` on `main` run `.github/workflows/portal-s3-main.yml`.
+
 ## Feature flags (prod defaults)
 
 | Variable | Default | Purpose |

@@ -8,7 +8,7 @@ import { applyProcessingTemplate } from "../lib/processing-templates";
 import DataPreviewButton from "./DataPreviewButton";
 import BusinessRulesEditor from "./BusinessRulesEditor";
 import { RdsResourceSetup, SinkResourceSetup, S3SourceResourceSetup } from "./ResourceSetupWizard";
-import { isS3LikeSink, isS3Source } from "../lib/resource-provisioning";
+import { hasResourceSetupWizard, isRdsSource, isS3LikeSink, isS3Source } from "../lib/resource-provisioning";
 
 const AWS_SERVICE_KEYS = Object.keys(AWS_SERVICES);
 
@@ -155,53 +155,13 @@ export default function PropertiesPanel({
           </p>
         </div>
       )}
-      {awsFindings?.length > 0 && (
-        <div className="props-aws-findings" data-testid="props-aws-findings">
-          <div className="props-aws-findings-head">
-            <strong>AWS issues on this block ({awsFindings.length})</strong>
-          </div>
-          <p className="props-aws-findings-hint">
-            Fix directly below — opens the design review guide with steps for encryption, Lake Formation, integrity gate, and more.
+      {hasResourceSetupWizard(d) && (
+        <div className="properties-resource-banner" data-testid="resource-setup-banner">
+          <strong>Resource setup</strong>
+          <p>
+            Default is <em>Create new</em> (Terraform provisions infrastructure). Choose <em>Use existing</em> only
+            when you already have the database or bucket in AWS.
           </p>
-          <ul className="props-aws-findings-list">
-            {awsFindings.map((f) => (
-              <li key={f.id} className={`props-aws-finding-item sev-${f.severity}`} data-testid={`props-aws-finding-${f.id}`}>
-                <div className="props-aws-finding-head">
-                  <span className={`sev-pill sev-${f.severity}`}>{f.severity}</span>
-                  <span className="props-aws-finding-title">{f.title}</span>
-                </div>
-                <small className="props-aws-finding-msg">{f.message}</small>
-                {f.fix && (
-                  <small className="props-aws-finding-fix">
-                    <strong>Quick fix:</strong> {f.fix}
-                  </small>
-                )}
-                {(onOpenAwsReviewFinding || onOpenAwsReview) && (
-                  <button
-                    type="button"
-                    className="deploy-btn compact props-aws-fix-btn"
-                    data-testid={`props-aws-fix-${f.id}`}
-                    onClick={() =>
-                      onOpenAwsReviewFinding ? onOpenAwsReviewFinding(f.id) : onOpenAwsReview?.()
-                    }
-                  >
-                    Fix this →
-                  </button>
-                )}
-                {onApplyFindingFix && (
-                  <button
-                    type="button"
-                    className="btn-secondary compact props-aws-apply-btn"
-                    data-testid={`props-aws-apply-${f.id}`}
-                    disabled={applyingFindingId === f.id}
-                    onClick={() => onApplyFindingFix(f)}
-                  >
-                    {applyingFindingId === f.id ? "Applying…" : "Apply fix"}
-                  </button>
-                )}
-              </li>
-            ))}
-          </ul>
         </div>
       )}
       <p className="field-tip block-tip">{tipFor(bt, "_default")}</p>
@@ -244,7 +204,7 @@ export default function PropertiesPanel({
               ))}
             </select>
           </FormField>
-          {(d.sourceType === "rds" || d.sourceType === "mysql") && (
+          {isRdsSource(d) && (
             <RdsResourceSetup data={d} onChange={update} pipelineMeta={pipelineMeta} />
           )}
           {isS3Source(d) && (
@@ -436,6 +396,56 @@ export default function PropertiesPanel({
 
       {["start", "merge", "pass", "integrity_gate"].includes(d.blockType) && (
         <p className="field-tip">{tipFor(d.blockType, "_default")}</p>
+      )}
+
+      {awsFindings?.length > 0 && (
+        <div className="props-aws-findings" data-testid="props-aws-findings">
+          <div className="props-aws-findings-head">
+            <strong>AWS issues on this block ({awsFindings.length})</strong>
+          </div>
+          <p className="props-aws-findings-hint">
+            Fix below — opens the design review guide with steps for encryption, Lake Formation, integrity gate, and more.
+          </p>
+          <ul className="props-aws-findings-list">
+            {awsFindings.map((f) => (
+              <li key={f.id} className={`props-aws-finding-item sev-${f.severity}`} data-testid={`props-aws-finding-${f.id}`}>
+                <div className="props-aws-finding-head">
+                  <span className={`sev-pill sev-${f.severity}`}>{f.severity}</span>
+                  <span className="props-aws-finding-title">{f.title}</span>
+                </div>
+                <small className="props-aws-finding-msg">{f.message}</small>
+                {f.fix && (
+                  <small className="props-aws-finding-fix">
+                    <strong>Quick fix:</strong> {f.fix}
+                  </small>
+                )}
+                {(onOpenAwsReviewFinding || onOpenAwsReview) && (
+                  <button
+                    type="button"
+                    className="deploy-btn compact props-aws-fix-btn"
+                    data-testid={`props-aws-fix-${f.id}`}
+                    onClick={() =>
+                      onOpenAwsReviewFinding ? onOpenAwsReviewFinding(f.id) : onOpenAwsReview?.()
+                    }
+                  >
+                    Fix this →
+                  </button>
+                )}
+                {onApplyFindingFix && (
+                  <button
+                    type="button"
+                    className="btn-secondary compact props-aws-apply-btn"
+                    data-testid={`props-aws-apply-${f.id}`}
+                    disabled={applyingFindingId === f.id}
+                    onClick={() => onApplyFindingFix(f)}
+                  >
+                    {applyingFindingId === f.id ? "Applying…" : "Apply fix"}
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
     </aside>
   );

@@ -29,6 +29,7 @@ describe("PropertiesPanel", () => {
         onMetaChange={() => {}}
       />
     );
+    expect(screen.getByTestId("resource-setup-banner")).toBeInTheDocument();
     expect(screen.getByTestId("rds-resource-setup")).toBeInTheDocument();
     expect(screen.getByText(/Create new database/i)).toBeInTheDocument();
   });

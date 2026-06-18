@@ -40,6 +40,7 @@ Portal entry: header **Operations** panel
 | `DEPLOY_APPROVAL_REQUIRED=true` | Deploy queues for steward approval (Steward → **Approvals** panel) |
 | `AWS_DEPLOY_ENABLED=true` | Create/update Step Functions on deploy (`AWS_STEP_FUNCTIONS_ROLE_ARN` required) |
 | `COPILOT_LLM_ENABLED=true` | Bedrock LLM copilot (`COPILOT_BEDROCK_MODEL_ID`) |
+| `AMAZON_Q_FIX_ENABLED=true` + `AMAZON_Q_APPLICATION_ID` | Amazon Q Business for fix guides and ops copilot (preferred over Bedrock) |
 | `AWS_IMPORT_ENABLED=true` | Live Step Functions describe for import |
 | `AWS_AGENT_DEPLOY_ENABLED=true` | Bedrock CreateAgent + KB/guardrail association |
 
