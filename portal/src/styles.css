@@ -1012,6 +1012,7 @@ textarea:focus-visible,
 .fix-wizard-msg { margin: 0 0 0.75rem; color: #cbd5e1; font-size: 0.9rem; }
 .fix-wizard-fields { margin-top: 0.75rem; }
 .fix-wizard-actions { flex-wrap: wrap; }
+.fix-wizard-ask-ai { margin-top: 0.5rem; font-size: 0.85rem; }
 .deploy-btn.compact { padding: 0.35rem 0.75rem; font-size: 0.85rem; }
 
 .error-list {

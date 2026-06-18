@@ -69,7 +69,3 @@ blocked_patterns:
   - field: target.location
     pattern: '(?i)(\*|public-read|allusers)'
     message: Target location must not expose public ACL patterns
-
-  - field: source.connection.secretArn
-    pattern: '^arn:aws:secretsmanager:'
-    message: RDS/MySQL sources must use Secrets Manager ARN

@@ -175,7 +175,8 @@ export default function FixIssuesWizardModal({
           <div>
             <h2 id="fix-wizard-title">{title}</h2>
             <p className="properties-hint">
-              Pick an issue — guided steps and Apply fix update the canvas. No YAML editing.
+              Pick an issue — we apply the fix on your canvas automatically. No YAML editing needed.
+              {" "}Amazon Q can help debug complex issues.
             </p>
           </div>
           <button type="button" className="btn-ghost fix-wizard-close" onClick={onClose} aria-label="Close">
@@ -228,22 +229,32 @@ export default function FixIssuesWizardModal({
                   </div>
                 )}
 
-                {planLoading && <p className="properties-hint">Loading optional AI tips…</p>}
+                {planLoading && <p className="properties-hint">Loading AI fix guide…</p>}
                 {planError && (
                   <p className="properties-hint">AI tips unavailable — steps above still work offline.</p>
                 )}
 
                 {plan?.aiExplanation && (
                   <div className="aws-ai-fix-box">
-                    <strong>AI fix guide</strong>
+                    <strong>{plan.mode === "amazon_q" ? "Amazon Q" : "AI"} fix guide</strong>
                     <p>{plan.aiExplanation}</p>
                     {plan.mode === "amazon_q" && (
-                      <span className="properties-hint">Amazon Q</span>
+                      <span className="properties-hint">Powered by Amazon Q Business</span>
                     )}
                     {plan.mode === "llm" && (
                       <span className="properties-hint">Amazon Bedrock</span>
                     )}
                   </div>
+                )}
+
+                {!plan?.aiExplanation && !planLoading && !planError && selected && (
+                  <button
+                    type="button"
+                    className="btn-secondary fix-wizard-ask-ai"
+                    onClick={() => loadPlan(selected)}
+                  >
+                    Ask Amazon Q to debug this
+                  </button>
                 )}
 
                 {(plan?.fields?.length > 0 || node) && (
