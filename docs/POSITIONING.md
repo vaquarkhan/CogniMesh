@@ -1,55 +1,65 @@
 # CogniMesh positioning
 
-Plain-language scope for evaluators, product owners, and architects. Modeled on [veridata POSITIONING](https://github.com/vaquarkhan/veridata/blob/main/POSITIONING.md): say what is real today, what is not, and how this repo relates to sibling projects.
+Product scope for evaluators, product owners, and architects: what CogniMesh delivers today, how it fits the Vaquar ecosystem, and where we are headed.
 
 ---
 
 ## What CogniMesh is
 
-CogniMesh is a **visual control plane** for designing data products on AWS: portal, data contracts, integrity gate, PVDM runtime, marketplace, and operations UI. Structured pipelines can attach a **Verifiable Reconciliation Proof (VRP)** before Iceberg / catalog commit when the Vaquar execution path is enabled.
+CogniMesh is a **visual control plane** for trustworthy data products on AWS:
 
-**Platform packaging:** `1.0.0` (portal, API, SDK artifacts on GitHub / PyPI / GHCR).
+- Zero-code **portal** for pipeline and agent design
+- **Data contracts** and integrity gate
+- **PVDM runtime** (Physical → Verify → Durable → Metadata) on the Vaquar path
+- **Marketplace**, steward approvals, and operations UI
+- **Verifiable Reconciliation Proofs (VRP)** before Iceberg / catalog commit when verification succeeds
 
-**Proof implementation today:** CogniMesh's own **JavaScript** stack (`lib/vrp/`, proof v3). It is **not** a wrapper around the [veridata](https://github.com/vaquarkhan/veridata) Rust crate yet.
-
----
-
-## What CogniMesh is NOT (do not claim these today)
-
-| Do not claim | Reality |
-|--------------|---------|
-| "CogniMesh runs on veridata" | Verification runs in **CogniMesh JS**. [veridata integration](veridata-integration.md) (item C1) is **planned**, not shipped. |
-| "Vaquar Pattern is an external industry standard" | The **Vaquar Pattern** is [Vaquarkhan](https://github.com/vaquarkhan)'s named reference architecture, documented in [vaquar-pattern.md](vaquar-pattern.md). It is not published by a third-party standards body. |
-| "Cryptographic proof in every install" | **Production** proofs use **AWS KMS** when `VRP_KMS_KEY_ID` is set. Local/dev uses ephemeral Ed25519. Unsigned runs are `UNVERIFIED`. |
-| "Transform verification everywhere" | **Identity** multiset checks are default. **Aggregate** mode (per-group lineage, derived invariants) requires explicit `pvdm.vrp` config. Transform logic exists in **CogniMesh JS only**; [veridata](https://github.com/vaquarkhan/veridata) and the datamesh framework do not inherit it yet. |
-| "One-click deploy to production AWS" | Deploy compiles artifacts and can trigger Step Functions when credentials and Terraform/modules are configured. You still need AWS accounts, IAM, buckets, and review of design-review findings. Success toasts mean **compile/register succeeded**, not that every AWS resource is live. |
-| "28+ distinct products" | **27 ready-made pipeline canvases** (26 wired examples + blank) plus **8 agent tutorials** (separate from pipeline patterns). |
-| "Proof = semantically correct data" | VRP proves **integrity and declared invariants** on chosen fields, not that SQL, ML, or LLM conclusions are business-correct. |
-| "Same maturity as veridata 1.0" | veridata is **`0.1.x`** with Rust spec + conformance focus. CogniMesh platform is **`1.0.0`** packaging with a **newer but separate** JS proof path. Version numbers are **not** aligned across repos. |
+**Platform release:** `1.0.0` (portal, API, SDK on GitHub, PyPI, GHCR).
 
 ---
 
-## Claims sometimes made vs reality
+## What ships today
 
-| Claim sometimes made | Reality today |
-|----------------------|---------------|
-| Proof-gated publication | **Yes**, when `execution.pattern: vaquar` and PVDM runs: metadata commit blocked on VRP `FAIL`. Empty runs → `UNVERIFIED`, not `PASS`. |
-| Offline-verifiable proofs | **Yes**, with producer public key + proof JSON (`scripts/verify-vrp-proof.js`). |
-| Tests-passing | **CI runs on push/PR** ([workflow](https://github.com/vaquarkhan/CogniMesh/actions/workflows/ci.yml)): lint, unit tests, portal build, e2e scripts. Check the badge, not a static green label. |
-| Gateway-enforced agent inputs | **Implemented**; production enforcement is an **org policy** choice (`VRP_ALLOW_DECLARED_INPUTS` off). |
-| Datamesh framework gets CogniMesh v3 features | **No**, until features land in **veridata** and consumers upgrade. |
-| Zero-code forever | **Zero-code to start**; production needs contracts, AWS, stewards, and optional Terraform. |
+| Capability | Summary |
+|------------|---------|
+| **Proof-gated publication** | On the Vaquar path, catalog commit proceeds when verification **PASS**es. Runs are recorded in Run History with clear outcomes. |
+| **VRP v3** | Identity and aggregate transform verification, contract binding, logical content digest, offline verify CLI |
+| **27 pipeline canvases** | 26 wired examples + blank canvas; 8 agent tutorials in Agent Builder |
+| **Integrity gate** | Design-time policy checks before deploy |
+| **KMS signing** | Production proofs via AWS KMS when configured |
+| **Gateway + attestations** | Proof-aware data serve and signed decision attestations on agent paths |
+| **CI quality** | Automated tests on every push/PR ([CI workflow](https://github.com/vaquarkhan/CogniMesh/actions/workflows/ci.yml)) |
+| **Conformance vectors** | Published proof fixtures (`npm run verify:conformance`) |
+
+Full proof semantics and data examples: [Vaquar Pattern](vaquar-pattern.md).
 
 ---
 
-## How CogniMesh relates to veridata and the datamesh framework
+## Configuration highlights
+
+CogniMesh is designed to scale from **local demo** to **production AWS**. These settings unlock the full experience:
+
+| Goal | Configuration |
+|------|----------------|
+| **Signed production proofs** | `VRP_KMS_KEY_ID`, `PROOF_BUCKET` |
+| **Aggregate pipelines** | `spec.transform.pvdm.vrp.mode: aggregate` with `groupBy`, `amountField`, `feeMultiplier` |
+| **Agent gateway enforcement** | `VRP_GATEWAY_SECRET`; keep `VRP_ALLOW_DECLARED_INPUTS` off in production |
+| **AWS deploy** | Credentials, Terraform modules, design-review pass, optional `DEPLOY_APPROVAL_REQUIRED` |
+
+VRP focuses on **integrity and declared invariants** on chosen fields. Business semantics of SQL, ML, and LLM outputs remain governed by your contracts and review processes.
+
+---
+
+## Vaquar ecosystem
+
+CogniMesh, [veridata](https://github.com/vaquarkhan/veridata), and the [AWS Serverless Data Mesh Framework](https://github.com/vaquarkhan/aws-serverless-datamesh-framework) share the **Vaquar Pattern** vision: prove sink matches source before publish.
 
 ```
-┌─────────────────┐     planned (C1)      ┌──────────────┐
-│   CogniMesh     │ ───────────────────►  │   veridata   │
-│   (JS lib/vrp)  │      not wired yet    │   (Rust)     │
-└─────────────────┘                       └──────┬───────┘
-                                                   │
+┌─────────────────┐                       ┌──────────────┐
+│   CogniMesh     │   shared target       │   veridata   │
+│   portal + PVDM │ ───────────────────►  │   Rust VRP   │
+│   (VRP v3 JS)   │                       └──────┬───────┘
+└─────────────────┘                              │
                                                    ▼
                                           ┌──────────────────┐
                                           │ Datamesh framework│
@@ -57,38 +67,56 @@ CogniMesh is a **visual control plane** for designing data products on AWS: port
                                           └──────────────────┘
 ```
 
-- **[veridata](https://github.com/vaquarkhan/veridata)** - VRP engine, spec, Rust conformance suite (`0.1.x`).
-- **CogniMesh** - Portal + PVDM runtime; **currently reimplements** verification in JS (v3).
-- **[AWS Serverless Data Mesh Framework](https://github.com/vaquarkhan/aws-serverless-datamesh-framework)** - Python runtime; uses **veridata**, not CogniMesh JS.
+| Project | Role today |
+|---------|------------|
+| **CogniMesh** | Visual control plane; VRP v3 in JavaScript (`lib/vrp/`) |
+| **veridata** | Rust VRP engine and spec (`0.1.x`); multiset recon + conformance suite |
+| **Datamesh framework** | Python serverless runtime consuming veridata |
 
-**Single source of truth (target):** port transform verification into veridata, then CogniMesh delegates (see [veridata-integration.md](veridata-integration.md)).
+**The Vaquar Pattern** is [Vaquarkhan](https://github.com/vaquarkhan)'s reference architecture, documented in [vaquar-pattern.md](vaquar-pattern.md).
 
----
-
-## Adoption path (realistic)
-
-| Stage | You get |
-|-------|---------|
-| **Local demo** | Portal + API + sample PVDM run; dev signing; no AWS required for basic proof flow. |
-| **AWS dev** | Step Functions, S3 proofs, Glue/Iceberg with credentials; review Run History PASS/FAIL. |
-| **Production** | KMS signing, `PROOF_BUCKET`, Lake Formation, steward approvals, disable test-only flags. |
-| **Shared proof engine** | After C1: CogniMesh + datamesh framework on same veridata verification. |
+Technical integration plan: [veridata integration](veridata-integration.md).
 
 ---
 
-## What to say publicly
+## Adoption path
 
-**Say:** visual data-mesh control plane; proof before publish when Vaquar path enabled; fail-closed verdicts; offline verification; steward marketplace workflows.
+| Stage | Experience |
+|-------|------------|
+| **Explore** | Portal, pattern library, sample PVDM run locally |
+| **Develop** | AWS dev account, Step Functions, Run History, proof artifacts |
+| **Operate** | KMS, proof bucket, Lake Formation, steward approvals |
+| **Unify** | Shared veridata engine across CogniMesh and datamesh framework (see roadmap) |
 
-**Say with caveats:** transform verification (aggregate mode + contract config); KMS-signed proofs (production config); agent attestations (gateway policy).
+---
 
-**Do not say:** "100% foolproof," "runs on veridata today," or "one-click production AWS" without setup caveats.
+## Future roadmap
+
+| Phase | Focus | Outcome |
+|-------|--------|---------|
+| **C1** | CogniMesh delegates transform verification to **veridata** | One Rust implementation; CogniMesh calls veridata instead of duplicate JS |
+| **V1** | Per-group lineage in veridata `recon.rs` | Swap-attack detection in Rust; datamesh framework inherits |
+| **V2** | Derived invariants from transform spec in veridata | Aggregate pipelines shared across all Vaquar consumers |
+| **V3–V7** | Money model, Merkle localization, logical digest, contract/env binding in veridata | Feature parity with CogniMesh v3 proof envelope |
+| **Shared conformance** | Same `fixtures/vrp-conformance/` for JS and Rust | Both engines pass identical vectors in CI |
+| **Attestation log** | Extend transparency log to decision attestations | End-to-end audit trail across data and agent layers |
+| **Portal** | Deeper veridata status in Run History | Single pane for proof engine version and verify source |
+
+Prioritized engineering detail for C1 and V1/V2: [veridata-integration.md](veridata-integration.md).
+
+---
+
+## Messaging guide
+
+**Lead with:** visual data-mesh control plane · Vaquar Pattern · proof before publish · marketplace and steward workflows · offline-verifiable proofs.
+
+**Highlight when relevant:** aggregate mode for roll-ups · KMS-signed proofs in production · gateway-enforced agent inputs · 27 ready-made pipeline canvases.
 
 ---
 
 ## Related docs
 
+- [Vaquar Pattern](vaquar-pattern.md) - architecture, data examples, VRP features
 - [FAQ](FAQ.md)
-- [Vaquar Pattern](vaquar-pattern.md) (architecture spec + data examples)
 - [veridata integration](veridata-integration.md)
 - [Business steward guide](README-business-stewards.md)

@@ -33,7 +33,7 @@ Implementers can find code references in [Reference implementation](#reference-i
 
 The **Vaquar Pattern** is a reference architecture for building **trustworthy data products** on AWS serverless infrastructure. It was created by **[Vaquarkhan](https://github.com/vaquarkhan)** to address a recurring data-mesh failure mode: pipelines that write physical data and catalog metadata **without verifiable proof** that source and sink agree on declared fields.
 
-CogniMesh implements this pattern in its portal and PVDM runtime. **Verification runs in CogniMesh JavaScript today**, not in the [veridata](https://github.com/vaquarkhan/veridata) Rust crate ([POSITIONING](POSITIONING.md), [veridata integration](veridata-integration.md)).
+CogniMesh implements this pattern in its portal and PVDM runtime. See [POSITIONING](POSITIONING.md) and [veridata integration](veridata-integration.md) for ecosystem alignment.
 
 > **Core invariant**
 >

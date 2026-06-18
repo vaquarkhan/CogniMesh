@@ -31,7 +31,7 @@
 
 | Reader | Start here |
 |--------|------------|
-| **Evaluator / diligence** | [CogniMesh POSITIONING](POSITIONING.md) (claims vs reality) |
+| **Evaluator / product owner** | [CogniMesh POSITIONING](POSITIONING.md) (scope & roadmap) |
 | **CEO / GM** | [C-suite summary](#for-c-suite--executive-leadership) - strategy, risk, KPIs |
 | **CFO** | [C-suite summary](#for-c-suite--executive-leadership) - audit readiness, cost control, prove-before-publish |
 | **CDO / Chief Data Officer** | C-suite summary + [steward workflows](#your-day-as-a-data-steward) |

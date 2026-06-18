@@ -47,14 +47,14 @@
 
 **Platform release 1.0.0** - CogniMesh is a **control plane for trustworthy data products on AWS**. You design pipelines in a visual portal (no coding required to start), the platform checks your design, runs the pipeline, and **blocks catalog publish when verification fails**.
 
-> **Honesty for evaluators:** Read **[What CogniMesh is NOT yet](docs/POSITIONING.md)** (same style as [veridata POSITIONING](https://github.com/vaquarkhan/veridata/blob/main/POSITIONING.md)). CogniMesh does **not** call the veridata Rust crate today; proofs run in CogniMesh's own JS engine ([details](docs/veridata-integration.md)).
+> **Product scope:** See **[POSITIONING.md](docs/POSITIONING.md)** for capabilities, ecosystem fit, and roadmap. Proofs run in CogniMesh's VRP engine today ([veridata integration](docs/veridata-integration.md) on the roadmap).
 
 | If you are… | Read this first |
 |-------------|-----------------|
 | **C-suite / executive (CEO, CFO, CDO, CISO)** | **[Business guide - C-suite summary](docs/README-business-stewards.md#for-c-suite--executive-leadership)** (2 min) |
 | **Business / product owner** | **[Business & steward guide](docs/README-business-stewards.md)** (plain language only) |
 | **Data steward / governance** | **[Business & steward guide](docs/README-business-stewards.md)** - approvals, proof, marketplace, audit |
-| **Evaluator / diligence** | **[POSITIONING.md](docs/POSITIONING.md)** - claims vs reality, veridata relationship |
+| **Evaluator / product owner** | **[POSITIONING.md](docs/POSITIONING.md)** - scope, ecosystem, roadmap |
 | **Everyone (repeat questions)** | **[FAQ](docs/FAQ.md)** - proof, PASS/FAIL, features, agents, ops |
 | **Engineer / architect** | [At a glance](#at-a-glance), [Quick start](#quick-start), [POSITIONING](docs/POSITIONING.md), [Vaquar Pattern](docs/vaquar-pattern.md) |
 
@@ -121,7 +121,7 @@
 </p>
 
 <p align="center">
-  <a href="docs/POSITIONING.md"><b>Positioning (honest scope)</b></a> ·
+  <a href="docs/POSITIONING.md"><b>Positioning &amp; roadmap</b></a> ·
   <a href="docs/README-business-stewards.md"><b>📘 Business &amp; steward guide</b></a> ·
   <a href="docs/FAQ.md"><b>❓ FAQ</b></a> ·
   <a href="docs/vaquar-pattern.md"><b>⭐ The Vaquar Pattern</b></a> ·

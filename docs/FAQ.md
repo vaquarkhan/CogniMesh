@@ -4,7 +4,7 @@ Answers to questions that come up repeatedly. Share this link in onboarding, PRs
 
 | Audience | Jump to |
 |----------|---------|
-| Evaluators & diligence | [POSITIONING](POSITIONING.md) |
+| Evaluators & product owners | [POSITIONING](POSITIONING.md) |
 | Executives & stewards | [Business & governance](#business--governance) |
 | Proof & trust | [VRP, proof, and verification](#vrp-proof-and-verification) |
 | Engineers | [Technical & development](#technical--development) |
