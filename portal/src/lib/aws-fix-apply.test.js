@@ -7,6 +7,19 @@ describe("aws-fix-apply", () => {
     { id: "s1", data: { blockType: "source", sourceType: "rds", endpoint: "http://db" } },
   ];
 
+  it("switches secrets finding to Terraform provision mode", () => {
+    const fix = resolveAutoFix(
+      { id: "sec.secrets_manager.s1", nodeIds: ["s1"], title: "Secrets" },
+      nodes,
+      {}
+    );
+    expect(fix).toEqual({
+      type: "node",
+      nodeId: "s1",
+      patch: { rdsProvisioningMode: "provision" },
+    });
+  });
+
   it("applies S3 encryption on sink finding", () => {
     const fix = resolveAutoFix(
       { id: "sec.s3_encryption.o1", nodeIds: ["o1"], title: "Encryption" },

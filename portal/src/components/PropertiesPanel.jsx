@@ -233,6 +233,36 @@ export default function PropertiesPanel({
           </FormField>
           {(d.sourceType === "rds" || d.sourceType === "mysql") && (
             <>
+              <FormField
+                label="RDS database"
+                tip="Use existing for databases already in your account. Create new provisions RDS + Secrets Manager via Terraform on deploy."
+              >
+                <select
+                  data-testid="rds-provisioning-mode"
+                  value={d.rdsProvisioningMode || "existing"}
+                  onChange={(e) =>
+                    update({
+                      rdsProvisioningMode: e.target.value,
+                      ...(e.target.value === "provision"
+                        ? { secretArn: "", vpcSecurityGroup: "" }
+                        : {}),
+                    })
+                  }
+                >
+                  <option value="existing">Use existing RDS / MySQL</option>
+                  <option value="provision">Create new (Terraform via pipeline)</option>
+                </select>
+              </FormField>
+              {d.rdsProvisioningMode === "provision" ? (
+                <p className="props-rds-provision-hint properties-hint">
+                  CogniMesh generates Terraform for private RDS, security groups, and Secrets Manager.
+                  ARNs below are optional overrides after apply.
+                </p>
+              ) : (
+                <p className="props-rds-existing-hint properties-hint">
+                  Existing databases require a Secrets Manager ARN — AWS Design Review flags this as critical until set.
+                </p>
+              )}
               <FormField label="Database" tip={tipFor("source", "database")}>
                 <input value={d.database || ""} onChange={(e) => update({ database: e.target.value })} />
               </FormField>
@@ -251,18 +281,40 @@ export default function PropertiesPanel({
                   <input value={d.primaryKey || ""} onChange={(e) => update({ primaryKey: e.target.value })} />
                 </FormField>
               )}
-              <FormField label="Secrets Manager ARN" tip="Required for AWS security review - never embed passwords">
+              <FormField
+                label={
+                  d.rdsProvisioningMode === "provision"
+                    ? "Secrets Manager ARN (optional)"
+                    : "Secrets Manager ARN"
+                }
+                tip={
+                  d.rdsProvisioningMode === "provision"
+                    ? "Filled automatically from Terraform output after apply"
+                    : "Required for AWS security review — never embed passwords"
+                }
+              >
                 <input
                   value={d.secretArn || ""}
                   onChange={(e) => update({ secretArn: e.target.value })}
-                  placeholder="arn:aws:secretsmanager:us-east-1:123456789012:secret:db-creds"
+                  placeholder={
+                    d.rdsProvisioningMode === "provision"
+                      ? "Auto from terraform output (optional)"
+                      : "arn:aws:secretsmanager:us-east-1:123456789012:secret:db-creds"
+                  }
                 />
               </FormField>
-              <FormField label="VPC security group (optional)" tip="Private subnet deployment for RDS">
+              <FormField
+                label={
+                  d.rdsProvisioningMode === "provision"
+                    ? "VPC security group (optional)"
+                    : "VPC security group"
+                }
+                tip="Private subnet deployment for RDS"
+              >
                 <input
                   value={d.vpcSecurityGroup || ""}
                   onChange={(e) => update({ vpcSecurityGroup: e.target.value })}
-                  placeholder="sg-0abc123"
+                  placeholder={d.rdsProvisioningMode === "provision" ? "From Terraform (optional)" : "sg-0abc123"}
                 />
               </FormField>
             </>

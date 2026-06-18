@@ -424,6 +424,24 @@ app.post("/api/v1/pipelines/design-review/fix-help", requireAuth, async (req, re
   res.json({ status: "success", plans });
 });
 
+app.post("/api/v1/pipelines/export/terraform", requireAuth, (req, res) => {
+  const { generatePipelineTerraform } = require("../../lib/infrastructure-export");
+  const { nodes, pipelineMeta } = req.body || {};
+  const result = generatePipelineTerraform({ nodes: nodes || [], pipelineMeta: pipelineMeta || {} });
+  res.json({ status: result.status === "success" ? "success" : "empty", ...result });
+});
+
+app.post("/api/v1/pipelines/export/drawio", requireAuth, (req, res) => {
+  const { generateDrawioArchitecture } = require("../../lib/infrastructure-export");
+  const { topology, nodes, pipelineMeta } = req.body || {};
+  const result = generateDrawioArchitecture({
+    topology,
+    nodes: nodes || [],
+    pipelineMeta: pipelineMeta || {},
+  });
+  res.json({ status: "success", ...result });
+});
+
 app.get("/api/v1/audit", requireAuth, (_req, res) => {
   const { listRecent } = require("../../lib/audit-log");
   res.json({ events: listRecent(100) });

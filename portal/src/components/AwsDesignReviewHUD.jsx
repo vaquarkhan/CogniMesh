@@ -200,6 +200,8 @@ export default function AwsDesignReviewHUD({
   onApplyNodeFix,
   onApplyFindingFix,
   applyingFindingId,
+  onExportDrawio,
+  onExportTerraform,
   focusFindingId,
   autoLoadFixForId,
   onFocusFindingHandled,
@@ -461,9 +463,30 @@ export default function AwsDesignReviewHUD({
             </button>
           </div>
 
-          <details className="aws-topology-details">
-            <summary>Service topology map</summary>
+          <details className="aws-topology-details" open>
+            <summary>Service topology map &amp; export</summary>
             <AwsTopologyMap topology={review.topology} />
+            <div className="aws-export-row">
+              <button
+                type="button"
+                className="btn-secondary compact"
+                data-testid="export-drawio-architecture"
+                onClick={() => onExportDrawio?.()}
+              >
+                Export draw.io diagram
+              </button>
+              <button
+                type="button"
+                className="btn-secondary compact"
+                data-testid="export-terraform-infra"
+                onClick={() => onExportTerraform?.()}
+              >
+                Export infrastructure (Terraform)
+              </button>
+            </div>
+            <p className="properties-hint">
+              Open .drawio in diagrams.net → Export as PNG/SVG. Terraform covers RDS sources set to Create new.
+            </p>
           </details>
 
           <ul className="aws-findings-list">

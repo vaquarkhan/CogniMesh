@@ -15,6 +15,11 @@ import { createNodeIdFactory } from "./lib/node-id";
 import { deployPipeline, previewPipeline, runAwsDesignReview, isApiReachable, getApiHealth, getDesignReviewFixHelp } from "./lib/api";
 import { insertIntegrityGate } from "./lib/integrity-gate-insert";
 import { resolveAutoFix, resolvePlanActions } from "./lib/aws-fix-apply";
+import {
+  generateDrawioArchitecture,
+  generatePipelineTerraform,
+  downloadTextFile,
+} from "./lib/infrastructure-export";
 import { analyzeImpact } from "./lib/platform-api";
 import AwsDesignReviewHUD from "./components/AwsDesignReviewHUD";
 import { validateBlocks, isWorkflowGraph } from "./lib/validate-blocks";
@@ -428,6 +433,30 @@ export default function App() {
     ]
   );
 
+  const exportArchitectureDrawio = useCallback(() => {
+    const meta = { ...pipelineMeta, ownerEmail: userEmail };
+    const { xml } = generateDrawioArchitecture({
+      topology: awsReview?.topology,
+      nodes,
+      pipelineMeta: meta,
+    });
+    const safe = (meta.name || "cognimesh").replace(/[^a-z0-9-]+/gi, "-").toLowerCase();
+    downloadTextFile(`${safe}-architecture.drawio`, xml, "application/xml");
+    success("Architecture diagram downloaded — open in diagrams.net");
+  }, [awsReview?.topology, nodes, pipelineMeta, userEmail, success]);
+
+  const exportInfrastructureTerraform = useCallback(() => {
+    const meta = { ...pipelineMeta, ownerEmail: userEmail };
+    const result = generatePipelineTerraform({ nodes, pipelineMeta: meta });
+    if (result.status !== "success") {
+      toastError(result.message || "No Terraform to export");
+      return;
+    }
+    const safe = (meta.name || "cognimesh").replace(/[^a-z0-9-]+/gi, "-").toLowerCase();
+    downloadTextFile(`${safe}-infrastructure.tf`, result.hcl, "text/plain");
+    success(`Terraform exported (${result.provisionCount} RDS resource${result.provisionCount > 1 ? "s" : ""})`);
+  }, [nodes, pipelineMeta, userEmail, success, toastError]);
+
   const selectedNode = nodesWithValidation.find((n) => n.id === selectedId) || null;
 
   const handlePreview = async () => {
@@ -765,6 +794,8 @@ export default function App() {
               }}
               onApplyFindingFix={applyAwsFindingFix}
               applyingFindingId={applyingFindingId}
+              onExportDrawio={exportArchitectureDrawio}
+              onExportTerraform={exportInfrastructureTerraform}
               token={token}
               nodes={nodes}
               edges={edges}

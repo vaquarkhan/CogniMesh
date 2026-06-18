@@ -12,6 +12,8 @@ export const BLOCK_TIPS = {
   source: {
     _default: "Where data enters the pipeline. Add one or many sources in workflow mode.",
     sourceType: "RDS/MySQL for databases · S3 for files · Kafka for streams · media_url for AI pipelines.",
+    rdsProvisioningMode:
+      "Use existing when RDS is already in your account (requires Secrets Manager ARN). Create new provisions RDS + secret via Terraform.",
     database: "Database name on the source system (RDS/MySQL).",
     table: "Table to read or capture via CDC.",
     cdcEnabled: "Enable change-data-capture for incremental updates instead of full reloads.",

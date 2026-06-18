@@ -13,17 +13,17 @@ function patchForFinding(finding, node, pipelineMeta) {
   const id = finding.id;
 
   if (id.startsWith("sec.secrets_manager") && node) {
+    if (node.data?.rdsProvisioningMode === "provision") return null;
     return {
       nodeId: node.id,
-      propertyPatch: {
-        secretArn: "arn:aws:secretsmanager:us-east-1:ACCOUNT_ID:secret:db-credentials",
-      },
+      propertyPatch: { rdsProvisioningMode: "provision" },
     };
   }
   if (id.startsWith("sec.rds_private") && node) {
+    if (node.data?.rdsProvisioningMode === "provision") return null;
     return {
       nodeId: node.id,
-      propertyPatch: { vpcSecurityGroup: "sg-xxxxxxxx", privateSubnet: true },
+      propertyPatch: { rdsProvisioningMode: "provision", privateSubnet: true },
     };
   }
   if (id.startsWith("sec.tls_transit") && node) {
