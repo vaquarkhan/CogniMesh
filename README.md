@@ -417,7 +417,7 @@ sequenceDiagram
 
 ## Zero-code portal
 
-Visual pipeline designer with a **pattern library** (see [what “28+ patterns” means](#what-28-patterns-means-no-code-required)): pick a blueprint, customize in the UI without writing code, then deploy. Includes AWS service blocks (Glue, Kinesis, MSK, DMS, Firehose), **AI Builder** (describe a pipeline or agent in English), **Agent Builder** (Bedrock AgentCore canvas), live AWS security/architecture review, VRP observability, and a consumer marketplace.
+Visual pipeline designer with a **pattern library** ([27 ready-made canvases](#pipeline-pattern-library)): pick a blueprint, customize in the UI without writing code, then deploy when AWS is configured. Includes AWS service blocks (Glue, Kinesis, MSK, DMS, Firehose), **AI Builder** (describe a pipeline or agent in English), **Agent Builder** (Bedrock AgentCore canvas), live AWS security/architecture review, VRP observability, and a consumer marketplace.
 
 → Full pattern catalog: **[docs/PORTAL_UI.md](docs/PORTAL_UI.md)**  
 → **Step-by-step tutorials (26 pipelines + 8 agents):** **[docs/tutorials/README.md](docs/tutorials/README.md)**  
@@ -544,9 +544,9 @@ flowchart LR
 
 ---
 
-## Vaquar Pattern
+## Vaquar Pattern (proposed)
 
-CogniMesh implements **[The Vaquar Pattern](docs/vaquar-pattern.md)** (author: **Vaquarkhan**): proof-gated serverless writes with invariant **`commit_metadata ⟹ VRP = PASS`**.
+CogniMesh implements the **[Vaquar Pattern](docs/vaquar-pattern.md)** - a **proposed** reference architecture by **Vaquarkhan**. When the Vaquar path is enabled, catalog commit follows **`commit_metadata ⟹ VRP = PASS`**. Verification runs in CogniMesh JS today ([POSITIONING](docs/POSITIONING.md)).
 
 ```mermaid
 flowchart LR
@@ -729,7 +729,7 @@ CogniMesh/
 │   ├── vrp/                # VRP proofs · JCS · KMS signing
 │   └── platform/           # Operations APIs · store · copilot · plugins
 ├── docs/
-│   └── vaquar-pattern.md   # ⭐ The Vaquar Pattern (author: Vaquarkhan)
+│   └── vaquar-pattern.md   # Proposed Vaquar Pattern spec
 ├── infra/terraform/          # Production IaC
 ├── contracts/examples/     # Sample pipelines
 └── rules/                    # Integrity gate policies
@@ -742,7 +742,8 @@ CogniMesh/
 | Document | Description |
 |----------|-------------|
 | **[CONTRIBUTING.md](CONTRIBUTING.md)** | How to contribute · local setup · tests |
-| **[docs/vaquar-pattern.md](docs/vaquar-pattern.md)** | **The Vaquar Pattern** · PVDM · VRP · building blocks |
+| **[docs/POSITIONING.md](docs/POSITIONING.md)** | **Claims vs reality** · veridata relationship · what NOT to claim |
+| **[docs/vaquar-pattern.md](docs/vaquar-pattern.md)** | Proposed Vaquar Pattern · PVDM · VRP · data examples |
 | **[docs/developer/README.md](docs/developer/README.md)** | **Developer customization hub** - 21 UI screenshots · pipelines · agents · code |
 | **[docs/tutorials/README.md](docs/tutorials/README.md)** | Tutorial hub - one guide per architecture & agent |
 | [docs/AGENT_BUILDER.md](docs/AGENT_BUILDER.md) | Agent Builder · feature checkboxes · manifest export |
