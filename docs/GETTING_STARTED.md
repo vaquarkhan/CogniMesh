@@ -1,6 +1,6 @@
 # Getting Started in 5 Minutes
 
-CogniMesh is a zero-code portal for designing data mesh pipelines and Bedrock agents. This guide is for **operators and data engineers** — not developers.
+CogniMesh is a zero-code portal for designing data mesh pipelines and Bedrock agents. This guide is for **operators and data engineers** - not developers.
 
 ## 1. Start the portal (2 min)
 
@@ -22,8 +22,8 @@ You will see a Step Functions–style graph: sources, transforms, integrity gate
 
 ## 3. Preview and deploy (1 min)
 
-1. Click **Preview YAML** in the toolbar — review the generated DataContract.
-2. Click **Deploy Pipeline** — CogniMesh runs the integrity gate, PVDM simulation, and catalog registration.
+1. Click **Preview YAML** in the toolbar - review the generated DataContract.
+2. Click **Deploy Pipeline** - CogniMesh runs the integrity gate, PVDM simulation, and catalog registration.
 
 With AWS disabled (default local dev), deploy compiles locally and shows a clear banner. Enable real AWS deploy via Terraform outputs in [CONTRIBUTING.md](../CONTRIBUTING.md).
 

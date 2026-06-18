@@ -12,7 +12,7 @@
 <h1 align="center">CogniMesh for Business &amp; Data Stewards</h1>
 
 <p align="center">
-  <strong>Trust, access, and publication — in plain language</strong>
+  <strong>Trust, access, and publication - in plain language</strong>
 </p>
 
 <p align="center">
@@ -29,8 +29,8 @@
 
 | Reader | Start here |
 |--------|------------|
-| **CEO / GM** | [C-suite summary](#for-c-suite--executive-leadership) — strategy, risk, KPIs |
-| **CFO** | [C-suite summary](#for-c-suite--executive-leadership) — audit readiness, cost control, prove-before-publish |
+| **CEO / GM** | [C-suite summary](#for-c-suite--executive-leadership) - strategy, risk, KPIs |
+| **CFO** | [C-suite summary](#for-c-suite--executive-leadership) - audit readiness, cost control, prove-before-publish |
 | **CDO / Chief Data Officer** | C-suite summary + [steward workflows](#your-day-as-a-data-steward) |
 | **CISO / Compliance** | C-suite summary + [Trust & proof](#trust--proof-what-verified-means) |
 | **Data steward / governance lead** | [Your day as a steward](#your-day-as-a-data-steward) |
@@ -42,17 +42,17 @@ Engineers and architects should use the [main README](../README.md).
 
 ## For C-suite & executive leadership
 
-**One-line pitch:** CogniMesh turns data pipelines into **governed, provable data products** on AWS — so the organization can **ship faster with less reputational and regulatory risk**.
+**One-line pitch:** CogniMesh turns data pipelines into **governed, provable data products** on AWS - so the organization can **ship faster with less reputational and regulatory risk**.
 
 ### Strategic outcomes (what leadership buys)
 
 | Outcome | Business meaning |
 |---------|------------------|
-| **Faster time to market** | Domain teams publish datasets through a **visual portal** and ready-made patterns — less dependency on central engineering queues for every new product. |
+| **Faster time to market** | Domain teams publish datasets through a **visual portal** and ready-made patterns - less dependency on central engineering queues for every new product. |
 | **Federated data mesh** | Each business unit **owns** its pipelines and products; central teams set **policy**, not every pipeline by hand. |
-| **Trust at publish time** | Gold data does not reach the marketplace until **integrity verification passes** — fewer “the numbers were wrong” incidents after go-live. |
+| **Trust at publish time** | Gold data does not reach the marketplace until **integrity verification passes** - fewer “the numbers were wrong” incidents after go-live. |
 | **Consumer self-service** | Internal customers **discover, preview, and request access** in one place instead of opaque ticket chains. |
-| **AI with guardrails** | Agent workflows can be tied to **verified inputs** and signed decision records — a concrete answer to “what did the AI actually use?” |
+| **AI with guardrails** | Agent workflows can be tied to **verified inputs** and signed decision records - a concrete answer to “what did the AI actually use?” |
 | **Audit-ready operations** | Run history, approvals, versions, lineage, and exportable audit reports support **SOX, HIPAA, and internal control** conversations. |
 
 ### Risks you reduce (board-level)
@@ -67,7 +67,7 @@ Engineers and architects should use the [main README](../README.md).
 
 ### KPIs executives can ask for
 
-These map directly to portal screens — no custom BI required to start:
+These map directly to portal screens - no custom BI required to start:
 
 | KPI | Where to see it | Healthy signal |
 |-----|-----------------|----------------|
@@ -83,11 +83,11 @@ These map directly to portal screens — no custom BI required to start:
 | Question | CogniMesh answer |
 |----------|------------------|
 | “Can we prove what data the model saw?” | Proof-gated gateway + **decision attestations** on the agent path |
-| “Can a bad pipeline corrupt gold data?” | **Fail closed** — no PASS on error or empty runs |
+| “Can a bad pipeline corrupt gold data?” | **Fail closed** - no PASS on error or empty runs |
 | “Who approved consumer access?” | **Approvals** log with steward identity |
 | “Can we roll back a bad deploy?” | **Version diff and rollback** on the pipeline canvas |
 
-*Honest limits:* CogniMesh proves **data integrity and decision context**, not that an LLM’s business judgment is correct. For **aggregations and joins**, today’s check is row-preserving multiset match — verifying transform **rules** (control totals, per-group lineage) is on the [roadmap](vaquar-pattern.md#hardening-roadmap).
+*Honest limits:* CogniMesh proves **data integrity and decision context**, not that an LLM’s business judgment is correct. For **aggregations and joins**, today’s check is row-preserving multiset match - verifying transform **rules** (control totals, per-group lineage) is on the [roadmap](vaquar-pattern.md#hardening-roadmap).
 
 ### Investment framing (build vs assemble)
 
@@ -137,7 +137,7 @@ CogniMesh targets organizations already on **AWS** that want **domain-owned data
 | **5. Publish** | Approved data products appear in the **marketplace** for consumers. |
 | **6. Govern** | Stewards approve access, track lineage, and audit who did what. |
 
-**Your role as a steward:** Make sure only **verified** data products reach consumers, and that **access requests** are handled with policy — not ad-hoc email threads.
+**Your role as a steward:** Make sure only **verified** data products reach consumers, and that **access requests** are handled with policy - not ad-hoc email threads.
 
 ---
 
@@ -163,7 +163,7 @@ flowchart LR
     D --> F[Run History + self-heal or fix pipeline]
 ```
 
-### 1. Before data goes live — design review
+### 1. Before data goes live - design review
 
 When a domain team wants to deploy a pipeline:
 
@@ -173,17 +173,17 @@ When a domain team wants to deploy a pipeline:
 
 **You are not expected to edit YAML.** You review outcomes, scores, and policy fit.
 
-### 2. When data runs — proof and run history
+### 2. When data runs - proof and run history
 
 After a pipeline runs:
 
 - Open **Run History** in the portal.
-- Look for the **VRP badge**: **PASS** (verified), **FAIL** (do not trust this run), or **UNVERIFIED** (nothing to prove — empty run or error).
+- Look for the **VRP badge**: **PASS** (verified), **FAIL** (do not trust this run), or **UNVERIFIED** (nothing to prove - empty run or error).
 - Expand a run to see rows processed, rows dropped, and links to proof artifacts.
 
-**Rule of thumb:** Treat **FAIL** or **UNVERIFIED** like a failed audit — do not promote that output to consumers until engineering resolves it.
+**Rule of thumb:** Treat **FAIL** or **UNVERIFIED** like a failed audit - do not promote that output to consumers until engineering resolves it.
 
-### 3. Marketplace — consumers discover your data products
+### 3. Marketplace - consumers discover your data products
 
 Producers publish to the **Marketplace**. Consumers can:
 
@@ -191,9 +191,9 @@ Producers publish to the **Marketplace**. Consumers can:
 - Open **Athena** with a safe preview query
 - Click **Request access**
 
-Products built with proof-gated pipelines show a **proof-gated** indicator — consumers know the dataset passed integrity checks before publication.
+Products built with proof-gated pipelines show a **proof-gated** indicator - consumers know the dataset passed integrity checks before publication.
 
-### 4. Access requests — your approvals queue
+### 4. Access requests - your approvals queue
 
 | Consumer action | Steward action |
 |-----------------|----------------|
@@ -203,7 +203,7 @@ Products built with proof-gated pipelines show a **proof-gated** indicator — c
 
 **Try it locally:** Deploy any pipeline → Marketplace → open product → Request Access → Approvals → Approve.
 
-### 5. Operations — lineage, versions, audit
+### 5. Operations - lineage, versions, audit
 
 From the **Operations** panel you can:
 
@@ -220,7 +220,7 @@ From the **Operations** panel you can:
 
 ## Trust & proof (what “verified” means)
 
-CogniMesh uses the **[Vaquar Pattern](vaquar-pattern.md)** — proof before publish.
+CogniMesh uses the **[Vaquar Pattern](vaquar-pattern.md)** - proof before publish.
 
 **In plain language:**
 
@@ -236,9 +236,9 @@ CogniMesh uses the **[Vaquar Pattern](vaquar-pattern.md)** — proof before publ
 
 **What proof does not prove**
 
-- That business rules or ML models are “correct” — only that data was not silently corrupted in the pipe.
-- That an **aggregation or join** allocated amounts to the right groups — multiset match is for **row-preserving** pipelines; transform-rule verification is [planned](vaquar-pattern.md#multiset-equality-vs-transform-verification), not live yet.
-- That an AI agent’s **judgment** is right — only that it used **verified inputs** when attestations are enforced.
+- That business rules or ML models are “correct” - only that data was not silently corrupted in the pipe.
+- That an **aggregation or join** allocated amounts to the right groups - multiset match is for **row-preserving** pipelines; transform-rule verification is [planned](vaquar-pattern.md#multiset-equality-vs-transform-verification), not live yet.
+- That an AI agent’s **judgment** is right - only that it used **verified inputs** when attestations are enforced.
 
 For AI-heavy flows, CogniMesh also supports **decision attestations**: a signed record that an agent’s output was produced from gateway-verified data, not self-declared inputs.
 
@@ -250,9 +250,9 @@ For AI-heavy flows, CogniMesh also supports **decision attestations**: a signed 
 |------|------------------------|
 | **Data product** | A dataset your domain owns and others can subscribe to |
 | **Domain** | Business area (e.g. Finance, Healthcare) that owns its data products |
-| **Marketplace** | Internal catalog — consumers browse and request access |
+| **Marketplace** | Internal catalog - consumers browse and request access |
 | **Data contract** | Rules for the pipeline (auto-generated from the canvas) |
-| **Integrity gate** | Design-time checklist — blocks bad configs before AWS |
+| **Integrity gate** | Design-time checklist - blocks bad configs before AWS |
 | **VRP / proof** | Evidence that source and sink data match |
 | **PVDM** | The four-step write process: physical save → verify → durable run → catalog commit |
 | **Lake Formation** | AWS layer for table-level access grants |
@@ -287,7 +287,7 @@ For AI-heavy flows, CogniMesh also supports **decision attestations**: a signed 
 No. Stewards work in the portal: Approvals, Run History, Marketplace, Operations.
 
 **What should I block?**  
-Deploys with critical design-review findings, VRP **FAIL**, or missing owner/domain metadata — per your org policy.
+Deploys with critical design-review findings, VRP **FAIL**, or missing owner/domain metadata - per your org policy.
 
 **Can consumers see data before I approve?**  
 Not when access control is enabled. They see schema and samples; full access follows your approval.
@@ -296,7 +296,7 @@ Not when access control is enabled. They see schema and samples; full access fol
 A lake stores files. CogniMesh adds **contracts, proof before publish, marketplace, and steward workflows** on top.
 
 **Where do I go for step-by-step lessons?**  
-[docs/tutorials/README.md](tutorials/README.md) — pipeline and agent walkthroughs by industry.
+[docs/tutorials/README.md](tutorials/README.md) - pipeline and agent walkthroughs by industry.
 
 ---
 
@@ -309,14 +309,14 @@ A lake stores files. CogniMesh adds **contracts, proof before publish, marketpla
 | Top 3 workflows (prove → deploy → consume) | [TOP3_FEATURES.md](TOP3_FEATURES.md) |
 | Steward agent template (optional automation) | [CogniMesh Data Steward tutorial](tutorials/agents/cognimesh-steward.md) |
 | Technical proof specification | [Vaquar Pattern](vaquar-pattern.md) |
-| Hardening roadmap (honest limits + what's next) | [Vaquar Pattern — roadmap](vaquar-pattern.md#hardening-roadmap) |
+| Hardening roadmap (honest limits + what's next) | [Vaquar Pattern - roadmap](vaquar-pattern.md#hardening-roadmap) |
 | Portal button map | [PORTAL_UI.md](PORTAL_UI.md) |
 | Local demo setup | [GETTING_STARTED.md](GETTING_STARTED.md) |
 
 ---
 
 <p align="center">
-  <sub>Questions about governance policy? Define your rules in the integrity gate and steward approval settings — engineering wires the platform to match.</sub>
+  <sub>Questions about governance policy? Define your rules in the integrity gate and steward approval settings - engineering wires the platform to match.</sub>
 </p>
 
 <p align="center">

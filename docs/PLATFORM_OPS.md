@@ -88,5 +88,5 @@ Local JSON under `data/` (gitignored) when `PLATFORM_STORE` is not `dynamodb`:
 
 ## Related
 
-- [openapi.yaml](openapi.yaml) — full API reference
-- [PORTAL_DEV.md](PORTAL_DEV.md) — local development
+- [openapi.yaml](openapi.yaml) - full API reference
+- [PORTAL_DEV.md](PORTAL_DEV.md) - local development

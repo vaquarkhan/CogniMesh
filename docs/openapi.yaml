@@ -33,7 +33,7 @@ paths:
           description: Preview result
   /api/v1/pipelines/deploy:
     post:
-      summary: Deploy pipeline — integrity gate, compile, catalog register
+      summary: Deploy pipeline - integrity gate, compile, catalog register
       security:
         - bearerAuth: []
       requestBody:

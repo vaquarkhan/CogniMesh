@@ -6,9 +6,9 @@ Thanks for your interest in CogniMesh. This guide covers local setup, tests, and
 
 - **Node.js 20+** and npm
 - **Python 3.11+** (for `python/` SDK tests)
-- **Java 17+** and Maven (optional — catalog service; use `CATALOG_STORAGE=memory` for API-only dev)
-- **Go 1.22+** (optional — cognitive runtime)
-- **Docker** (optional — full stack via `docker compose`)
+- **Java 17+** and Maven (optional - catalog service; use `CATALOG_STORAGE=memory` for API-only dev)
+- **Go 1.22+** (optional - cognitive runtime)
+- **Docker** (optional - full stack via `docker compose`)
 
 ## Quick start
 

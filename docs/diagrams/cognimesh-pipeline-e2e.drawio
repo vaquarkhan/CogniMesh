@@ -6,7 +6,7 @@
         <mxCell id="1" parent="0" />
 
         <!-- Title -->
-        <mxCell id="title" value="CogniMesh — End-to-End Pipeline Architecture (AWS)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=22;fontStyle=1;fontColor=#232F3E;" vertex="1" parent="1">
+        <mxCell id="title" value="CogniMesh - End-to-End Pipeline Architecture (AWS)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=22;fontStyle=1;fontColor=#232F3E;" vertex="1" parent="1">
           <mxGeometry x="500" y="20" width="1000" height="40" as="geometry" />
         </mxCell>
         <mxCell id="subtitle" value="Structured (Vaquar PVDM) · Cognitive (EKS + Bedrock) · Marketplace &amp; Governance" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=12;fontColor=#545B64;" vertex="1" parent="1">
@@ -82,7 +82,7 @@
         </mxCell>
 
         <!-- ========== STRUCTURED PIPELINE ========== -->
-        <mxCell id="grp-structured" value="② Structured Pipeline — Vaquar PVDM (RDS CDC → Iceberg Gold)  ·  example: customer-orders-cdc" style="swimlane;startSize=28;fillColor=#EFF6FF;strokeColor=#2563EB;fontStyle=1;fontSize=13;rounded=1;" vertex="1" parent="1">
+        <mxCell id="grp-structured" value="② Structured Pipeline - Vaquar PVDM (RDS CDC → Iceberg Gold)  ·  example: customer-orders-cdc" style="swimlane;startSize=28;fillColor=#EFF6FF;strokeColor=#2563EB;fontStyle=1;fontSize=13;rounded=1;" vertex="1" parent="1">
           <mxGeometry x="40" y="310" width="940" height="520" as="geometry" />
         </mxCell>
 
@@ -187,7 +187,7 @@
         </mxCell>
 
         <!-- ========== COGNITIVE PIPELINE ========== -->
-        <mxCell id="grp-cognitive" value="③ Cognitive Pipeline — Agentic (Media URL → Parquet → Iceberg)  ·  example: media-transcript-enrichment" style="swimlane;startSize=28;fillColor=#F5F3FF;strokeColor=#7C3AED;fontStyle=1;fontSize=13;rounded=1;" vertex="1" parent="1">
+        <mxCell id="grp-cognitive" value="③ Cognitive Pipeline - Agentic (Media URL → Parquet → Iceberg)  ·  example: media-transcript-enrichment" style="swimlane;startSize=28;fillColor=#F5F3FF;strokeColor=#7C3AED;fontStyle=1;fontSize=13;rounded=1;" vertex="1" parent="1">
           <mxGeometry x="1020" y="310" width="940" height="520" as="geometry" />
         </mxCell>
 

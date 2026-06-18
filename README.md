@@ -45,18 +45,18 @@
 
 ## Start here (plain English)
 
-**Version 1.0.0** — CogniMesh is a **control plane for trustworthy data products on AWS**. You design pipelines in a visual portal (no coding required to start), the platform checks your design, runs the pipeline, and **only publishes data to the marketplace when integrity checks pass**.
+**Version 1.0.0** - CogniMesh is a **control plane for trustworthy data products on AWS**. You design pipelines in a visual portal (no coding required to start), the platform checks your design, runs the pipeline, and **only publishes data to the marketplace when integrity checks pass**.
 
 | If you are… | Read this first |
 |-------------|-----------------|
-| **C-suite / executive (CEO, CFO, CDO, CISO)** | **[Business guide — C-suite summary](docs/README-business-stewards.md#for-c-suite--executive-leadership)** (2 min) |
+| **C-suite / executive (CEO, CFO, CDO, CISO)** | **[Business guide - C-suite summary](docs/README-business-stewards.md#for-c-suite--executive-leadership)** (2 min) |
 | **Business / product owner** | **[Business & steward guide](docs/README-business-stewards.md)** (plain language only) |
-| **Data steward / governance** | **[Business & steward guide](docs/README-business-stewards.md)** — approvals, proof, marketplace, audit |
+| **Data steward / governance** | **[Business & steward guide](docs/README-business-stewards.md)** - approvals, proof, marketplace, audit |
 | **Engineer / architect** | [At a glance](#at-a-glance), [Quick start](#quick-start), [Repository layout](#repository-layout), [Vaquar Pattern](docs/vaquar-pattern.md) |
 
-**The problem:** Teams ship dashboards and datasets that *look* fine but nobody can prove the numbers match the source. When something breaks, you discover it in production—not at publish time.
+**The problem:** Teams ship dashboards and datasets that *look* fine but nobody can prove the numbers match the source. When something breaks, you discover it in production-not at publish time.
 
-**What CogniMesh does:** You drag blocks on a canvas (sources → transforms → outputs). CogniMesh turns that into a governed **data contract**, runs it on AWS, and attaches a **cryptographic proof** that source and published data match—before the product goes live in the **marketplace**.
+**What CogniMesh does:** You drag blocks on a canvas (sources → transforms → outputs). CogniMesh turns that into a governed **data contract**, runs it on AWS, and attaches a **cryptographic proof** that source and published data match-before the product goes live in the **marketplace**.
 
 **In one sentence:** *Design visually → prove before publish → operate with lineage and access control → let consumers discover governed data products.*
 
@@ -75,12 +75,12 @@
 | **Data product** | A governed dataset (or API) your team owns and others can subscribe to |
 | **Marketplace** | Catalog where consumers find and request access to data products |
 | **Proof / Vaquar Pattern** | Evidence that published data was not silently changed or dropped in the pipeline |
-| **Agent** | An AI assistant (e.g. Bedrock) that reads your data and takes actions—with guardrails |
+| **Agent** | An AI assistant (e.g. Bedrock) that reads your data and takes actions-with guardrails |
 | **Data contract** | Machine-readable rules for what the pipeline must do (generated from your canvas) |
 
 </details>
 
-> **Technical documentation** — install commands, APIs, Terraform, and runtime details begin after the platform demos below.
+> **Technical documentation** - install commands, APIs, Terraform, and runtime details begin after the platform demos below.
 
 ---
 

@@ -93,9 +93,9 @@ Validation warns when guardrails are missing (production best practice). **Expor
 | AWS APIs called | Step Functions create/update (when enabled) | Bedrock Agent create + alias (when `AWS_AGENT_DEPLOY_ENABLED=true`) |
 | Natural next step | Run pipeline in AWS | Guardrails, KB, and action groups via manifest follow-up APIs |
 
-Agent Builder is a **design + manifest + optional deploy** tool. Full resource provisioning (KB, guardrails, Lambda action groups) may require additional AWS API calls after CreateAgent — see `lib/platform/agent-deploy.js`.
+Agent Builder is a **design + manifest + optional deploy** tool. Full resource provisioning (KB, guardrails, Lambda action groups) may require additional AWS API calls after CreateAgent - see `lib/platform/agent-deploy.js`.
 
-The exported manifest is **ready** for Terraform/CLI — see `portal/src/lib/agent-export.js` and the cognitive runtime in `services/cognitive-runtime/`.
+The exported manifest is **ready** for Terraform/CLI - see `portal/src/lib/agent-export.js` and the cognitive runtime in `services/cognitive-runtime/`.
 
 **Pipeline deploy** (for comparison): `portal/src/App.jsx` → `deployPipeline()` → `lib/contract-builder/index.js` → `lib/aws/stepfunctions-deploy.js`.
 
