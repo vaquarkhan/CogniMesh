@@ -8,8 +8,8 @@
 <h1 align="center">The Vaquar Pattern</h1>
 
 <p align="center">
-  <strong>A proposed reference architecture for proof-gated serverless data mesh writes on AWS</strong><br/>
-  Design-time rules · Physical staging · Verification · Durable execution · Metadata commit
+  <strong>Proof-gated serverless data mesh writes for AWS</strong><br/>
+  Design-time rules · Physical staging · Multiset verification · Durable execution · Metadata commit
 </p>
 
 <p align="center">
@@ -31,7 +31,7 @@ Implementers can find code references in [Reference implementation](#reference-i
 
 ## Overview
 
-The **Vaquar Pattern** is a **proposed** reference architecture for building **trustworthy data products** on AWS serverless infrastructure. [Vaquarkhan](https://github.com/vaquarkhan) documents it to address a recurring data-mesh failure mode: pipelines that write physical data and catalog metadata **without verifiable proof** that source and sink agree on declared fields.
+The **Vaquar Pattern** is a reference architecture for building **trustworthy data products** on AWS serverless infrastructure. It was created by **[Vaquarkhan](https://github.com/vaquarkhan)** to address a recurring data-mesh failure mode: pipelines that write physical data and catalog metadata **without verifiable proof** that source and sink agree on declared fields.
 
 CogniMesh implements this pattern in its portal and PVDM runtime. **Verification runs in CogniMesh JavaScript today**, not in the [veridata](https://github.com/vaquarkhan/veridata) Rust crate ([POSITIONING](POSITIONING.md), [veridata integration](veridata-integration.md)).
 

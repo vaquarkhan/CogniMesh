@@ -56,7 +56,7 @@
 | **Data steward / governance** | **[Business & steward guide](docs/README-business-stewards.md)** - approvals, proof, marketplace, audit |
 | **Evaluator / diligence** | **[POSITIONING.md](docs/POSITIONING.md)** - claims vs reality, veridata relationship |
 | **Everyone (repeat questions)** | **[FAQ](docs/FAQ.md)** - proof, PASS/FAIL, features, agents, ops |
-| **Engineer / architect** | [At a glance](#at-a-glance), [Quick start](#quick-start), [POSITIONING](docs/POSITIONING.md), [Vaquar Pattern (proposed)](docs/vaquar-pattern.md) |
+| **Engineer / architect** | [At a glance](#at-a-glance), [Quick start](#quick-start), [POSITIONING](docs/POSITIONING.md), [Vaquar Pattern](docs/vaquar-pattern.md) |
 
 **The problem:** Teams ship dashboards and datasets that *look* fine but nobody can prove the numbers match the source. When something breaks, you discover it in production-not at publish time.
 
@@ -78,7 +78,7 @@
 |------|----------------|
 | **Data product** | A governed dataset (or API) your team owns and others can subscribe to |
 | **Marketplace** | Catalog where consumers find and request access to data products |
-| **Proof / proposed Vaquar Pattern** | When enabled: evidence that published data was not silently changed on declared fields (see [POSITIONING](docs/POSITIONING.md)) |
+| **Proof / Vaquar Pattern** | When enabled: evidence that published data was not silently changed on declared fields (see [POSITIONING](docs/POSITIONING.md)) |
 | **Agent** | An AI assistant (e.g. Bedrock) that reads your data and takes actions-with guardrails |
 | **Data contract** | Machine-readable rules for what the pipeline must do (generated from your canvas) |
 
@@ -124,7 +124,7 @@
   <a href="docs/POSITIONING.md"><b>Positioning (honest scope)</b></a> ·
   <a href="docs/README-business-stewards.md"><b>📘 Business &amp; steward guide</b></a> ·
   <a href="docs/FAQ.md"><b>❓ FAQ</b></a> ·
-  <a href="docs/vaquar-pattern.md"><b>Vaquar Pattern (proposed)</b></a> ·
+  <a href="docs/vaquar-pattern.md"><b>⭐ The Vaquar Pattern</b></a> ·
   <a href="docs/vaquar-pattern.md#data-examples"><b>Data examples</b></a> ·
   <a href="docs/vaquar-pattern.md#vrp-features"><b>VRP features</b></a> ·
   <a href="docs/PIPELINE_E2E_DIAGRAM.md"><b>📐 Pipeline E2E Diagram</b></a> ·
@@ -142,7 +142,7 @@
 
 CogniMesh lets **business users** design data pipelines in a visual portal. The platform generates **`DataContract.yaml`**, runs governance checks, compiles **AWS Step Functions**, registers products in a **marketplace**, and deploys to AWS when enabled.
 
-Built on the **[Vaquar Pattern](docs/vaquar-pattern.md)** (a **proposed** reference architecture by [Vaquarkhan](https://github.com/vaquarkhan)): structured pipelines use **PVDM** (Physical → Verify → Durable → Metadata); cognitive pipelines use an **EKS transactional runtime** with Bedrock agents. Verification today runs in **CogniMesh JS**, not the [veridata](https://github.com/vaquarkhan/veridata) crate ([POSITIONING](docs/POSITIONING.md)).
+Built on **[The Vaquar Pattern](docs/vaquar-pattern.md)** by [Vaquarkhan](https://github.com/vaquarkhan): structured pipelines use **PVDM** (Physical → Verify → Durable → Metadata); cognitive pipelines use an **EKS transactional runtime** with Bedrock agents. Verification today runs in **CogniMesh JS**, not the [veridata](https://github.com/vaquarkhan/veridata) crate ([POSITIONING](docs/POSITIONING.md)).
 
 <table>
 <tr>
@@ -171,7 +171,7 @@ Built on the **[Vaquar Pattern](docs/vaquar-pattern.md)** (a **proposed** refere
 
 **Design data products visually. Verify before publish when the Vaquar path is enabled. Operate with lineage, marketplace, and steward workflows on AWS.**
 
-CogniMesh is a **data mesh control plane**: zero-code portal, optional proof-gated writes ([proposed Vaquar Pattern](docs/vaquar-pattern.md)), marketplace, and an **Operations** layer. **v1.0.0** is the platform/SDK release on [Docker (GHCR)](https://github.com/vaquarkhan/CogniMesh/pkgs/container/cognimesh-api), [PyPI](https://pypi.org/project/cognimesh/), and Terraform-not the same version line as [veridata `0.1.x`](https://github.com/vaquarkhan/veridata).
+CogniMesh is a **data mesh control plane**: zero-code portal, optional proof-gated writes ([Vaquar Pattern](docs/vaquar-pattern.md)), marketplace, and an **Operations** layer. **v1.0.0** is the platform/SDK release on [Docker (GHCR)](https://github.com/vaquarkhan/CogniMesh/pkgs/container/cognimesh-api), [PyPI](https://pypi.org/project/cognimesh/), and Terraform-not the same version line as [veridata `0.1.x`](https://github.com/vaquarkhan/veridata).
 
 ### Design & build (zero code to start)
 
@@ -238,7 +238,7 @@ For screenshots and filters, see [Zero-code portal](#zero-code-portal) below. Fo
 | **Offline VRP verify** | `lib/vrp/verify.js` + `scripts/verify-vrp-proof.js` |
 | **Agent decision attestation** | `lib/vrp/decision-attestation.js` · Agent MCP `/mcp/invoke` |
 
-→ [Vaquar Pattern (proposed)](docs/vaquar-pattern.md) · [POSITIONING](docs/POSITIONING.md) · [Top 3 product loop](docs/TOP3_FEATURES.md)
+→ [The Vaquar Pattern](docs/vaquar-pattern.md) · [POSITIONING](docs/POSITIONING.md) · [Top 3 product loop](docs/TOP3_FEATURES.md)
 
 ### Deploy & run on AWS
 
@@ -544,9 +544,9 @@ flowchart LR
 
 ---
 
-## Vaquar Pattern (proposed)
+## Vaquar Pattern
 
-CogniMesh implements the **[Vaquar Pattern](docs/vaquar-pattern.md)** - a **proposed** reference architecture by **Vaquarkhan**. When the Vaquar path is enabled, catalog commit follows **`commit_metadata ⟹ VRP = PASS`**. Verification runs in CogniMesh JS today ([POSITIONING](docs/POSITIONING.md)).
+CogniMesh implements **[The Vaquar Pattern](docs/vaquar-pattern.md)** (author: **Vaquarkhan**). When the Vaquar path is enabled, catalog commit follows **`commit_metadata ⟹ VRP = PASS`**. Verification runs in CogniMesh JS today ([POSITIONING](docs/POSITIONING.md)).
 
 ```mermaid
 flowchart LR
@@ -729,7 +729,7 @@ CogniMesh/
 │   ├── vrp/                # VRP proofs · JCS · KMS signing
 │   └── platform/           # Operations APIs · store · copilot · plugins
 ├── docs/
-│   └── vaquar-pattern.md   # Proposed Vaquar Pattern spec
+│   └── vaquar-pattern.md   # ⭐ The Vaquar Pattern (author: Vaquarkhan)
 ├── infra/terraform/          # Production IaC
 ├── contracts/examples/     # Sample pipelines
 └── rules/                    # Integrity gate policies
@@ -743,7 +743,7 @@ CogniMesh/
 |----------|-------------|
 | **[CONTRIBUTING.md](CONTRIBUTING.md)** | How to contribute · local setup · tests |
 | **[docs/POSITIONING.md](docs/POSITIONING.md)** | **Claims vs reality** · veridata relationship · what NOT to claim |
-| **[docs/vaquar-pattern.md](docs/vaquar-pattern.md)** | Proposed Vaquar Pattern · PVDM · VRP · data examples |
+| **[docs/vaquar-pattern.md](docs/vaquar-pattern.md)** | **The Vaquar Pattern** · PVDM · VRP · data examples |
 | **[docs/developer/README.md](docs/developer/README.md)** | **Developer customization hub** - 21 UI screenshots · pipelines · agents · code |
 | **[docs/tutorials/README.md](docs/tutorials/README.md)** | Tutorial hub - one guide per architecture & agent |
 | [docs/AGENT_BUILDER.md](docs/AGENT_BUILDER.md) | Agent Builder · feature checkboxes · manifest export |

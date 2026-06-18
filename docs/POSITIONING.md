@@ -19,7 +19,7 @@ CogniMesh is a **visual control plane** for designing data products on AWS: port
 | Do not claim | Reality |
 |--------------|---------|
 | "CogniMesh runs on veridata" | Verification runs in **CogniMesh JS**. [veridata integration](veridata-integration.md) (item C1) is **planned**, not shipped. |
-| "Industry-standard Vaquar Pattern" | The **Vaquar Pattern** is a **proposed** reference architecture by [Vaquarkhan](https://github.com/vaquarkhan), documented in [vaquar-pattern.md](vaquar-pattern.md). It is not an external standard body. |
+| "Vaquar Pattern is an external industry standard" | The **Vaquar Pattern** is [Vaquarkhan](https://github.com/vaquarkhan)'s named reference architecture, documented in [vaquar-pattern.md](vaquar-pattern.md). It is not published by a third-party standards body. |
 | "Cryptographic proof in every install" | **Production** proofs use **AWS KMS** when `VRP_KMS_KEY_ID` is set. Local/dev uses ephemeral Ed25519. Unsigned runs are `UNVERIFIED`. |
 | "Transform verification everywhere" | **Identity** multiset checks are default. **Aggregate** mode (per-group lineage, derived invariants) requires explicit `pvdm.vrp` config. Transform logic exists in **CogniMesh JS only**; [veridata](https://github.com/vaquarkhan/veridata) and the datamesh framework do not inherit it yet. |
 | "One-click deploy to production AWS" | Deploy compiles artifacts and can trigger Step Functions when credentials and Terraform/modules are configured. You still need AWS accounts, IAM, buckets, and review of design-review findings. Success toasts mean **compile/register succeeded**, not that every AWS resource is live. |
@@ -82,13 +82,13 @@ CogniMesh is a **visual control plane** for designing data products on AWS: port
 
 **Say with caveats:** transform verification (aggregate mode + contract config); KMS-signed proofs (production config); agent attestations (gateway policy).
 
-**Do not say:** "100% foolproof," "runs on veridata today," "industry-standard Vaquar Pattern," or "one-click production AWS" without setup caveats.
+**Do not say:** "100% foolproof," "runs on veridata today," or "one-click production AWS" without setup caveats.
 
 ---
 
 ## Related docs
 
 - [FAQ](FAQ.md)
-- [Vaquar Pattern](vaquar-pattern.md) (proposed architecture + data examples)
+- [Vaquar Pattern](vaquar-pattern.md) (architecture spec + data examples)
 - [veridata integration](veridata-integration.md)
 - [Business steward guide](README-business-stewards.md)

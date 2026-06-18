@@ -223,7 +223,7 @@ From the **Operations** panel you can:
 
 ## Trust & proof (what “verified” means)
 
-CogniMesh uses the **[Vaquar Pattern](vaquar-pattern.md)** (a proposed architecture) for proof before publish when the Vaquar execution path is enabled.
+CogniMesh uses **[The Vaquar Pattern](vaquar-pattern.md)** for proof before publish when the Vaquar execution path is enabled.
 
 **In plain language:**
 
