@@ -35,7 +35,10 @@ portal_logout_urls   = ["http://localhost:3000/", "https://portal.yourcompany.co
 # After first apply (terraform output portal_cloudfront_url):
 # portal_cloudfront_callback_url = "https://YOUR_DIST.cloudfront.net/"
 # portal_cloudfront_logout_url   = "https://YOUR_DIST.cloudfront.net/"
-# API CORS also allows *.cloudfront.net via CORS_ORIGIN_SUFFIXES in prod main.tf.
+# On api image 1.0.0 this also adds the origin to CORS_ORIGINS (required for POST/CSRF).
+# Image >=1.0.1 reads CORS_ORIGIN_SUFFIXES=.cloudfront.net from prod main.tf instead.
+
+# api_container_image = "ghcr.io/vaquarkhan/cognimesh-api:1.0.1"  # publish via Actions → Publish workflow first
 
 portal_bucket_name = "cognimesh-prod-portal-UNIQUE"
 

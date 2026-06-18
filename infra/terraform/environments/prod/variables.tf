@@ -131,8 +131,9 @@ variable "enable_api_service" {
 }
 
 variable "api_container_image" {
-  type    = string
-  default = "ghcr.io/vaquarkhan/cognimesh-api:1.0.0"
+  type        = string
+  default     = "ghcr.io/vaquarkhan/cognimesh-api:1.0.0"
+  description = "GHCR cognimesh-api tag. CORS_ORIGIN_SUFFIXES requires image >=1.0.1 (commit 84cbf15+). On 1.0.0, set portal_cloudfront_callback_url so CORS_ORIGINS includes the CloudFront origin."
 }
 
 variable "api_desired_count" {

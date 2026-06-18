@@ -3,8 +3,14 @@ locals {
   tags = {
     Domain = "platform"
   }
-  # Include portal_cloudfront_url in portal_callback_urls after first apply (updates Cognito + API CORS).
-  api_cors_origins = distinct(compact(var.portal_callback_urls))
+  # CORS_ORIGINS: exact browser origins (no trailing slash). Merges portal_callback_urls +
+  # portal_cloudfront_callback_url so pre-1.0.1 API images work without CORS_ORIGIN_SUFFIXES.
+  api_cors_origins = distinct([
+    for url in compact(concat(
+      var.portal_callback_urls,
+      var.portal_cloudfront_callback_url != "" ? [var.portal_cloudfront_callback_url] : []
+    )) : trimsuffix(url, "/")
+  ])
   api_environment = {
     NODE_ENV               = "production"
     ENABLE_EMF_METRICS     = "true"

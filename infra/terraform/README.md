@@ -69,9 +69,7 @@ npm run package:lambda
 npm run test:lambda-zips
 ```
 
-### 4. Post-apply: Cognito callback + portal upload
-
-Cognito login requires the CloudFront URL on the SPA client (API CORS allows `*.cloudfront.net` automatically):
+### 4. Post-apply: Cognito callback, API CORS, portal upload
 
 ```bash
 terraform output portal_cloudfront_url
@@ -81,7 +79,41 @@ terraform output portal_cloudfront_url
 terraform apply
 ```
 
+This updates Cognito callback/logout URLs **and** `CORS_ORIGINS` on the API task (exact CloudFront origin, trailing slash stripped).
+
 CloudFront routes `/api/*`, `/health`, `/metrics`, and `/api/health` to the API ALB. SPA fallback is **404 only** (not 403), so API errors return JSON.
+
+### 5. API container image vs Terraform env
+
+Terraform can set `CORS_ORIGIN_SUFFIXES=.cloudfront.net`, but **the running image must contain the code that reads it** (`services/api-gateway/lib/cors-origins.js`, shipped in `84cbf15`).
+
+| API image | CloudFront POST/CSRF unblock |
+|-----------|------------------------------|
+| `cognimesh-api:1.0.0` (pre-fix) | Set `portal_cloudfront_callback_url` and re-apply (feeds exact origin into `CORS_ORIGINS`). |
+| `cognimesh-api:1.0.1+` | Publish image from current `main`, set `api_container_image`, apply (uses `CORS_ORIGIN_SUFFIXES`). |
+
+**Fastest unblock on 1.0.0** (no image rebuild): set `portal_cloudfront_callback_url` / `portal_logout_urls` as above and `terraform apply` (ECS picks up new `CORS_ORIGINS`).
+
+**Permanent fix** — publish a new API image, then point ECS at it:
+
+```bash
+# GitHub → Actions → Publish → Run workflow → version 1.0.1
+# Or locally:
+docker build -f docker/api.Dockerfile -t ghcr.io/vaquarkhan/cognimesh-api:1.0.1 .
+docker push ghcr.io/vaquarkhan/cognimesh-api:1.0.1
+```
+
+```hcl
+# terraform.tfvars
+api_container_image = "ghcr.io/vaquarkhan/cognimesh-api:1.0.1"
+```
+
+```bash
+terraform apply
+# Or, if only the image tag changed: aws ecs update-service --cluster ... --service ... --force-new-deployment
+```
+
+Verify: `POST https://YOUR_DIST.cloudfront.net/api/v1/pipelines/preview` returns JSON (not 403 CSRF, not HTML).
 
 Build and sync the portal (no `VITE_API_URL` needed when `enable_api_service` proxies `/api/*` via CloudFront):
 
