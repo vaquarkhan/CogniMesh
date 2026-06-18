@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, lazy, Suspense } fro
 import DesignerSidebar from "./components/DesignerSidebar";
 import PropertiesPanel from "./components/PropertiesPanel";
 import DeployConfirmModal from "./components/DeployConfirmModal";
+import FixIssuesWizardModal from "./components/FixIssuesWizardModal";
 import WelcomeModal from "./components/WelcomeModal";
 import CanvasTipBar from "./components/CanvasTipBar";
 import MeshSwimlanes from "./components/MeshSwimlanes";
@@ -107,8 +108,12 @@ export default function App() {
   });
   const [deployResult, setDeployResult] = useState(null);
   const [deployError, setDeployError] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [deployLoading, setDeployLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState("Working…");
+  const [fixWizardOpen, setFixWizardOpen] = useState(false);
+  const fixWizardAutoOpenedRef = useRef(null);
+  const loading = previewLoading || deployLoading;
   const [catalogRefresh, setCatalogRefresh] = useState(0);
   const [showDeployConfirm, setShowDeployConfirm] = useState(false);
   /** Right-dock panel: only one open at a time (ops, approvals, history, lineage, marketplace, deploy). */
@@ -196,9 +201,20 @@ export default function App() {
   }, [nodes, edges, pipelineMeta, token, userEmail]);
 
   useEffect(() => {
-    const t = setTimeout(runDesignReviewScan, 500);
+    const t = setTimeout(runDesignReviewScan, 1200);
     return () => clearTimeout(t);
   }, [runDesignReviewScan]);
+
+  useEffect(() => {
+    if (!awsReview?.reviewedAt || awsReviewLoading) return;
+    const actionable = (awsReview.findings || []).filter(
+      (f) => f.severity === "critical" || f.severity === "high"
+    );
+    if (!actionable.length || !awsReview.overall?.deployBlocked) return;
+    if (fixWizardAutoOpenedRef.current === awsReview.reviewedAt) return;
+    fixWizardAutoOpenedRef.current = awsReview.reviewedAt;
+    setFixWizardOpen(true);
+  }, [awsReview?.reviewedAt, awsReview?.overall?.deployBlocked, awsReview?.findings, awsReviewLoading]);
 
   useEffect(() => {
     let cancelled = false;
@@ -477,10 +493,10 @@ export default function App() {
       toastError("Load a pattern or add blocks first");
       return;
     }
-    setLoading(true);
-    setLoadingMessage("Generating contract preview…");
+    setPreviewLoading(true);
     setDeployError(null);
     setShowDeploy(true);
+    setActiveDock("deploy");
     try {
       const meta = { ...pipelineMeta, ownerEmail: userEmail };
       const result = await previewPipeline({ nodes, edges, pipelineMeta: meta, token });
@@ -489,6 +505,9 @@ export default function App() {
         setDeployError(null);
         setHasPreviewed(true);
         success("Preview ready - review YAML before deploy");
+        if (awsReview?.overall?.deployBlocked) {
+          setFixWizardOpen(true);
+        }
       } else {
         const errs = formatApiErrors(result);
         setDeployResult({ ...result, status: "error" });
@@ -499,7 +518,7 @@ export default function App() {
       setDeployError([err.message]);
       toastError(err.message || "API unavailable");
     } finally {
-      setLoading(false);
+      setPreviewLoading(false);
     }
   };
 
@@ -514,8 +533,8 @@ export default function App() {
       return;
     }
     if (awsReview?.overall?.deployBlocked) {
-      setAwsReviewExpanded(true);
-      toastError(`${awsReview.overall.criticalCount} critical AWS issue(s) - fix in Design Review`);
+      setFixWizardOpen(true);
+      toastError(`${awsReview.overall.criticalCount} critical issue(s) — use the fix wizard`);
       return;
     }
     setDeployImpact(null);
@@ -570,7 +589,7 @@ export default function App() {
 
   const confirmDeploy = async () => {
     setShowDeployConfirm(false);
-    setLoading(true);
+    setDeployLoading(true);
     setLoadingMessage("Deploying pipeline…");
     setDeployError(null);
     setActiveDock("deploy");
@@ -610,7 +629,7 @@ export default function App() {
       setDeployError([err.message]);
       toastError(err.message || "Cannot reach API");
     } finally {
-      setLoading(false);
+      setDeployLoading(false);
     }
   };
 
@@ -636,7 +655,26 @@ export default function App() {
     <div className="app">
       <MobileWarning />
       <ToastStack toasts={toasts} />
-      {loading && <LoadingOverlay message={loadingMessage} />}
+      {deployLoading && <LoadingOverlay message={loadingMessage} />}
+
+      <FixIssuesWizardModal
+        open={fixWizardOpen}
+        onClose={() => setFixWizardOpen(false)}
+        findings={awsReview?.findings || []}
+        nodes={nodes}
+        edges={edges}
+        pipelineMeta={{ ...pipelineMeta, ownerEmail: userEmail }}
+        token={token}
+        onFocusNode={focusCanvasNode}
+        onApplyFindingFix={applyAwsFindingFix}
+        onApplyNodeFix={updateNode}
+        applyingFindingId={applyingFindingId}
+        title={
+          awsReview?.overall?.criticalCount
+            ? `Fix ${awsReview.overall.criticalCount} critical issue(s)`
+            : "Fix pipeline issues"
+        }
+      />
 
       <WelcomeModal
         open={showWelcome}
@@ -705,8 +743,18 @@ export default function App() {
               <span className="header-score score-ok">{awsReview.overall.score}</span>
             )}
           </button>
+          {(awsReview?.overall?.criticalCount > 0 || awsReview?.overall?.deployBlocked) && (
+            <button
+              type="button"
+              className="deploy-btn compact"
+              data-testid="open-fix-wizard"
+              onClick={() => setFixWizardOpen(true)}
+            >
+              Fix issues
+            </button>
+          )}
           <button className="btn-secondary" type="button" onClick={handlePreview} disabled={loading}>
-            Preview YAML
+            {previewLoading ? "Previewing…" : "Preview YAML"}
           </button>
           <button className="deploy-btn" type="button" onClick={handleDeploy} disabled={loading}>
             Deploy Pipeline
@@ -904,7 +952,13 @@ export default function App() {
         {activeDock === "deploy" && (
           <ErrorBoundary name="Deploy">
           <Suspense fallback={<PanelFallback />}>
-            <DeployPanel result={deployResult} loading={loading} error={deployError} token={token} />
+            <DeployPanel
+              result={deployResult}
+              loading={previewLoading || deployLoading}
+              loadingLabel={previewLoading ? "Generating contract preview…" : deployLoading ? "Deploying pipeline…" : undefined}
+              error={deployError}
+              token={token}
+            />
           </Suspense>
           </ErrorBoundary>
         )}

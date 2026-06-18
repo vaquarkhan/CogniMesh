@@ -5,14 +5,14 @@ import AwsDeployStatusBanner from "./AwsDeployStatusBanner";
 
 const TABS = ["contract", "lineage", "vaquar", "history", "stepfunctions", "deploy"];
 
-export default function DeployPanel({ result, loading, error, token }) {
+export default function DeployPanel({ result, loading, error, token, loadingLabel }) {
   const [tab, setTab] = useState("contract");
 
-  if (loading) {
+  if (loading && !result) {
     return (
       <aside className="deploy-panel">
-        <h2>Deploying…</h2>
-        <p className="deploy-status loading">Validating → Compiling → Registering</p>
+        <h2>{loadingLabel || "Working…"}</h2>
+        <p className="deploy-status loading">{loadingLabel || "Validating → Compiling → Registering"}</p>
       </aside>
     );
   }

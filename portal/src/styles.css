@@ -974,10 +974,45 @@ textarea:focus-visible,
 
 .deploy-summary p { margin: 0.25rem 0; }
 
-.deploy-status.loading {
+.deploy-panel .deploy-status.loading {
+  animation: pulse 1.2s ease-in-out infinite;
   color: #fbbf24;
   font-size: 0.85rem;
 }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+.fix-wizard-dialog {
+  max-width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.fix-wizard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+.fix-wizard-header h2 { margin: 0; }
+.fix-wizard-close { font-size: 1.25rem; padding: 0.25rem 0.5rem; }
+.fix-wizard-detail {
+  margin: 1rem 0;
+  padding: 0.75rem;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.5);
+}
+.fix-wizard-sev { font-weight: 600; margin: 0 0 0.35rem; }
+.fix-wizard-sev.sev-critical { color: #f87171; }
+.fix-wizard-sev.sev-high { color: #fb923c; }
+.fix-wizard-msg { margin: 0 0 0.75rem; color: #cbd5e1; font-size: 0.9rem; }
+.fix-wizard-fields { margin-top: 0.75rem; }
+.fix-wizard-actions { flex-wrap: wrap; }
+.deploy-btn.compact { padding: 0.35rem 0.75rem; font-size: 0.85rem; }
 
 .error-list {
   color: #fca5a5;
