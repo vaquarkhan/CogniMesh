@@ -1013,6 +1013,8 @@ textarea:focus-visible,
 .fix-wizard-fields { margin-top: 0.75rem; }
 .fix-wizard-actions { flex-wrap: wrap; }
 .fix-wizard-ask-ai { margin-top: 0.5rem; font-size: 0.85rem; }
+.aws-ai-fix-box { margin-top: 0.75rem; padding: 0.6rem; background: rgba(56, 189, 248, 0.08); border: 1px solid #38bdf8; border-radius: 6px; font-size: 0.85rem; }
+.aws-ai-fix-badge { display: inline-block; margin-top: 0.4rem; font-size: 0.72rem; color: #38bdf8; font-weight: 600; }
 .deploy-btn.compact { padding: 0.35rem 0.75rem; font-size: 0.85rem; }
 
 .error-list {

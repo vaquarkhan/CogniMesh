@@ -175,8 +175,7 @@ export default function FixIssuesWizardModal({
           <div>
             <h2 id="fix-wizard-title">{title}</h2>
             <p className="properties-hint">
-              Pick an issue — we apply the fix on your canvas automatically. No YAML editing needed.
-              {" "}Amazon Q can help debug complex issues.
+              We fix issues on your canvas automatically — click Apply fix below.
             </p>
           </div>
           <button type="button" className="btn-ghost fix-wizard-close" onClick={onClose} aria-label="Close">
@@ -229,21 +228,17 @@ export default function FixIssuesWizardModal({
                   </div>
                 )}
 
-                {planLoading && <p className="properties-hint">Loading AI fix guide…</p>}
+                {planLoading && <p className="properties-hint">Loading fix guide…</p>}
                 {planError && (
-                  <p className="properties-hint">AI tips unavailable — steps above still work offline.</p>
+                  <p className="properties-hint">Fix guide unavailable — use Apply fix below.</p>
                 )}
 
                 {plan?.aiExplanation && (
                   <div className="aws-ai-fix-box">
-                    <strong>{plan.mode === "amazon_q" ? "Amazon Q" : "AI"} fix guide</strong>
                     <p>{plan.aiExplanation}</p>
-                    {plan.mode === "amazon_q" && (
-                      <span className="properties-hint">Powered by Amazon Q Business</span>
-                    )}
-                    {plan.mode === "llm" && (
-                      <span className="properties-hint">Amazon Bedrock</span>
-                    )}
+                    <span className="aws-ai-fix-badge">
+                      {plan.mode === "amazon_q" ? "Amazon Q" : "AI-assisted"}
+                    </span>
                   </div>
                 )}
 
@@ -253,7 +248,7 @@ export default function FixIssuesWizardModal({
                     className="btn-secondary fix-wizard-ask-ai"
                     onClick={() => loadPlan(selected)}
                   >
-                    Ask Amazon Q to debug this
+                    🤖 Get AI fix guide
                   </button>
                 )}
 
