@@ -18,6 +18,8 @@
 <p align="center">
   <a href="#for-c-suite--executive-leadership">C-suite summary (2 min)</a>
   &nbsp;·&nbsp;
+  <a href="#faq">FAQ</a>
+  &nbsp;·&nbsp;
   <a href="#your-day-as-a-data-steward">Steward workflows</a>
   &nbsp;·&nbsp;
   <a href="../README.md">Technical README</a>
@@ -87,7 +89,7 @@ These map directly to portal screens - no custom BI required to start:
 | “Who approved consumer access?” | **Approvals** log with steward identity |
 | “Can we roll back a bad deploy?” | **Version diff and rollback** on the pipeline canvas |
 
-*Honest limits:* CogniMesh proves **data integrity and decision context**, not that an LLM’s business judgment is correct. For **aggregations and joins**, today’s check is row-preserving multiset match - verifying transform **rules** (control totals, per-group lineage) is on the [roadmap](vaquar-pattern.md#hardening-roadmap).
+*Honest limits:* CogniMesh proves **data integrity and decision context**, not that an LLM's business judgment is correct. For **aggregations**, enable `pvdm.vrp.mode: aggregate` so per-group invariants and lineage apply - see [FAQ - swap attacks](FAQ.md#does-verification-catch-swap-attacks-same-total-wrong-groups).*
 
 ### Investment framing (build vs assemble)
 
@@ -237,7 +239,7 @@ CogniMesh uses the **[Vaquar Pattern](vaquar-pattern.md)** - proof before publis
 **What proof does not prove**
 
 - That business rules or ML models are “correct” - only that data was not silently corrupted in the pipe.
-- That an **aggregation or join** allocated amounts to the right groups - multiset match is for **row-preserving** pipelines; transform-rule verification is [planned](vaquar-pattern.md#multiset-equality-vs-transform-verification), not live yet.
+- That an **aggregation** allocated amounts to the wrong groups **when aggregate mode is not configured** - use `pvdm.vrp.mode: aggregate` for sum-by-group pipelines ([FAQ](FAQ.md#row-preserving-vs-aggregation---which-verification-applies)).
 - That an AI agent’s **judgment** is right - only that it used **verified inputs** when attestations are enforced.
 
 For AI-heavy flows, CogniMesh also supports **decision attestations**: a signed record that an agent’s output was produced from gateway-verified data, not self-declared inputs.
@@ -281,19 +283,29 @@ For AI-heavy flows, CogniMesh also supports **decision attestations**: a signed 
 
 ---
 
-## Common questions
+## FAQ
+
+Full list (business, proof, engineering, agents, ops): **[docs/FAQ.md](FAQ.md)**
+
+### Quick answers for stewards
 
 **Do I need to write code?**  
 No. Stewards work in the portal: Approvals, Run History, Marketplace, Operations.
 
+**PASS vs FAIL vs UNVERIFIED?**  
+**PASS** = verified, safe to promote per policy. **FAIL** = mismatch or blocked publish - do not trust. **UNVERIFIED** = empty run, error, or nothing to prove - **not** a pass.
+
 **What should I block?**  
-Deploys with critical design-review findings, VRP **FAIL**, or missing owner/domain metadata - per your org policy.
+Deploys with critical design-review findings, VRP **FAIL** or **UNVERIFIED** (when proof is required), or missing owner/domain metadata - per your org policy.
 
 **Can consumers see data before I approve?**  
 Not when access control is enabled. They see schema and samples; full access follows your approval.
 
 **How is this different from a normal data lake?**  
-A lake stores files. CogniMesh adds **contracts, proof before publish, marketplace, and steward workflows** on top.
+A lake stores files. CogniMesh adds contracts, proof before publish, marketplace, and steward workflows on top.
+
+**Is everything on the hardening roadmap shipped?**  
+Yes - VRP v3 covers transform verification, contract binding, compaction-safe logical digests, conformance vectors, and fail-closed publish. Details: [FAQ](FAQ.md#is-the-hardening-roadmap-done).
 
 **Where do I go for step-by-step lessons?**  
 [docs/tutorials/README.md](tutorials/README.md) - pipeline and agent walkthroughs by industry.
@@ -304,6 +316,7 @@ A lake stores files. CogniMesh adds **contracts, proof before publish, marketpla
 
 | Goal | Link |
 |------|------|
+| **FAQ (start here for repeat questions)** | [FAQ.md](FAQ.md) |
 | **C-suite / board briefing** | [Executive summary (2 min)](README-business-stewards.md#for-c-suite--executive-leadership) |
 | Full product overview (mixed audience) | [Main README](../README.md) |
 | Top 3 workflows (prove → deploy → consume) | [TOP3_FEATURES.md](TOP3_FEATURES.md) |

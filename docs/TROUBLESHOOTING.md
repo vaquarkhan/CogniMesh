@@ -114,6 +114,8 @@ docker compose up --build
 
 ## Still stuck?
 
+See **[FAQ.md](FAQ.md)** for proof, PASS/FAIL, steward, and agent questions.
+
 1. `npm run test:unit && npm test`
 2. `npm run test:portal`
 3. See [LOCAL_DEV.md](LOCAL_DEV.md) and [PORTAL_DEV.md](PORTAL_DEV.md)

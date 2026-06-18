@@ -14,6 +14,7 @@
 
 <p align="center">
   <a href="../README.md">← CogniMesh</a> ·
+  <a href="FAQ.md">FAQ</a> ·
   <a href="data-contract-spec.md">Data Contract</a> ·
   <a href="../lib/vaquar/contract-to-mesh.js">mesh compiler</a> ·
   <a href="../services/pvdm-runtime/">PVDM runtime</a>
