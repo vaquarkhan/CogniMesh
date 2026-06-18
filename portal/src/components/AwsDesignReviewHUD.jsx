@@ -33,6 +33,8 @@ function FindingRow({
   onToggle,
   onFocusNode,
   onApplyNodeFix,
+  onApplyFindingFix,
+  applyingFindingId,
   token,
   nodes,
   edges,
@@ -164,6 +166,17 @@ function FindingRow({
                 Apply suggested values
               </button>
             )}
+            {onApplyFindingFix && (
+              <button
+                type="button"
+                className="deploy-btn compact aws-apply-fix-btn"
+                data-testid={`aws-apply-fix-${f.id}`}
+                disabled={applyingFindingId === f.id}
+                onClick={() => onApplyFindingFix(f)}
+              >
+                {applyingFindingId === f.id ? "Applying…" : "Apply fix"}
+              </button>
+            )}
             {steps.length > 0 && (
               <button type="button" className="btn-ghost compact" onClick={() => setShowSteps((v) => !v)}>
                 {showSteps ? "Hide steps" : "Show steps"}
@@ -185,6 +198,8 @@ export default function AwsDesignReviewHUD({
   onFocusNode,
   onRunReview,
   onApplyNodeFix,
+  onApplyFindingFix,
+  applyingFindingId,
   focusFindingId,
   autoLoadFixForId,
   onFocusFindingHandled,
@@ -402,8 +417,20 @@ export default function AwsDesignReviewHUD({
                 <button type="button" className="btn-secondary compact" onClick={() => goToIssue(activeIdx + 1)}>
                   Next →
                 </button>
-                <button type="button" className="deploy-btn compact" onClick={() => goToIssue(activeIdx)}>
-                  Fix this
+                <button
+                  type="button"
+                  className="deploy-btn compact"
+                  disabled={!actionable[activeIdx] || applyingFindingId === actionable[activeIdx]?.id}
+                  onClick={() => {
+                    const f = actionable[activeIdx];
+                    if (!f) return;
+                    if (onApplyFindingFix) {
+                      onApplyFindingFix(f);
+                    }
+                    goToIssue(activeIdx);
+                  }}
+                >
+                  {applyingFindingId === actionable[activeIdx]?.id ? "Applying…" : "Fix this"}
                 </button>
               </div>
             </div>
@@ -456,6 +483,8 @@ export default function AwsDesignReviewHUD({
                 onToggle={() => toggleFinding(f.id)}
                 onFocusNode={onFocusNode}
                 onApplyNodeFix={onApplyNodeFix}
+                onApplyFindingFix={onApplyFindingFix}
+                applyingFindingId={applyingFindingId}
                 token={token}
                 nodes={nodes}
                 edges={edges}

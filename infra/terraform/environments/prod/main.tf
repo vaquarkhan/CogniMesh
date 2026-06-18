@@ -236,6 +236,8 @@ module "observability" {
   ecs_service_name          = try(module.api_service[0].ecs_service_name, "")
   api_desired_count         = var.api_desired_count
   enable_waf_alarms         = var.enable_waf
+  enable_alb_alarms         = var.enable_api_service
+  enable_ecs_alarms           = var.enable_api_service
   waf_web_acl_name          = coalesce(try(module.api_service[0].waf_web_acl_name, null), try(module.portal_cdn[0].waf_web_acl_name, null), "")
   alert_email               = var.ops_alert_email
   tags                      = local.tags

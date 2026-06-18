@@ -14,6 +14,7 @@ import HeaderDockMenu from "./components/HeaderDockMenu";
 import { createNodeIdFactory } from "./lib/node-id";
 import { deployPipeline, previewPipeline, runAwsDesignReview, isApiReachable, getApiHealth, getDesignReviewFixHelp } from "./lib/api";
 import { insertIntegrityGate } from "./lib/integrity-gate-insert";
+import { resolveAutoFix, resolvePlanActions } from "./lib/aws-fix-apply";
 import { analyzeImpact } from "./lib/platform-api";
 import AwsDesignReviewHUD from "./components/AwsDesignReviewHUD";
 import { validateBlocks, isWorkflowGraph } from "./lib/validate-blocks";
@@ -346,40 +347,67 @@ export default function App() {
       if (!finding?.id) return;
       setApplyingFindingId(finding.id);
       try {
-        if (
-          finding.id === "sec.integrity_gate" ||
-          finding.id.startsWith("sec.integrity_gate.") ||
-          finding.title?.toLowerCase().includes("integrity gate")
-        ) {
-          if (addIntegrityGateToGraph()) {
-            setTimeout(runDesignReviewScan, 400);
+        const applyAction = (action) => {
+          if (action.type === "add_integrity_gate") {
+            if (addIntegrityGateToGraph()) {
+              success("Added Integrity Gate — re-scanning AWS review…");
+              setTimeout(runDesignReviewScan, 400);
+            } else {
+              toastError("Could not add integrity gate — wire transform → sink first");
+            }
+            return true;
           }
-          return;
+          if (action.type === "pipelineMeta") {
+            setPipelineMeta((m) => ({ ...m, ...action.patch }));
+            success("Applied suggested fix — re-scanning AWS review…");
+            setTimeout(runDesignReviewScan, 400);
+            return true;
+          }
+          if (action.type === "node" && action.nodeId && action.patch) {
+            updateNode(action.nodeId, action.patch);
+            success("Applied suggested fix — re-scanning AWS review…");
+            setTimeout(runDesignReviewScan, 400);
+            return true;
+          }
+          return false;
+        };
+
+        const clientFix = resolveAutoFix(finding, nodes, { ...pipelineMeta, ownerEmail: userEmail });
+        if (clientFix && applyAction(clientFix)) return;
+
+        let plan = null;
+        try {
+          const data = await getDesignReviewFixHelp({
+            token,
+            nodes,
+            edges,
+            pipelineMeta: { ...pipelineMeta, ownerEmail: userEmail },
+            findingId: finding.id,
+          });
+          if (data?.status === "error") {
+            throw new Error(data.errors?.[0] || "Fix help unavailable");
+          }
+          plan = data.plans?.[0];
+        } catch (apiErr) {
+          if (clientFix) throw apiErr;
+          console.warn("Fix help API failed, using client rules only", apiErr);
         }
 
-        const data = await getDesignReviewFixHelp({
-          token,
-          nodes,
-          edges,
-          pipelineMeta: { ...pipelineMeta, ownerEmail: userEmail },
-          findingId: finding.id,
-        });
-        const plan = data.plans?.[0];
-        if (!plan) throw new Error("No fix plan returned");
+        const planAction = resolvePlanActions(plan);
+        if (planAction && applyAction(planAction)) return;
 
-        if (plan.propertyPatch?.enableLakeFormation) {
-          setPipelineMeta((m) => ({ ...m, enableLakeFormation: true }));
-        } else if (plan.propertyPatch && plan.nodeId) {
+        if (plan?.propertyPatch && plan.nodeId) {
           updateNode(plan.nodeId, plan.propertyPatch);
-        } else if (finding.id.startsWith("sec.lake_formation")) {
-          setPipelineMeta((m) => ({ ...m, enableLakeFormation: true }));
-        } else {
-          toastError("No automatic patch for this finding — use Fix this for the step guide");
+          success("Applied suggested fix — re-scanning AWS review…");
+          setTimeout(runDesignReviewScan, 400);
           return;
         }
 
-        success("Applied suggested fix — re-scanning AWS review…");
-        setTimeout(runDesignReviewScan, 400);
+        toastError(
+          plan?.steps?.[0]
+            ? "No automatic patch — expand the finding for step-by-step guidance"
+            : "No automatic patch for this finding — use Get fix guide for steps"
+        );
       } catch (err) {
         toastError(err.message || "Could not apply fix");
       } finally {
@@ -735,6 +763,8 @@ export default function App() {
                 success("Applied suggested fix — re-scanning AWS review…");
                 setTimeout(runDesignReviewScan, 400);
               }}
+              onApplyFindingFix={applyAwsFindingFix}
+              applyingFindingId={applyingFindingId}
               token={token}
               nodes={nodes}
               edges={edges}

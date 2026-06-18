@@ -208,7 +208,7 @@ export async function getDesignReviewFixHelp({
     body: JSON.stringify({ nodes, edges, pipelineMeta, findingId, findingIds }),
   });
   const data = await parseJsonResponse(res, "Fix help");
-  if (!res.ok || !data) {
+  if (!res.ok || !data || data.status === "error") {
     throw new Error(data?.errors?.[0] || "Fix help unavailable");
   }
   return data;

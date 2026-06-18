@@ -38,7 +38,7 @@ portal_logout_urls   = ["http://localhost:3000/", "https://portal.yourcompany.co
 # On api image 1.0.0 this also adds the origin to CORS_ORIGINS (required for POST/CSRF).
 # Image >=1.0.1 reads CORS_ORIGIN_SUFFIXES=.cloudfront.net from prod main.tf instead.
 
-# api_container_image = "ghcr.io/vaquarkhan/cognimesh-api:1.0.1"  # publish via Actions → Publish workflow first
+# api_container_image = "ghcr.io/vaquarkhan/cognimesh-api:sha-COMMIT"  # or :main (CI publishes on merge)
 
 portal_bucket_name = "cognimesh-prod-portal-UNIQUE"
 

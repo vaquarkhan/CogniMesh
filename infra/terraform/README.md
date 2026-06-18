@@ -94,19 +94,20 @@ Terraform can set `CORS_ORIGIN_SUFFIXES=.cloudfront.net`, but **the running imag
 
 **Fastest unblock on 1.0.0** (no image rebuild): set `portal_cloudfront_callback_url` / `portal_logout_urls` as above and `terraform apply` (ECS picks up new `CORS_ORIGINS`).
 
-**Permanent fix** — publish a new API image, then point ECS at it:
+**Permanent fix** — use the CI-built image (pushed on every merge to `main`):
 
 ```bash
-# GitHub → Actions → Publish → Run workflow → version 1.0.1
-# Or locally:
-docker build -f docker/api.Dockerfile -t ghcr.io/vaquarkhan/cognimesh-api:1.0.1 .
-docker push ghcr.io/vaquarkhan/cognimesh-api:1.0.1
+# GitHub Actions → Docker API (main) publishes:
+#   ghcr.io/vaquarkhan/cognimesh-api:main
+#   ghcr.io/vaquarkhan/cognimesh-api:sha-<commit>
 ```
 
 ```hcl
-# terraform.tfvars
-api_container_image = "ghcr.io/vaquarkhan/cognimesh-api:1.0.1"
+# terraform.tfvars — pin a sha for immutable prod
+api_container_image = "ghcr.io/vaquarkhan/cognimesh-api:sha-COMMIT_SHA"
 ```
+
+Or publish a semver release via **Actions → Publish** (`1.0.1`, etc.).
 
 ```bash
 terraform apply

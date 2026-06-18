@@ -37,6 +37,17 @@ variable "enable_waf_alarms" {
   default = true
 }
 
+variable "enable_alb_alarms" {
+  type        = bool
+  default     = true
+  description = "ALB 5xx alarm — gate count on this static bool, not computed ARN suffixes."
+}
+
+variable "enable_ecs_alarms" {
+  type    = bool
+  default = true
+}
+
 variable "waf_web_acl_name" {
   type    = string
   default = ""
@@ -71,7 +82,7 @@ locals {
 }
 
 resource "aws_cloudwatch_metric_alarm" "alb_5xx" {
-  count = var.alb_arn_suffix != "" && var.target_group_arn_suffix != "" ? 1 : 0
+  count = var.enable_alb_alarms ? 1 : 0
 
   alarm_name          = "${var.name_prefix}-api-alb-5xx"
   comparison_operator = "GreaterThanThreshold"
@@ -94,7 +105,7 @@ resource "aws_cloudwatch_metric_alarm" "alb_5xx" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "ecs_running_tasks" {
-  count = var.ecs_cluster_name != "" && var.ecs_service_name != "" ? 1 : 0
+  count = var.enable_ecs_alarms ? 1 : 0
 
   alarm_name          = "${var.name_prefix}-api-ecs-running-tasks-low"
   comparison_operator = "LessThanThreshold"
@@ -132,7 +143,7 @@ resource "aws_cloudwatch_metric_alarm" "cognimesh_deploy_failed" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "waf_blocked" {
-  count = var.enable_waf_alarms && var.waf_web_acl_name != "" ? 1 : 0
+  count = var.enable_waf_alarms ? 1 : 0
 
   alarm_name          = "${var.name_prefix}-waf-blocked-spike"
   comparison_operator = "GreaterThanThreshold"
