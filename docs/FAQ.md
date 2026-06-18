@@ -49,11 +49,11 @@ A data lake **stores** files. CogniMesh adds **contracts, proof-gated publish, m
 
 ### Is CogniMesh "100% foolproof"?
 
-**No** - and we do not claim that publicly. CogniMesh proves **provenance, integrity, and declared invariants**. It does **not** prove that business judgment, SQL logic, or an LLM's answer is semantically correct. See [What to claim publicly](vaquar-pattern.md#what-to-claim-publicly-honesty-guardrail).
+No. CogniMesh proves **provenance, integrity, and declared invariants**. It does not prove that business judgment, SQL logic, or an LLM answer is semantically correct.
 
-### Is the hardening roadmap done?
+### What VRP features are included?
 
-**Yes.** All ten hardening items in [Vaquar Pattern - Hardening roadmap](vaquar-pattern.md#hardening-roadmap) are shipped in **VRP v3** (`proof_version: "3"`). v2 proofs still verify for backward compatibility.
+See [VRP features](vaquar-pattern.md#vrp-features): transform verification (identity + aggregate), contract and environment binding, compaction-safe logical digests, conformance vectors, and fail-closed publish. Proofs use `proof_version: "3"`; v2 still verifies.
 
 ---
 

@@ -89,7 +89,7 @@ These map directly to portal screens - no custom BI required to start:
 | “Who approved consumer access?” | **Approvals** log with steward identity |
 | “Can we roll back a bad deploy?” | **Version diff and rollback** on the pipeline canvas |
 
-*Honest limits:* CogniMesh proves **data integrity and decision context**, not that an LLM's business judgment is correct. For **aggregations**, enable `pvdm.vrp.mode: aggregate` so per-group invariants and lineage apply - see [FAQ - swap attacks](FAQ.md#does-verification-catch-swap-attacks-same-total-wrong-groups).*
+*Limits:* CogniMesh proves **data integrity and decision context**, not that an LLM's business judgment is correct. For **aggregations**, enable `pvdm.vrp.mode: aggregate` for per-group checks - see [FAQ](FAQ.md#row-preserving-vs-aggregation---which-verification-applies).*
 
 ### Investment framing (build vs assemble)
 
@@ -304,8 +304,8 @@ Not when access control is enabled. They see schema and samples; full access fol
 **How is this different from a normal data lake?**  
 A lake stores files. CogniMesh adds contracts, proof before publish, marketplace, and steward workflows on top.
 
-**Is everything on the hardening roadmap shipped?**  
-Yes - VRP v3 covers transform verification, contract binding, compaction-safe logical digests, conformance vectors, and fail-closed publish. Details: [FAQ](FAQ.md#is-the-hardening-roadmap-done).
+**What VRP features are included?**  
+Proof-gated publish, transform verification (identity and aggregate), contract binding, compaction-safe logical digests, and fail-closed publish. Details: [VRP features](vaquar-pattern.md#vrp-features).
 
 **Where do I go for step-by-step lessons?**  
 [docs/tutorials/README.md](tutorials/README.md) - pipeline and agent walkthroughs by industry.
@@ -322,7 +322,7 @@ Yes - VRP v3 covers transform verification, contract binding, compaction-safe lo
 | Top 3 workflows (prove → deploy → consume) | [TOP3_FEATURES.md](TOP3_FEATURES.md) |
 | Steward agent template (optional automation) | [CogniMesh Data Steward tutorial](tutorials/agents/cognimesh-steward.md) |
 | Technical proof specification | [Vaquar Pattern](vaquar-pattern.md) |
-| Hardening roadmap (honest limits + what's next) | [Vaquar Pattern - roadmap](vaquar-pattern.md#hardening-roadmap) |
+| VRP features (proof v3) | [Vaquar Pattern - features](vaquar-pattern.md#vrp-features) |
 | Portal button map | [PORTAL_UI.md](PORTAL_UI.md) |
 | Local demo setup | [GETTING_STARTED.md](GETTING_STARTED.md) |
 

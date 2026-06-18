@@ -169,26 +169,18 @@ sequenceDiagram
 - **Proves:** For **identity** transforms (row-preserving): source and sink multisets match over declared fields. For **aggregate** transforms: derived invariants (per-group sums, lineage hashes) hold; swap attacks fail even when global totals match. Sink multiset was derived from independently read persisted bytes; logical content hash survives Iceberg compaction; contract and environment are bound; the proof was signed under a named key within a validity window; the Iceberg snapshot id resolves to catalog state.
 - **Does not prove:** Semantic correctness of ML/LLM judgments, or integrity of columns outside `identityFields` + `contentFields`. Reproducible computation attests determinism of a **declared** transform - correctness of the transform code remains a separate review artifact.
 
-### Security review: eight attacks
+### Security features
 
-Independent review identified eight ways a naive “signed multiset hash” could give false confidence. CogniMesh addresses each in code:
-
-| # | Attack | Risk | Mitigation (shipped) | Implementation |
-|---|--------|------|----------------------|----------------|
-| 1 | **Forgeable hash** - signature over self-reported count hash, not real sink bytes | Signed self-attestation | Content-addressable sink: Parquet footer or NDJSON full-file digests + manifest digest; verifier recomputes from read-back | `lib/vrp/parquet-chunk.js`, `chunk-store.js`, `verify.js` |
-| 2 | **Naive canonical JSON** - floats, key order, Unicode footguns | Valid sig fails or two payloads collide | RFC 8785-style JCS; numbers coerced to decimal strings; strict proof schema | `lib/vrp/canonical.js` |
-| 3 | **Key in env/repo** - anyone with producer access mints proofs | Theater | KMS asymmetric `kms:Sign`; non-exportable key material; `keyId` in envelope | `lib/vrp/sign.js` |
-| 4 | **Replay / proof reuse** - old proof attached to new path | Stale provenance | `pipeline_run_id`, `chunk_sequence`, `not_before`/`not_after`, table identity + snapshot id | `lib/vrp/generate.js` |
-| 5 | **Cosmetic snapshot id** - `snap-${Date.now()}` not real Iceberg id | Pin doesn't resolve | Glue Iceberg metadata `current-snapshot-id` or monotonic `iceberg-snapshots.json` | `lib/aws/glue-iceberg.js` |
-| 6 | **Self-reported agent inputs** - agent lists proofs it didn't read | Attestation theater | Proof-aware gateway: verify proof → serve rows → HMAC `gatewayToken`; attestations reject declared `inputProofs` by default | `lib/vrp/proof-gateway.js`, `decision-attestation.js` |
-| 7 | **Multiset hides column corruption** - default `["id"]`, unlisted columns invisible | Silent pass | All columns hashed by default; explicit `identityFields` to narrow; `schema_fingerprint` in proof | `lib/vrp/fields.js` |
-| 8 | **Fail-open PASS** - empty workload or catch → PASS | Manufactured confidence | Fail closed: empty → `UNVERIFIED`; exceptions → `UNVERIFIED`/`FAIL`; signing errors → `signing_failed` | `lib/pvdm-run-summary.js`, `services/pvdm-runtime/` |
-
-**Honest hierarchy** (what actually carries the trust claim):
-
-1. **Load-bearing:** Attack 1 (content-bound sink) + Attack 6 (gateway-enforced inputs) - without these, the chain is signed self-attestation.
-2. **Custody:** Attack 3 - KMS or it's theater; trust = key policy + CloudTrail, not “no trust required.”
-3. **Correctness:** Attacks 2, 4, 5, 7, 8 - hardening that prevents subtle false PASS.
+| Feature | What it does |
+|---------|----------------|
+| Content-bound sink | Parquet footer or NDJSON full-file digests; verifier recomputes from read-back bytes |
+| Canonical proof payloads | RFC 8785-style JCS; decimal strings for numbers; stable key ordering |
+| KMS signing | Production proofs signed with `kms:Sign`; dev Ed25519 for local only |
+| Replay binding | `pipeline_run_id`, chunk sequence, validity window, table + snapshot identity |
+| Real snapshot pins | Glue Iceberg `current-snapshot-id` or monotonic catalog state |
+| Proof-aware gateway | Agents receive data only after proof verify; HMAC `gatewayToken` for attestations |
+| Broad field coverage | All columns hashed by default; optional `identityFields` to narrow scope |
+| Fail-closed outcomes | Empty or errored runs → `UNVERIFIED` or `FAIL`, never silent `PASS` |
 
 ### Trust model
 
@@ -343,84 +335,49 @@ Live endpoints:
 - **Proves:** the decision was computed only from inputs whose VRP proofs verify (via gateway token when enforcement is on), against a named snapshot, under a recorded tool-call set, and that the decision record has not been altered since signing (output/tool-call hashes + signature).
 - **Does not prove:** that the decision is *semantically correct*. An LLM's judgment cannot be cryptographically proven right. The attestation establishes **provenance and integrity of the decision context**, not correctness of the conclusion.
 
-### Remaining honest limits
+### Notes
 
-- **Mandatory enforcement on every agent path** - gateway + attestation are implemented; making them mandatory on all production agent invocations is an operational policy choice (disable `VRP_ALLOW_DECLARED_INPUTS` in prod).
-- **Attestation transparency log** - VRP proofs append to the transparency log today; extending the same log to decision attestations is a future hardening step for replay detection across the agent layer.
+- Gateway + attestation are available on agent paths; your org chooses whether to require them in production (`VRP_ALLOW_DECLARED_INPUTS` should stay off in prod).
+- VRP proofs append to the transparency log today; decision attestations may use the same log in a future release.
 
 Implementation: [`lib/vrp/decision-attestation.js`](../lib/vrp/decision-attestation.js) · [`lib/vrp/proof-gateway.js`](../lib/vrp/proof-gateway.js) · wired in [`services/agent-mcp/server.js`](../services/agent-mcp/server.js)
 
 ---
 
-## Hardening roadmap
+## VRP features
 
-A devil's-advocate review of what it takes to move the Vaquar Pattern from **proof-gated publish** to **verifiable, fail-closed, falsifiable** end to end.
+Product features for proof-gated publish (`proof_version: "3"`; v2 proofs still verify).
 
-> **Framing.** "100% foolproof" is not the goal - claiming it costs credibility. The achievable bar is: every claim is **independently checkable**, failure **blocks publish**, and a third party can **prove the producer wrong**. Target: **cannot fail silently, and cannot lie** - not "cannot fail."
+### Proof & custody
 
-**Status legend:** ✅ shipped
+- Content-bound sink (read-back Parquet footer or NDJSON digest)
+- JCS canonicalization and decimal string coercion for numbers
+- KMS signing in production; offline verifier and CLI
+- Fail-closed verdicts (`UNVERIFIED` / `FAIL`, not silent `PASS`)
+- Real Iceberg snapshot ids and snapshot pin SQL
+- Transparency log for issued proofs
+- Signed contract hash and environment binding in each proof
+- Parquet via `@dsnp/parquetjs` with NDJSON fallback when needed
 
-### Already shipped (baseline + hardening)
+### Transform verification
 
-| Capability | Where |
-|------------|--------|
-| ✅ Content-bound proofs (sink read-back, file digests) | `lib/vrp/chunk-store.js`, `parquet-chunk.js` |
-| ✅ JCS canonicalization, float coercion | `lib/vrp/canonical.js` |
-| ✅ KMS signing + dev Ed25519, offline verifier + CLI | `lib/vrp/sign.js`, `verify.js`, `scripts/verify-vrp-proof.js` |
-| ✅ Fail-closed (`UNVERIFIED`, not `PASS`) | `lib/pvdm-run-summary.js`, `services/pvdm-runtime/index.js` |
-| ✅ Real Iceberg snapshot ids, transparency log | `lib/aws/glue-iceberg.js`, `lib/vrp/transparency-log.js` |
-| ✅ Gateway-enforced (served-not-declared) agent inputs | `lib/vrp/proof-gateway.js`, `gateway-token.js` |
-| ✅ Signed decision attestation (PVDM-A) | `lib/vrp/decision-attestation.js` |
-| ✅ Parquet dep fixed + NDJSON fallback | `@dsnp/parquetjs`, `parquet-chunk.js` |
-| ✅ Transform verification (identity + aggregate modes) | `lib/vrp/transform-verify.js`, `generate.js` |
-| ✅ Per-group lineage + derived invariants | `lib/vrp/transform-verify.js` |
-| ✅ Money minor-units + rational multipliers | `lib/vrp/money.js` |
-| ✅ Merkle failure localization (PII-safe) | `lib/vrp/merkle.js` |
-| ✅ Contract hash + environment binding | `lib/vrp/contract-bind.js`, `environment-bind.js` |
-| ✅ Compaction-safe logical digest | `lib/vrp/logical-digest.js` |
-| ✅ Reproducible computation claim | `lib/vrp/reproducible.js` |
-| ✅ Verifier conformance vectors | `fixtures/vrp-conformance/`, `npm run verify:conformance` |
-| ✅ Fault-injection (signing/transparency block publish) | `lib/__tests__/vrp-hardening.test.js` |
+**Identity mode** - row-preserving pipelines (copy, CDC, repartition, dedupe): source and sink multisets must match on declared fields.
 
-### Multiset equality vs transform verification
+**Aggregate mode** - set `spec.transform.pvdm.vrp.mode: aggregate` with `groupBy`, `amountField`, `feeMultiplier`, `moneyFields`, `numericTolerance`. The verifier checks derived sums, per-group lineage, and money invariants (swap attacks fail even when global totals match).
 
-**Identity mode:** VRP compares source and sink **multisets** (row-count maps over identity + content fields). Use for row-preserving pipelines - raw copy, CDC, repartition, dedupe without changing grain.
+### Verification & operations
 
-**Aggregate mode:** Set `spec.transform.pvdm.vrp.mode: aggregate` with `groupBy`, `amountField`, `feeMultiplier`, `moneyFields`, `numericTolerance`. The verifier checks **derived invariants** (global and per-group sums) and **per-group lineage hashes** - swap attacks fail even when global `SUM(amount)` is unchanged.
+- Per-group lineage and invariants derived from the transform spec
+- Money fields in minor units with rational multipliers
+- Merkle-based failure localization with hashed keys (no raw PII in failure records)
+- Compaction-safe `logical_content_hash` (primary after Iceberg `OPTIMIZE`)
+- Reproducible computation claim (`transform_content_hash` + output logical hash)
+- Published conformance vectors (`npm run verify:conformance`)
+- Signing, transparency, or persistence failures block publish
 
-### Hardening items (all shipped)
+### Reproducible attested computation
 
-| # | Item | Severity | Status | Summary |
-|---|------|----------|--------|---------|
-| 1 | **Transform verification - per-group lineage** | High | ✅ | Per output group, hash contributing input keys; swaps fail while global SUM unchanged. |
-| 2 | **Invariants derived from transform spec** | High | ✅ | Expected checks derived from `pvdm.vrp` (sums, multipliers, tolerances). |
-| 3 | **Numeric correctness (money, floats)** | Medium | ✅ | Minor units for money; rational multipliers; JCS decimal strings for floats. |
-| 4 | **Failure localization (3am problem)** | High | ✅ | Merkle roots + partition hints in `failure_localization`. |
-| 5 | **Localization without PII leak** | Medium | ✅ | Hashed keys only in failure artifacts (`hashKeyPII`). |
-| 6 | **Iceberg compaction vs file digests** | High | ✅ | `logical_content_hash` primary; file digests marked `physical_binding: secondary`. |
-| 7 | **Signed, versioned contract as root of trust** | High | ✅ | `contract_binding.contract_hash` in every v3 proof. |
-| 8 | **Verifier conformance vectors** | Medium | ✅ | `fixtures/vrp-conformance/` + `npm run verify:conformance`. |
-| 9 | **Cross-environment / replay binding** | Medium | ✅ | `environment_binding` (account, env, table UUID) + validity window + transparency log. |
-| 10 | **Availability must not bypass proof** | High | ✅ | KMS/signing/transparency/persist failures → `FAIL` / `publish_blocked`; fault-injection tests. |
-
-### Strategic end state: reproducible attested computation
-
-The strongest form of "foolproof" available is not proving data is **semantically correct** (undecidable in general) but proving data is the **deterministic result of a declared, signed computation** over signed inputs - the SLSA / reproducible-build model applied to data:
-
-| Piece | Status |
-|-------|--------|
-| **Inputs** - signed | ✅ (VRP proofs + gateway) |
-| **Transform** - pinned spec hash (`transform_content_hash`) | ✅ (`lib/vrp/reproducible.js`) |
-| **Output** - signed | ✅ (logical digest + proof) |
-| **Claim** - re-running transform T over inputs I yields output O | ✅ (`reproducible_computation` in v3 proofs) |
-
-A skeptic can re-execute and reproduce the digest. Correctness of the code remains a separate, reviewable artifact.
-
-### What to claim publicly (honesty guardrail)
-
-**Say:** proof-gated publish; content-bound signed proofs (v3); transform verification for aggregates; offline verification; fail-closed; gateway-enforced agent inputs; signed decision attestation; conformance vectors in CI.
-
-**Do not say:** "100% foolproof," "proves the data is correct," or "proves the agent's decision is correct." The pattern proves **provenance, integrity, and conservation/invariants** - not semantic correctness.
+VRP v3 proofs include a **reproducible computation** claim: signed inputs, pinned transform spec, signed output logical digest. Consumers can re-run the declared transform and compare digests; correctness of the transform code is still a separate review step.
 
 ---
 

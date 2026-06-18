@@ -52,7 +52,7 @@
 | **C-suite / executive (CEO, CFO, CDO, CISO)** | **[Business guide - C-suite summary](docs/README-business-stewards.md#for-c-suite--executive-leadership)** (2 min) |
 | **Business / product owner** | **[Business & steward guide](docs/README-business-stewards.md)** (plain language only) |
 | **Data steward / governance** | **[Business & steward guide](docs/README-business-stewards.md)** - approvals, proof, marketplace, audit |
-| **Everyone (repeat questions)** | **[FAQ](docs/FAQ.md)** - proof, PASS/FAIL, roadmap, agents, ops |
+| **Everyone (repeat questions)** | **[FAQ](docs/FAQ.md)** - proof, PASS/FAIL, features, agents, ops |
 | **Engineer / architect** | [At a glance](#at-a-glance), [Quick start](#quick-start), [Repository layout](#repository-layout), [Vaquar Pattern](docs/vaquar-pattern.md) |
 
 **The problem:** Teams ship dashboards and datasets that *look* fine but nobody can prove the numbers match the source. When something breaks, you discover it in production-not at publish time.
@@ -121,7 +121,7 @@
   <a href="docs/README-business-stewards.md"><b>📘 Business &amp; steward guide</b></a> ·
   <a href="docs/FAQ.md"><b>❓ FAQ</b></a> ·
   <a href="docs/vaquar-pattern.md"><b>⭐ The Vaquar Pattern</b></a> ·
-  <a href="docs/vaquar-pattern.md#hardening-roadmap"><b>🛣 Hardening roadmap</b></a> ·
+  <a href="docs/vaquar-pattern.md#vrp-features"><b>VRP features</b></a> ·
   <a href="docs/PIPELINE_E2E_DIAGRAM.md"><b>📐 Pipeline E2E Diagram</b></a> ·
   <a href="docs/drag-drop-pipeline-flow.md">Drag-and-drop E2E</a> ·
   <a href="docs/data-contract-spec.md">Data Contract</a> ·
