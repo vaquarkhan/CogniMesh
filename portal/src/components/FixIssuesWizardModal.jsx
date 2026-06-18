@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import FormField from "./FormField";
 import { getDesignReviewFixHelp } from "../lib/api";
+import { buildClientFixPlan } from "../lib/client-fix-plan";
 import { filterFindings, sortFindingsForWizard } from "../lib/fix-wizard-findings";
 
 const SEV_LABEL = {
@@ -87,6 +88,7 @@ export default function FixIssuesWizardModal({
   onFocusNode,
   onApplyFindingFix,
   onApplyNodeFix,
+  onApplyPipelineMeta,
   applyingFindingId,
   title = "Fix pipeline issues",
 }) {
@@ -102,21 +104,35 @@ export default function FixIssuesWizardModal({
   const node = selected?.nodeIds?.[0] ? nodes.find((n) => n.id === selected.nodeIds[0]) : null;
 
   const loadPlan = useCallback(
-    async (findingId) => {
-      if (!findingId || !token) return;
-      setPlanLoading(true);
+    async (finding) => {
+      if (!finding?.id) return;
+      const clientPlan = buildClientFixPlan(finding, nodes, pipelineMeta);
+      setPlan(clientPlan);
       setPlanError(null);
+      if (!token) return;
+      setPlanLoading(true);
       try {
         const data = await getDesignReviewFixHelp({
           token,
           nodes,
           edges,
           pipelineMeta,
-          findingId,
+          findingId: finding.id,
         });
-        setPlan(data.plans?.[0] || null);
+        const apiPlan = data.plans?.[0];
+        if (apiPlan) {
+          setPlan({
+            ...clientPlan,
+            steps: apiPlan.steps?.length ? apiPlan.steps : clientPlan.steps,
+            fields: apiPlan.fields?.length ? apiPlan.fields : clientPlan.fields,
+            propertyPatch: clientPlan.propertyPatch || apiPlan.propertyPatch,
+            pipelineMetaPatch: clientPlan.pipelineMetaPatch || apiPlan.pipelineMetaPatch,
+            nodeId: clientPlan.nodeId || apiPlan.nodeId,
+            aiExplanation: apiPlan.aiExplanation,
+            mode: apiPlan.mode,
+          });
+        }
       } catch (err) {
-        setPlan(null);
         setPlanError(err.message);
       } finally {
         setPlanLoading(false);
@@ -132,10 +148,9 @@ export default function FixIssuesWizardModal({
   }, [open, visible, selectedId]);
 
   useEffect(() => {
-    if (!open || !selected?.id) return;
-    setPlan(null);
-    loadPlan(selected.id);
-  }, [open, selected?.id, loadPlan]);
+    if (!open || !selected) return;
+    loadPlan(selected);
+  }, [open, selected, loadPlan]);
 
   if (!open) return null;
 
@@ -160,7 +175,7 @@ export default function FixIssuesWizardModal({
           <div>
             <h2 id="fix-wizard-title">{title}</h2>
             <p className="properties-hint">
-              Pick an issue below — we show guided steps and fields to update. No hunting through the canvas HUD.
+              Pick an issue — guided steps and Apply fix update the canvas. No YAML editing.
             </p>
           </div>
           <button type="button" className="btn-ghost fix-wizard-close" onClick={onClose} aria-label="Close">
@@ -213,8 +228,10 @@ export default function FixIssuesWizardModal({
                   </div>
                 )}
 
-                {planLoading && <p className="properties-hint">Loading AI fix guide…</p>}
-                {planError && <p className="deploy-errors">{planError}</p>}
+                {planLoading && <p className="properties-hint">Loading optional AI tips…</p>}
+                {planError && (
+                  <p className="properties-hint">AI tips unavailable — steps above still work offline.</p>
+                )}
 
                 {plan?.aiExplanation && (
                   <div className="aws-ai-fix-box">
@@ -255,6 +272,17 @@ export default function FixIssuesWizardModal({
               onClick={() => onFocusNode?.(selected.nodeIds[0])}
             >
               Go to block
+            </button>
+          )}
+          {plan?.pipelineMetaPatch &&
+            Object.keys(plan.pipelineMetaPatch).length > 0 &&
+            onApplyPipelineMeta && (
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => onApplyPipelineMeta(plan.pipelineMetaPatch)}
+            >
+              Apply pipeline settings
             </button>
           )}
           {plan?.propertyPatch && plan.nodeId && onApplyNodeFix && (

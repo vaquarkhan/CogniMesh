@@ -79,6 +79,9 @@ async function deepHealth() {
   );
   const awsDeploy = process.env.AWS_DEPLOY_ENABLED === "true";
   const awsRole = Boolean(process.env.AWS_STEP_FUNCTIONS_ROLE_ARN);
+  const { isAgentDeployEnabled } = require("../../lib/platform/agent-deploy");
+  const agentDeployEnabled = isAgentDeployEnabled();
+  const agentRole = Boolean(process.env.AWS_BEDROCK_AGENT_ROLE_ARN?.trim());
   const { getLiveDashboard } = require("../../lib/platform");
   const platformDash = getLiveDashboard();
 
@@ -98,6 +101,17 @@ async function deepHealth() {
           ? "Step Functions deploy enabled"
           : "Set AWS_DEPLOY_ENABLED=true and AWS_STEP_FUNCTIONS_ROLE_ARN after terraform apply",
       hint: "terraform -chdir=infra/terraform/environments/dev output -raw pipeline_orchestrator_role_arn",
+    },
+    aws_agent_deploy: {
+      ok: !agentDeployEnabled || agentRole,
+      enabled: agentDeployEnabled,
+      roleConfigured: agentRole,
+      message: agentDeployEnabled && !agentRole
+        ? "Agent deploy enabled but AWS_BEDROCK_AGENT_ROLE_ARN is unset — deploy stays simulated"
+        : agentDeployEnabled
+          ? "Bedrock agent deploy enabled (CreateAgent + alias)"
+          : "Set AWS_BEDROCK_AGENT_ROLE_ARN on the API server for real Bedrock deploy",
+      hint: "terraform -chdir=infra/terraform/environments/dev output -raw bedrock_agent_role_arn",
     },
     lineage_catalog: { ok: true, products: lineageCatalogSummary().totalProducts },
     execution_history: { ok: true, ...executionStats() },

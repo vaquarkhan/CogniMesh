@@ -255,22 +255,35 @@ export async function rejectAccessRequest({ token, requestId, reason }) {
   return { ok: res.ok, data: data || {} };
 }
 
-/** Quick check — uses /api/v1/auth/config (routed via CloudFront /api/*) or /api/health. */
+/** Quick check — merges /api/v1/auth/config with /api/health deploy readiness. */
 export async function getApiHealth() {
-  const res = await apiFetch("/api/v1/auth/config");
-  const data = await parseJsonResponse(res, "Health");
-  if (data?.status === "error") return null;
-  if (data && (data.userPoolId != null || data.authDisabled != null)) {
-    return {
-      status: "ok",
-      auth: data.authDisabled ? "disabled" : "cognito",
-      region: data.region || null,
-    };
+  let base = null;
+  try {
+    const res = await apiFetch("/api/v1/auth/config");
+    const data = await parseJsonResponse(res, "Health");
+    if (data?.status !== "error" && data && (data.userPoolId != null || data.authDisabled != null)) {
+      base = {
+        status: "ok",
+        auth: data.authDisabled ? "disabled" : "cognito",
+        region: data.region || null,
+      };
+    }
+  } catch {
+    /* fall through to /api/health */
   }
-  const res2 = await apiFetch("/api/health");
-  const deep = await parseJsonResponse(res2, "Health");
-  if (deep?.status === "error") return null;
-  return deep;
+  try {
+    const res2 = await apiFetch("/api/health");
+    const deep = await parseJsonResponse(res2, "Health");
+    if (deep?.status === "error") return base;
+    if (!deep) return base;
+    return {
+      ...deep,
+      auth: base?.auth || deep.auth,
+      region: base?.region || deep.region || null,
+    };
+  } catch {
+    return base;
+  }
 }
 
 export async function isApiReachable() {

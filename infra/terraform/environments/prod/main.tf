@@ -25,6 +25,7 @@ locals {
     ATHENA_WORKGROUP          = try(module.platform_ops[0].platform_env.ATHENA_WORKGROUP, "")
     ATHENA_OUTPUT_LOCATION    = try(module.platform_ops[0].platform_env.ATHENA_OUTPUT_LOCATION, "")
     AWS_BEDROCK_AGENT_ROLE_ARN = try(module.platform_ops[0].platform_env.AWS_BEDROCK_AGENT_ROLE_ARN, "")
+    AWS_AGENT_DEPLOY_ENABLED   = try(module.platform_ops[0].platform_env.AWS_AGENT_DEPLOY_ENABLED, "false")
   }
 }
 

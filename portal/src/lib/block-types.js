@@ -3,7 +3,7 @@
  * and portal workflow block defaults.
  */
 
-/** @see sourceConfig.type in data-contract-v1.schema.json + portal kinesis blocks */
+/** @see sourceConfig.type in data-contract-v1.schema.json */
 export const SOURCE_TYPES = ["rds", "mysql", "s3", "kafka", "kinesis", "media_url", "api"];
 
 export const TRANSFORM_TYPES = ["spark_sql", "glue_etl", "glue_streaming", "agentic", "passthrough"];

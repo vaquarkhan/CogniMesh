@@ -26,7 +26,11 @@ describe("aws-fix-apply", () => {
       nodes,
       {}
     );
-    expect(fix).toEqual({ type: "node", nodeId: "o1", patch: { encryption: "AES256" } });
+    expect(fix).toEqual({
+      type: "node",
+      nodeId: "o1",
+      patch: { encryption: "AES256", sinkProvisioningMode: "provision" },
+    });
   });
 
   it("applies Lake Formation at pipeline level", () => {

@@ -214,11 +214,11 @@ export default function PlatformOperationsPanel({
       {tab === "dashboard" && dashboard && (
         <div className="platform-ops-body">
           <p className="properties-hint">
-            Refreshed {dashboard.refreshedAt} · {dashboard.summary.pipelines} pipelines ·{" "}
-            {dashboard.summary.running} running
+            Refreshed {dashboard.refreshedAt || "—"} · {dashboard.summary?.pipelines ?? 0} pipelines ·{" "}
+            {dashboard.summary?.running ?? 0} running
           </p>
           <ul className="platform-ops-list">
-            {dashboard.pipelines.map((p) => (
+            {(dashboard.pipelines || []).map((p) => (
               <li key={`${p.domain}/${p.pipelineName}`}>
                 <strong>{p.pipelineName}</strong> · {p.latestStatus} · {p.latestAt}
                 {p.running && <span className="badge-running"> RUNNING</span>}

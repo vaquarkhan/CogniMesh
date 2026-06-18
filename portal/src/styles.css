@@ -1448,6 +1448,29 @@ textarea:focus-visible,
   color: #fecaca;
 }
 
+.deploy-error-hero {
+  margin: 0 0 1rem;
+  padding: 0.75rem;
+  background: #1c1010;
+  border: 1px solid #b91c1c;
+  border-radius: 8px;
+}
+
+.deploy-error-hero h3 {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+  color: #fca5a5;
+}
+
+.deploy-error-hint {
+  margin: 0.5rem 0 0;
+  font-size: 0.8rem;
+}
+
+.deploy-error-hero .deploy-btn {
+  margin-top: 0.5rem;
+}
+
 .modal-backdrop {
   position: fixed;
   inset: 0;

@@ -63,7 +63,7 @@ describe("FixIssuesWizardModal", () => {
     expect(screen.getByTestId("fix-issues-wizard")).toBeInTheDocument();
     expect(screen.getByTestId("fix-wizard-select")).toBeInTheDocument();
     await waitFor(() => {
-      expect(screen.getByText("Step one")).toBeInTheDocument();
+      expect(screen.getByText(/Enable AES256 encryption/i)).toBeInTheDocument();
     });
   });
 

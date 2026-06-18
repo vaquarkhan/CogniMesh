@@ -16,6 +16,7 @@ import { createNodeIdFactory } from "./lib/node-id";
 import { deployPipeline, previewPipeline, runAwsDesignReview, isApiReachable, getApiHealth, getDesignReviewFixHelp } from "./lib/api";
 import { insertIntegrityGate } from "./lib/integrity-gate-insert";
 import { resolveAutoFix, resolvePlanActions } from "./lib/aws-fix-apply";
+import { buildClientFixPlan, mergeWizardFindings } from "./lib/client-fix-plan";
 import {
   generateDrawioArchitecture,
   generatePipelineTerraform,
@@ -138,6 +139,15 @@ export default function App() {
   const reactFlowInstance = useRef(null);
 
   const blockValidation = useMemo(() => validateBlocks(nodes, edges), [nodes, edges]);
+  const wizardFindings = useMemo(
+    () =>
+      mergeWizardFindings({
+        awsFindings: awsReview?.findings || [],
+        deployErrors: deployError || [],
+        blockValidation: blockValidation.valid ? null : blockValidation,
+      }),
+    [awsReview?.findings, deployError, blockValidation]
+  );
   const workflowStep = useMemo(
     () => deriveWorkflowStep(nodes, blockValidation, selectedId, hasPreviewed),
     [nodes, blockValidation, selectedId, hasPreviewed]
@@ -381,6 +391,9 @@ export default function App() {
       if (!finding?.id) return;
       setApplyingFindingId(finding.id);
       try {
+        const meta = { ...pipelineMeta, ownerEmail: userEmail };
+        const clientPlan = buildClientFixPlan(finding, nodes, meta);
+
         const applyAction = (action) => {
           if (action.type === "add_integrity_gate") {
             if (addIntegrityGateToGraph()) {
@@ -406,8 +419,24 @@ export default function App() {
           return false;
         };
 
-        const clientFix = resolveAutoFix(finding, nodes, { ...pipelineMeta, ownerEmail: userEmail });
+        const clientFix = resolveAutoFix(finding, nodes, meta);
         if (clientFix && applyAction(clientFix)) return;
+
+        const clientPlanAction = resolvePlanActions(clientPlan);
+        if (clientPlanAction && applyAction(clientPlanAction)) return;
+
+        if (clientPlan?.propertyPatch && clientPlan.nodeId) {
+          updateNode(clientPlan.nodeId, clientPlan.propertyPatch);
+          success("Applied fix on canvas — re-scanning…");
+          setTimeout(runDesignReviewScan, 400);
+          return;
+        }
+        if (clientPlan?.pipelineMetaPatch) {
+          setPipelineMeta((m) => ({ ...m, ...clientPlan.pipelineMetaPatch }));
+          success("Applied pipeline settings — re-scanning…");
+          setTimeout(runDesignReviewScan, 400);
+          return;
+        }
 
         let plan = null;
         try {
@@ -438,9 +467,9 @@ export default function App() {
         }
 
         toastError(
-          plan?.steps?.[0]
-            ? "No automatic patch — expand the finding for step-by-step guidance"
-            : "No automatic patch for this finding — use Get fix guide for steps"
+          clientPlan?.steps?.[0] || plan?.steps?.[0]
+            ? "Follow the steps above — some issues need manual fields (e.g. paste an ARN)"
+            : "No automatic patch for this issue — use the guided fields"
         );
       } catch (err) {
         toastError(err.message || "Could not apply fix");
@@ -495,7 +524,7 @@ export default function App() {
     }
     setPreviewLoading(true);
     setDeployError(null);
-    setShowDeploy(true);
+    setActiveDock("deploy");
     setActiveDock("deploy");
     try {
       const meta = { ...pipelineMeta, ownerEmail: userEmail };
@@ -512,10 +541,12 @@ export default function App() {
         const errs = formatApiErrors(result);
         setDeployResult({ ...result, status: "error" });
         setDeployError(errs);
-        toastError(errs[0] || "Preview failed");
+        setFixWizardOpen(true);
+        toastError(errs[0] || "Preview failed — fix in wizard");
       }
     } catch (err) {
       setDeployError([err.message]);
+      setFixWizardOpen(true);
       toastError(err.message || "API unavailable");
     } finally {
       setPreviewLoading(false);
@@ -529,7 +560,10 @@ export default function App() {
     }
     if (!blockValidation.valid) {
       setDeployError(blockValidation.errors);
-      toastError("Fix block validation errors before deploy");
+      setFixWizardOpen(true);
+      setActiveDock("deploy");
+      setActiveDock("deploy");
+      toastError(blockValidation.errors[0] || "Fix blocks before deploy");
       return;
     }
     if (awsReview?.overall?.deployBlocked) {
@@ -620,13 +654,16 @@ export default function App() {
           );
         }
       } else {
-        const errs = data.errors || data.validation?.errors || data.integrityGate?.errors || ["Deploy failed"];
+        const errs = formatApiErrors(data);
         setDeployError(errs);
         setDeployResult(data.contract ? data : null);
-        toastError("Deploy blocked - see panel for details");
+        setActiveDock("deploy");
+        setFixWizardOpen(true);
+        toastError(errs[0] || "Deploy blocked — fix in wizard");
       }
     } catch (err) {
       setDeployError([err.message]);
+      setFixWizardOpen(true);
       toastError(err.message || "Cannot reach API");
     } finally {
       setDeployLoading(false);
@@ -660,7 +697,7 @@ export default function App() {
       <FixIssuesWizardModal
         open={fixWizardOpen}
         onClose={() => setFixWizardOpen(false)}
-        findings={awsReview?.findings || []}
+        findings={wizardFindings}
         nodes={nodes}
         edges={edges}
         pipelineMeta={{ ...pipelineMeta, ownerEmail: userEmail }}
@@ -668,11 +705,14 @@ export default function App() {
         onFocusNode={focusCanvasNode}
         onApplyFindingFix={applyAwsFindingFix}
         onApplyNodeFix={updateNode}
+        onApplyPipelineMeta={(patch) => setPipelineMeta((m) => ({ ...m, ...patch }))}
         applyingFindingId={applyingFindingId}
         title={
-          awsReview?.overall?.criticalCount
-            ? `Fix ${awsReview.overall.criticalCount} critical issue(s)`
-            : "Fix pipeline issues"
+          deployError?.length
+            ? `Fix deploy issue${deployError.length > 1 ? "s" : ""}`
+            : awsReview?.overall?.criticalCount
+              ? `Fix ${awsReview.overall.criticalCount} critical issue(s)`
+              : "Fix pipeline issues"
         }
       />
 
@@ -958,6 +998,7 @@ export default function App() {
               loadingLabel={previewLoading ? "Generating contract preview…" : deployLoading ? "Deploying pipeline…" : undefined}
               error={deployError}
               token={token}
+              onOpenFixWizard={() => setFixWizardOpen(true)}
             />
           </Suspense>
           </ErrorBoundary>

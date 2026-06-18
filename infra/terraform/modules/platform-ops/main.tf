@@ -119,9 +119,12 @@ resource "aws_iam_role_policy" "api_platform" {
         Effect = "Allow"
         Action = [
           "bedrock:InvokeModel",
-          "bedrock-agent:CreateAgent", "bedrock-agent:CreateAgentAlias",
+          "bedrock:CreateAgent", "bedrock:PrepareAgent", "bedrock:GetAgent",
+          "bedrock:CreateAgentAlias",
+          "bedrock:AssociateAgentKnowledgeBase", "bedrock:AssociateAgentGuardrail",
+          "bedrock-agent:CreateAgent", "bedrock-agent:PrepareAgent", "bedrock-agent:GetAgent",
+          "bedrock-agent:CreateAgentAlias",
           "bedrock-agent:AssociateAgentKnowledgeBase", "bedrock-agent:AssociateAgentGuardrail",
-          "bedrock-agent:GetAgent",
         ]
         Resource = "*"
       },
@@ -204,10 +207,11 @@ output "bedrock_agent_role_arn" {
 
 output "platform_env" {
   value = {
-    PLATFORM_STORE             = "dynamodb"
-    PLATFORM_DYNAMODB_TABLE    = aws_dynamodb_table.platform_state.name
-    ATHENA_WORKGROUP           = aws_athena_workgroup.platform.name
-    ATHENA_OUTPUT_LOCATION     = "s3://${var.lakehouse_bucket_name}/athena-results/"
-    AWS_BEDROCK_AGENT_ROLE_ARN = aws_iam_role.bedrock_agent.arn
+    PLATFORM_STORE               = "dynamodb"
+    PLATFORM_DYNAMODB_TABLE      = aws_dynamodb_table.platform_state.name
+    ATHENA_WORKGROUP             = aws_athena_workgroup.platform.name
+    ATHENA_OUTPUT_LOCATION       = "s3://${var.lakehouse_bucket_name}/athena-results/"
+    AWS_BEDROCK_AGENT_ROLE_ARN   = aws_iam_role.bedrock_agent.arn
+    AWS_AGENT_DEPLOY_ENABLED     = "true"
   }
 }
