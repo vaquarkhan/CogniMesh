@@ -112,6 +112,26 @@ docker compose up --build
 
 ---
 
+## VRP / proof tests fail on digest_type (full_file vs parquet_footer)
+
+**Symptom:** `test:vrp-security` fails comparing `full_file` vs `parquet_footer` digests.
+
+**Cause:** Shell still has `VRP_FORCE_NDJSON=true` from an earlier test or debug session (not a code regression).
+
+**Fix:**
+
+```powershell
+Remove-Item Env:VRP_FORCE_NDJSON -ErrorAction SilentlyContinue
+```
+
+```bash
+unset VRP_FORCE_NDJSON
+```
+
+Then re-run `npm run test:vrp-security`. See [veridata-integration.md](veridata-integration.md#testing-note-vrp_force_ndjson).
+
+---
+
 ## Still stuck?
 
 See **[FAQ.md](FAQ.md)** for proof, PASS/FAIL, steward, and agent questions.

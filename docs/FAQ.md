@@ -51,6 +51,12 @@ A data lake **stores** files. CogniMesh adds **contracts, proof-gated publish, m
 
 No. CogniMesh proves **provenance, integrity, and declared invariants**. It does not prove that business judgment, SQL logic, or an LLM answer is semantically correct.
 
+### Where does verification run?
+
+**Today:** CogniMesh runs verification in **JavaScript** (`lib/vrp/`). Proof v3 features (transform verification, aggregate mode, contract binding) are **not** in the [veridata](https://github.com/vaquarkhan/veridata) Rust crate yet. The AWS Serverless Data Mesh Framework (Python) inherits only what veridata provides.
+
+**Planned (C1):** CogniMesh delegates to veridata so one Rust implementation serves both projects. See [veridata integration](veridata-integration.md).
+
 ### What VRP features are included?
 
 See [VRP features](vaquar-pattern.md#vrp-features): transform verification (identity + aggregate), contract and environment binding, compaction-safe logical digests, conformance vectors, and fail-closed publish. Proofs use `proof_version: "3"`; v2 still verifies.

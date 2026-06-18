@@ -29,7 +29,7 @@ export const BLOCK_TIPS = {
     schedule: "Cron schedule for batch pipelines (shown when mode is batch).",
     sparkRulesEnabled: "Run SparkRules data quality filters before PVDM write (null keys, null thresholds).",
     qualityPolicyId: "strict-zero-drop rejects bad rows · compatible-nulls allows nullable keys · audit-only logs only.",
-    pvdmContentFields: "Comma-separated fields included in VRP hash verification (veridata-recon).",
+    pvdmContentFields: "Comma-separated fields included in VRP hash verification.",
     maxNullPct: "Drop rows where more than this % of content fields are null (100 = disabled).",
   },
   sink: {

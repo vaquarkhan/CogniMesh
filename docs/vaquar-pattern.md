@@ -26,7 +26,7 @@
 
 This specification is written for **external readers**: data platform leads, security reviewers, integrators, and stewards evaluating CogniMesh or implementing the Vaquar Pattern on AWS. It explains **what happens to your data**, **what the proof means**, and **how to configure contracts** - with concrete examples below.
 
-Implementers can find code references in [Reference implementation](#reference-implementation) at the end of this document.
+Implementers can find code references in [Reference implementation](#reference-implementation). For how CogniMesh relates to **veridata** and the datamesh framework, see [veridata integration](veridata-integration.md).
 
 ## Overview
 
@@ -48,7 +48,7 @@ Traditional ETL assumes correctness. Modern data meshes need **evidence**.
 
 | Problem | Vaquar response |
 |---------|-----------------|
-| Silent row loss during transform | Multiset VRP (veridata-recon) per chunk |
+| Silent row loss during transform | Multiset + transform VRP per chunk |
 | Long-running Lambda timeouts | Durable execution with SFN resume loop |
 | Partial writes corrupting gold tables | IceGuard chunked Parquet + rollback |
 | Governance applied too late | Integrity gate at design time **and** runtime |
@@ -103,7 +103,7 @@ flowchart TB
 | **Integrity Gate** | 0 · Rules | Schema, security, compliance checks | `lib/integrity-gate/`, `services/lambda/integrity-gate/` |
 | **SparkRules** | 0 · Rules | Optional DRL filter before physical write | `services/pvdm-runtime/` `applySparkRules()` |
 | **IceGuard** | 1 · Physical | Chunked Parquet, checkpoint, rollback | `services/pvdm-runtime/` `IceGuardWriter` |
-| **veridata-recon** | 2 · Verify | Multiset hash comparison (VRP) | `services/pvdm-runtime/` `generateVRP()` |
+| **VRP engine** | 2 · Verify | Multiset + transform verification (v3 proofs) | CogniMesh `lib/vrp/` ([veridata integration planned](veridata-integration.md)) |
 | **Durable Execution** | 3 · Durable | 15-min Lambda segments, SFN resume | `lib/vaquar/pvdm-sfn.js` |
 | **GlueCatalogConnector** | 4 · Metadata | Proof-gated catalog commit | `validateThenCommit()` + `commitMetadata()` |
 | **Domain Writer** | Runtime | Orchestrates full PVDM workload | `services/lambda/domain-writer/` |
@@ -711,6 +711,7 @@ The Vaquar Pattern is also embodied in the open-source **[AWS Serverless Data Me
 | Layer | Location |
 |-------|----------|
 | Pattern specification | This document |
+| **veridata alignment** | [veridata-integration.md](veridata-integration.md) |
 | Example contracts | `contracts/examples/` |
 | Proof conformance samples | `fixtures/vrp-conformance/` |
 | Mesh compiler | `lib/vaquar/` |
