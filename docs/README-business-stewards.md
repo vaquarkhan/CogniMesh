@@ -31,6 +31,7 @@
 
 | Reader | Start here |
 |--------|------------|
+| **Evaluator / diligence** | [CogniMesh POSITIONING](POSITIONING.md) (claims vs reality) |
 | **CEO / GM** | [C-suite summary](#for-c-suite--executive-leadership) - strategy, risk, KPIs |
 | **CFO** | [C-suite summary](#for-c-suite--executive-leadership) - audit readiness, cost control, prove-before-publish |
 | **CDO / Chief Data Officer** | C-suite summary + [steward workflows](#your-day-as-a-data-steward) |
@@ -222,7 +223,7 @@ From the **Operations** panel you can:
 
 ## Trust & proof (what “verified” means)
 
-CogniMesh uses the **[Vaquar Pattern](vaquar-pattern.md)** - proof before publish.
+CogniMesh uses the **[Vaquar Pattern](vaquar-pattern.md)** (a proposed architecture) for proof before publish when the Vaquar execution path is enabled.
 
 **In plain language:**
 
@@ -316,6 +317,7 @@ Proof-gated publish, transform verification (identity and aggregate), contract b
 
 | Goal | Link |
 |------|------|
+| **Claims vs reality (evaluators)** | [POSITIONING.md](POSITIONING.md) |
 | **FAQ (start here for repeat questions)** | [FAQ.md](FAQ.md) |
 | **C-suite / board briefing** | [Executive summary (2 min)](README-business-stewards.md#for-c-suite--executive-leadership) |
 | Full product overview (mixed audience) | [Main README](../README.md) |

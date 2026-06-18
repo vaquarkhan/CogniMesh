@@ -6,7 +6,7 @@
   <img src="https://img.shields.io/badge/CogniMesh-1.0.0-0d9488?style=for-the-badge" alt="CogniMesh" />
   <img src="https://img.shields.io/badge/Vaquar-PVDM-2563eb?style=for-the-badge" alt="Vaquar PVDM" />
   <img src="https://img.shields.io/badge/AWS-Serverless-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white" alt="AWS" />
-  <img src="https://img.shields.io/badge/Tests-passing-22c55e?style=for-the-badge" alt="Tests" />
+  <a href="https://github.com/vaquarkhan/CogniMesh/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/vaquarkhan/CogniMesh/actions/workflows/ci.yml/badge.svg" /></a>
 </p>
 
 <p align="center">
@@ -45,21 +45,24 @@
 
 ## Start here (plain English)
 
-**Version 1.0.0** - CogniMesh is a **control plane for trustworthy data products on AWS**. You design pipelines in a visual portal (no coding required to start), the platform checks your design, runs the pipeline, and **only publishes data to the marketplace when integrity checks pass**.
+**Platform release 1.0.0** - CogniMesh is a **control plane for trustworthy data products on AWS**. You design pipelines in a visual portal (no coding required to start), the platform checks your design, runs the pipeline, and **blocks catalog publish when verification fails**.
+
+> **Honesty for evaluators:** Read **[What CogniMesh is NOT yet](docs/POSITIONING.md)** (same style as [veridata POSITIONING](https://github.com/vaquarkhan/veridata/blob/main/POSITIONING.md)). CogniMesh does **not** call the veridata Rust crate today; proofs run in CogniMesh's own JS engine ([details](docs/veridata-integration.md)).
 
 | If you are… | Read this first |
 |-------------|-----------------|
 | **C-suite / executive (CEO, CFO, CDO, CISO)** | **[Business guide - C-suite summary](docs/README-business-stewards.md#for-c-suite--executive-leadership)** (2 min) |
 | **Business / product owner** | **[Business & steward guide](docs/README-business-stewards.md)** (plain language only) |
 | **Data steward / governance** | **[Business & steward guide](docs/README-business-stewards.md)** - approvals, proof, marketplace, audit |
+| **Evaluator / diligence** | **[POSITIONING.md](docs/POSITIONING.md)** - claims vs reality, veridata relationship |
 | **Everyone (repeat questions)** | **[FAQ](docs/FAQ.md)** - proof, PASS/FAIL, features, agents, ops |
-| **Engineer / architect** | [At a glance](#at-a-glance), [Quick start](#quick-start), [Repository layout](#repository-layout), [Vaquar Pattern](docs/vaquar-pattern.md) |
+| **Engineer / architect** | [At a glance](#at-a-glance), [Quick start](#quick-start), [POSITIONING](docs/POSITIONING.md), [Vaquar Pattern (proposed)](docs/vaquar-pattern.md) |
 
 **The problem:** Teams ship dashboards and datasets that *look* fine but nobody can prove the numbers match the source. When something breaks, you discover it in production-not at publish time.
 
-**What CogniMesh does:** You drag blocks on a canvas (sources → transforms → outputs). CogniMesh turns that into a governed **data contract**, runs it on AWS, and attaches a **cryptographic proof** that source and published data match-before the product goes live in the **marketplace**.
+**What CogniMesh does:** You drag blocks on a canvas (sources → transforms → outputs). CogniMesh turns that into a governed **data contract**, runs it on AWS when configured, and can attach a **signed verification proof (VRP)** that source and published data match on declared fields-before gold data is committed.
 
-**In one sentence:** *Design visually → prove before publish → operate with lineage and access control → let consumers discover governed data products.*
+**In one sentence:** *Design visually → verify before publish (when Vaquar path enabled) → operate with lineage and access control → let consumers discover governed data products.*
 
 <p align="center">
   <a href="docs/README-business-stewards.md"><strong>📘 Business &amp; data steward guide</strong></a>
@@ -75,7 +78,7 @@
 |------|----------------|
 | **Data product** | A governed dataset (or API) your team owns and others can subscribe to |
 | **Marketplace** | Catalog where consumers find and request access to data products |
-| **Proof / Vaquar Pattern** | Evidence that published data was not silently changed or dropped in the pipeline |
+| **Proof / proposed Vaquar Pattern** | When enabled: evidence that published data was not silently changed on declared fields (see [POSITIONING](docs/POSITIONING.md)) |
 | **Agent** | An AI assistant (e.g. Bedrock) that reads your data and takes actions-with guardrails |
 | **Data contract** | Machine-readable rules for what the pipeline must do (generated from your canvas) |
 
@@ -118,9 +121,10 @@
 </p>
 
 <p align="center">
+  <a href="docs/POSITIONING.md"><b>Positioning (honest scope)</b></a> ·
   <a href="docs/README-business-stewards.md"><b>📘 Business &amp; steward guide</b></a> ·
   <a href="docs/FAQ.md"><b>❓ FAQ</b></a> ·
-  <a href="docs/vaquar-pattern.md"><b>⭐ The Vaquar Pattern</b></a> ·
+  <a href="docs/vaquar-pattern.md"><b>Vaquar Pattern (proposed)</b></a> ·
   <a href="docs/vaquar-pattern.md#data-examples"><b>Data examples</b></a> ·
   <a href="docs/vaquar-pattern.md#vrp-features"><b>VRP features</b></a> ·
   <a href="docs/PIPELINE_E2E_DIAGRAM.md"><b>📐 Pipeline E2E Diagram</b></a> ·
@@ -138,7 +142,7 @@
 
 CogniMesh lets **business users** design data pipelines in a visual portal. The platform generates **`DataContract.yaml`**, runs governance checks, compiles **AWS Step Functions**, registers products in a **marketplace**, and deploys to AWS when enabled.
 
-Built on **[The Vaquar Pattern](docs/vaquar-pattern.md)** by [Vaquarkhan](https://github.com/vaquarkhan): structured pipelines use **PVDM** (Physical → Verify → Durable → Metadata); cognitive pipelines use an **EKS transactional runtime** with Bedrock agents.
+Built on the **[Vaquar Pattern](docs/vaquar-pattern.md)** (a **proposed** reference architecture by [Vaquarkhan](https://github.com/vaquarkhan)): structured pipelines use **PVDM** (Physical → Verify → Durable → Metadata); cognitive pipelines use an **EKS transactional runtime** with Bedrock agents. Verification today runs in **CogniMesh JS**, not the [veridata](https://github.com/vaquarkhan/veridata) crate ([POSITIONING](docs/POSITIONING.md)).
 
 <table>
 <tr>
@@ -163,18 +167,18 @@ Built on **[The Vaquar Pattern](docs/vaquar-pattern.md)** by [Vaquarkhan](https:
 
 ---
 
-## Why CogniMesh: everything in one place
+## Why CogniMesh: what ships in this repo
 
-**Design data products visually. Prove them before publish. Operate them in production. Let consumers discover and access governed datasets on AWS, with contracts instead of tribal knowledge.**
+**Design data products visually. Verify before publish when the Vaquar path is enabled. Operate with lineage, marketplace, and steward workflows on AWS.**
 
-CogniMesh is a full **data mesh control plane**: zero-code portal, proof-gated writes ([Vaquar Pattern](docs/vaquar-pattern.md)), marketplace, and an **Operations** layer for live ops, cost, lineage, and steward workflows. **v1.0.0** ships on [Docker (GHCR)](https://github.com/vaquarkhan/CogniMesh/pkgs/container/cognimesh-api), [PyPI](https://pypi.org/project/cognimesh/), and Terraform.
+CogniMesh is a **data mesh control plane**: zero-code portal, optional proof-gated writes ([proposed Vaquar Pattern](docs/vaquar-pattern.md)), marketplace, and an **Operations** layer. **v1.0.0** is the platform/SDK release on [Docker (GHCR)](https://github.com/vaquarkhan/CogniMesh/pkgs/container/cognimesh-api), [PyPI](https://pypi.org/project/cognimesh/), and Terraform-not the same version line as [veridata `0.1.x`](https://github.com/vaquarkhan/veridata).
 
-### Design & build (zero code)
+### Design & build (zero code to start)
 
 | You get | What it means |
 |---------|----------------|
 | **Visual pipeline designer** | Drag Source → Transform → Sink on React Flow. No YAML hand-editing required. |
-| **28+ architecture patterns** | Ready-made pipeline blueprints (see [what this means](#what-28-patterns-means-no-code-required)) |
+| **27 ready-made pipeline canvases** | 26 wired examples + blank canvas ([breakdown](#pipeline-pattern-library)) |
 | **AWS-native blocks** | Glue, Kinesis, MSK, DMS, Firehose, Step Functions Parallel/Choice/Map |
 | **AI Pipeline Designer** | Describe a pipeline in English → auto-load pattern + blocks + explanation |
 | **Agent Builder** | Bedrock AgentCore canvas: templates, guardrails, KB, tools, manifest export |
@@ -186,17 +190,17 @@ CogniMesh is a full **data mesh control plane**: zero-code portal, proof-gated w
 
 → [Pattern catalog](docs/PORTAL_UI.md) · [26 pipeline + 8 agent tutorials](docs/tutorials/README.md) · [Developer customization](docs/developer/README.md)
 
-### What “28+ patterns” means (no code required)
+### Pipeline pattern library
 
-**Patterns are not separate products.** They are **ready-made pipeline canvases** in the portal: a full diagram of sources, transforms, sinks, and governance blocks already wired for a well-known data architecture or industry use case. You **do not write code to start**: you pick a pattern, then adjust names, connections, and settings in the UI.
+**Patterns are ready-made canvases**, not separate products. You pick one in **Architectures → Use pattern**, adjust in the UI, and optionally export contracts / Terraform later.
 
 | Question | Answer |
 |----------|--------|
-| **What is a pattern?** | A pre-built visual pipeline (React Flow canvas) with realistic AWS services labeled on each block: Glue, Kinesis, RDS, Iceberg, Step Functions, Bedrock, and so on. |
-| **Do I need to code?** | **No** to get started. Open **Architectures → Use pattern** and the canvas loads. Change block properties, SQL, schedules, and domains in forms. Code is optional later (Python SDK, custom Spark, or Terraform from exported artifacts). |
-| **What does “28+” count?** | **27 entries** in the pattern library today: **26 fully wired examples** across architecture styles and industries, plus a **blank canvas**. The “+” reflects ongoing additions and the separate **8 agent tutorials** in Agent Builder (agents are not the same as data-pipeline patterns). |
-| **What do they cover?** | End-to-end **data mesh**, **lake / lakehouse**, **Kappa & Lambda λ**, **streaming**, **medallion** bronze→silver→gold, **CDC & batch ingest**, **finance & healthcare**, **retail clickstream**, **fraud & data quality**, **GenAI RAG & media enrichment**, **IoT**, **SCD2**, **feature store**, and **multi-source Step Functions** workflows. |
-| **What happens after I pick one?** | Customize blocks → run **AWS Design Review** → compile to **DataContract YAML** + Step Functions → deploy with **Vaquar proof** (PVDM/VRP) before gold commits. Same portal flow for every pattern. |
+| **What is a pattern?** | A pre-built visual pipeline (React Flow) with AWS blocks labeled (Glue, Kinesis, RDS, Iceberg, Step Functions, Bedrock, etc.). |
+| **Do I need to code?** | **No** to start. Code is optional (Python SDK, custom Spark, Terraform from exports). |
+| **What is in the library?** | **27 pipeline entries:** **26 wired examples** + **blank canvas**. **8 agent tutorials** in Agent Builder are separate (not counted as pipeline patterns). |
+| **What do they cover?** | Data mesh, lake / lakehouse, Kappa & Lambda, streaming, medallion, CDC, finance, healthcare, retail, fraud/DQ, GenAI RAG, IoT, SCD2, feature store, multi-source SFN, and more. |
+| **After you pick one?** | Customize → **AWS Design Review** → compile **DataContract** + Step Functions → optional PVDM/VRP before gold commit (Vaquar path). |
 
 **By category (all in the Architectures tab):**
 
@@ -220,26 +224,27 @@ CogniMesh is a full **data mesh control plane**: zero-code portal, proof-gated w
 
 For screenshots and filters, see [Zero-code portal](#zero-code-portal) below. For step-by-step walkthroughs, see **[docs/tutorials/README.md](docs/tutorials/README.md)** (26 pipeline lessons + 8 agent lessons).
 
-### Trust & proof (Vaquar Pattern)
+### Trust & proof (Vaquar path)
 
 | You get | What it means |
 |---------|----------------|
-| **Integrity gate** | Design-time policy checks before anything hits AWS |
-| **PVDM runtime** | Physical → Verify → Durable → Metadata. Proof before Iceberg commit. |
-| **VRP verification** | Multiset proof with PASS/FAIL/UNVERIFIED per run (fail-closed; KMS signing in prod) |
+| **Integrity gate** | Design-time policy checks before deploy |
+| **PVDM runtime** | Physical → Verify → Durable → Metadata. Catalog commit gated on VRP when enabled. |
+| **VRP verification** | CogniMesh JS engine (`lib/vrp/`, v3). **Not** veridata Rust yet ([POSITIONING](docs/POSITIONING.md)). |
+| **Verdicts** | PASS / FAIL / UNVERIFIED per run (fail-closed; KMS signing when configured) |
 | **IceGuard checkpoints** | Durable rollback on failed commits |
 | **Run History + observability** | VRP badges, drop trends, pass rate, S3 proof/console deep links |
 | **Deploy Vaquar tab** | Full proof panel at deploy time |
 | **Offline VRP verify** | `lib/vrp/verify.js` + `scripts/verify-vrp-proof.js` |
 | **Agent decision attestation** | `lib/vrp/decision-attestation.js` · Agent MCP `/mcp/invoke` |
 
-→ [The Vaquar Pattern](docs/vaquar-pattern.md) · [Top 3 product loop](docs/TOP3_FEATURES.md)
+→ [Vaquar Pattern (proposed)](docs/vaquar-pattern.md) · [POSITIONING](docs/POSITIONING.md) · [Top 3 product loop](docs/TOP3_FEATURES.md)
 
 ### Deploy & run on AWS
 
 | You get | What it means |
 |---------|----------------|
-| **One-click deploy** | Integrity gate → catalog register → SFN compile → optional live execution |
+| **Deploy from portal** | Integrity gate → catalog register → SFN compile → optional live execution (requires AWS setup, credentials, and modules) |
 | **Live Step Functions status** | Running / Succeeded / Failed with AWS Console links |
 | **Deploy impact analysis** | Blast radius before you confirm |
 | **Deploy approval workflow** | Steward gate when `DEPLOY_APPROVAL_REQUIRED=true` |

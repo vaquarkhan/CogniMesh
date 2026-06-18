@@ -4,6 +4,7 @@ Answers to questions that come up repeatedly. Share this link in onboarding, PRs
 
 | Audience | Jump to |
 |----------|---------|
+| Evaluators & diligence | [POSITIONING](POSITIONING.md) |
 | Executives & stewards | [Business & governance](#business--governance) |
 | Proof & trust | [VRP, proof, and verification](#vrp-proof-and-verification) |
 | Engineers | [Technical & development](#technical--development) |
@@ -46,6 +47,10 @@ When access control is enabled: they see **schema and samples**; full table acce
 ### How is this different from a normal data lake?
 
 A data lake **stores** files. CogniMesh adds **contracts, proof-gated publish, marketplace discovery, steward approvals, lineage, and run history** on top of AWS (Glue, Iceberg, Step Functions, Lake Formation).
+
+### Is CogniMesh the same as veridata?
+
+**No.** [veridata](https://github.com/vaquarkhan/veridata) is the Rust VRP engine (`0.1.x`). CogniMesh is the portal + PVDM control plane (`1.0.0` packaging) with its **own JS verification** (`lib/vrp/`). They are related by design but **not wired together yet**. See [POSITIONING](POSITIONING.md) and [veridata integration](veridata-integration.md).
 
 ### Is CogniMesh "100% foolproof"?
 

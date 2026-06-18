@@ -14,7 +14,7 @@ This page is for integrators and maintainers. It states what runs where today an
 | **veridata** (Rust core) | **No** - multiset / recon only | Packaging fixes landed; transform items V1-V7 still open in veridata |
 | **Datamesh framework** (Python, uses veridata) | **No** | Inherits veridata capabilities only |
 
-**Important:** CogniMesh docs and UI still use the historical label **veridata-recon** for the verify phase. The **running implementation** in CogniMesh is the JavaScript VRP stack (`lib/vrp/`), not a call into veridata's Rust crate.
+**Important:** The verify phase label **veridata-recon** appears in some older text. The **running implementation** is CogniMesh JavaScript (`lib/vrp/`), not a call into veridata's Rust crate.
 
 The v3 work **deepened divergence**: transform verification, per-group lineage, derived invariants, and related features were implemented in JS rather than added once to veridata and delegated.
 
