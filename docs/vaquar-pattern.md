@@ -15,12 +15,18 @@
 <p align="center">
   <a href="../README.md">← CogniMesh</a> ·
   <a href="FAQ.md">FAQ</a> ·
+  <a href="#data-examples">Data examples</a> ·
   <a href="data-contract-spec.md">Data Contract</a> ·
-  <a href="../lib/vaquar/contract-to-mesh.js">mesh compiler</a> ·
-  <a href="../services/pvdm-runtime/">PVDM runtime</a>
+  <a href="README-business-stewards.md">Business guide</a>
 </p>
 
 ---
+
+## Who this document is for
+
+This specification is written for **external readers**: data platform leads, security reviewers, integrators, and stewards evaluating CogniMesh or implementing the Vaquar Pattern on AWS. It explains **what happens to your data**, **what the proof means**, and **how to configure contracts** - with concrete examples below.
+
+Implementers can find code references in [Reference implementation](#reference-implementation) at the end of this document.
 
 ## Overview
 
@@ -169,6 +175,212 @@ sequenceDiagram
 - **Proves:** For **identity** transforms (row-preserving): source and sink multisets match over declared fields. For **aggregate** transforms: derived invariants (per-group sums, lineage hashes) hold; swap attacks fail even when global totals match. Sink multiset was derived from independently read persisted bytes; logical content hash survives Iceberg compaction; contract and environment are bound; the proof was signed under a named key within a validity window; the Iceberg snapshot id resolves to catalog state.
 - **Does not prove:** Semantic correctness of ML/LLM judgments, or integrity of columns outside `identityFields` + `contentFields`. Reproducible computation attests determinism of a **declared** transform - correctness of the transform code remains a separate review artifact.
 
+---
+
+## Data examples
+
+The examples below use realistic commerce data. They show what **PASS** and **FAIL** look like before you run anything in AWS.
+
+### Example 1: Row-preserving CDC (identity mode) - PASS
+
+**Use case:** Copy orders from RDS CDC into Iceberg gold with no row loss.
+
+**Source chunk (what entered the pipeline):**
+
+| order_id | customer_id | total_amount | created_at |
+|----------|-------------|--------------|------------|
+| ord-1001 | cust-a | 149.99 | 2026-06-01T10:00:00Z |
+| ord-1002 | cust-b | 52.50 | 2026-06-01T10:05:00Z |
+| ord-1003 | cust-a | 18.00 | 2026-06-01T10:12:00Z |
+
+**Sink chunk (read back from persisted Parquet after write):** same three rows, same values.
+
+**Contract excerpt:**
+
+```yaml
+spec:
+  transform:
+    pvdm:
+      identityFields: [order_id]
+      contentFields: [order_id, customer_id, total_amount, created_at]
+      qualityPolicyId: strict-zero-drop
+```
+
+**Result:** `multiset.source_hash` equals `multiset.sink_hash`, `verdict: PASS`, Iceberg snapshot commits, marketplace publish allowed.
+
+**Consumer query (snapshot pin):**
+
+```sql
+SELECT order_id, customer_id, total_amount
+FROM commerce_gold.orders
+FOR SYSTEM_VERSION AS OF 1001847293012;
+```
+
+The snapshot id comes from the proof's `iceberg_snapshot_id` field.
+
+---
+
+### Example 2: Silent corruption caught (identity mode) - FAIL
+
+Same source as Example 1, but the sink row for `ord-1002` was altered after write:
+
+| order_id | customer_id | total_amount | created_at |
+|----------|-------------|--------------|------------|
+| ord-1002 | cust-b | **999.99** | 2026-06-01T10:05:00Z |
+
+**Result:** `verdict: FAIL`. Catalog commit blocked. Run History shows **FAIL**, not PASS. `failure_localization` includes Merkle hints and **hashed** key references (not raw `customer_id`).
+
+---
+
+### Example 3: Aggregation by region (aggregate mode) - PASS
+
+**Use case:** Roll up order lines to **one row per region** with a platform fee.
+
+**Source (detail grain):**
+
+| region | order_id | amount |
+|--------|----------|--------|
+| east | line-1 | 100.00 |
+| east | line-2 | 50.00 |
+| west | line-3 | 75.00 |
+
+**Expected sink (region grain):**
+
+| region | amount |
+|--------|--------|
+| east | 150.00 |
+| west | 75.00 |
+
+**Contract excerpt:**
+
+```yaml
+spec:
+  transform:
+    pvdm:
+      identityFields: [region]
+      contentFields: [region, amount]
+      vrp:
+        mode: aggregate
+        groupBy: [region]
+        amountField: amount
+        feeMultiplier: "1"
+        moneyFields: [amount]
+        numericTolerance: "0"
+```
+
+**Result:** Per-group sums match; global `SUM(amount)` is 225.00 on both sides. `multiset.mode: aggregate` (source and sink row counts differ by design). `verdict: PASS`.
+
+---
+
+### Example 4: Swap between groups (aggregate mode) - FAIL
+
+Same source as Example 3, but amounts were **swapped between regions** in the sink:
+
+| region | amount |
+|--------|--------|
+| east | **75.00** |
+| west | **150.00** |
+
+**Global sum is still 225.00** - a dashboard total would look fine.
+
+**Result:** `verdict: FAIL`. Invariant `group_sum:east` (and `group_sum:west`) fails. This is why aggregate pipelines use **per-group** checks, not global totals alone.
+
+---
+
+### Example 5: Platform fee with multiplier (aggregate mode) - PASS
+
+**Source:** same as Example 3.
+
+**Business rule:** sink amount = source sum × **0.98** (2% platform fee retained).
+
+```yaml
+vrp:
+  mode: aggregate
+  groupBy: [region]
+  amountField: amount
+  feeMultiplier: "0.98"
+  moneyFields: [amount]
+  numericTolerance: "0"
+```
+
+**Expected sink:**
+
+| region | amount |
+|--------|--------|
+| east | 147.00 |
+| west | 73.50 |
+
+Money is checked in **minor units** (cents) so `149.99` style values do not suffer float rounding errors.
+
+---
+
+### Example 6: Run outcomes (what stewards see)
+
+| Portal badge | Meaning | Action |
+|--------------|---------|--------|
+| **PASS** | Verification succeeded for declared fields / invariants | Publish per policy |
+| **FAIL** | Mismatch, invariant failure, signing failure, or publish blocked | Do not promote; investigate |
+| **UNVERIFIED** | Empty run, all rows filtered, or PVDM did not run | **Not** a pass - treat as not proven |
+
+---
+
+### Example 7: Proof excerpt (identity PASS)
+
+Truncated v3 proof body (signature omitted). Full samples: `fixtures/vrp-conformance/identity-pass.json`.
+
+```json
+{
+  "proof_version": "3",
+  "pipeline_run_id": "commerce-orders-20260601-001",
+  "chunk_sequence": "0",
+  "multiset": {
+    "identity_fields": ["order_id"],
+    "content_fields": ["order_id", "customer_id", "total_amount", "created_at"],
+    "source_hash": "a1b2c3…",
+    "sink_hash": "a1b2c3…",
+    "sink_materialization": "read_back",
+    "mode": "identity"
+  },
+  "iceberg_snapshot_id": "1001847293012",
+  "sink_artifacts": {
+    "logical_content": {
+      "logical_content_hash": "a1b2c3…",
+      "row_count": "3",
+      "compaction_safe": true
+    }
+  },
+  "contract_binding": {
+    "contract_hash": "9f8e7d…",
+    "contract_version": "1.0.0",
+    "contract_name": "customer-orders-cdc",
+    "contract_domain": "commerce"
+  }
+}
+```
+
+**Offline check:**
+
+```bash
+node scripts/verify-vrp-proof.js path/to/proof.json --public-key producer-public.pem
+```
+
+---
+
+### Example 8: Full structured pipeline contract
+
+End-to-end CDC contract (commerce orders): [`contracts/examples/structured-cdc-pipeline.yaml`](../contracts/examples/structured-cdc-pipeline.yaml).
+
+Key fields for proof:
+
+| Field | Role |
+|-------|------|
+| `spec.execution.pattern: vaquar` | Enables PVDM + VRP |
+| `spec.transform.pvdm.identityFields` | Row keys for multiset / lineage |
+| `spec.transform.pvdm.contentFields` | Columns included in the proof |
+| `spec.target.catalog` | Table bound in proof and snapshot pin |
+
+---
+
 ### Security features
 
 | Feature | What it does |
@@ -184,20 +396,20 @@ sequenceDiagram
 
 ### Trust model
 
-VRP proofs are **not** “no trust required.” They reduce risk when all of the following hold:
+VRP proofs assume a standard custody model on AWS:
 
-1. **Sink binding** - Proofs include per-chunk Parquet footer digests and Iceberg manifest digests; `verifyVrpProof(proof, { localPath })` recomputes footer SHA-256 from persisted bytes.
-2. **Signing custody** - Production signing uses **AWS KMS** (`VRP_KMS_KEY_ID`, `kms:Sign`); key material is non-exportable. Publish the public key out-of-band; trust KMS key policy + CloudTrail.
-3. **Canonical payloads** - RFC 8785-style JCS (`lib/vrp/canonical.js`) over a strict schema (strings; numbers as decimal strings; no floats/undefined).
-4. **Freshness** - Proofs carry `pipeline_run_id`, `chunk_sequence`, `not_before` / `not_after`, and catalog table + Iceberg snapshot identity.
-5. **Fail closed** - Exceptions and empty workloads yield `UNVERIFIED`, never `PASS`. KMS signing failures yield `signing_failed` and block deploy.
-6. **Sink read-back** - Source multiset hashed pre-write; sink multiset hashed after reading persisted bytes (`lib/vrp/parquet-chunk.js`, `lib/vrp/chunk-store.js`). Parquet footer digest via `@dsnp/parquetjs` when available; **NDJSON full-file digest fallback** on clean installs where legacy `parquetjs`/thrift breaks. `sink_materialization: "read_back"` required.
-7. **Proof persistence** - `proofS3Uri` emitted only when a signed proof is written (`lib/vrp/proof-store.js`). Optional S3 Object Lock (`VRP_OBJECT_LOCK_MODE`, `VRP_OBJECT_LOCK_RETAIN_DAYS`).
-8. **Transparency log** - Issued proofs append to local JSONL **and** S3 per-proof objects when `PROOF_BUCKET` is set (`lib/vrp/transparency-log.js`).
-9. **Snapshot pinning** - Real `iceberg_snapshot_id` from Glue or catalog state + `snapshot_pin` SQL (`FOR SYSTEM_VERSION AS OF <id>`).
-10. **Enforced inputs** - Decision attestations require `gatewayToken` from the proof-aware data gateway. Declared `inputProofs` rejected unless `VRP_ALLOW_DECLARED_INPUTS=true` (tests only).
+1. **Sink binding** - Proofs include chunk digests; verifiers can re-hash persisted bytes.
+2. **Signing custody** - Production uses **AWS KMS** (`VRP_KMS_KEY_ID`); publish the public key to consumers.
+3. **Canonical payloads** - RFC 8785-style JSON (JCS); numbers as decimal strings.
+4. **Freshness** - `pipeline_run_id`, chunk sequence, validity window, table + snapshot identity.
+5. **Fail closed** - Empty or errored runs yield `UNVERIFIED`, never `PASS`.
+6. **Sink read-back** - Sink multiset is hashed only after reading persisted Parquet or NDJSON.
+7. **Proof persistence** - Signed proofs can be stored in S3 (`PROOF_BUCKET`) with optional Object Lock.
+8. **Transparency log** - Issued proofs are append-only for audit.
+9. **Snapshot pinning** - Consumers query `FOR SYSTEM_VERSION AS OF <snapshot_id>`.
+10. **Gateway-enforced agent inputs** - Attestations require `gatewayToken` from verified proof serve (not self-declared proof lists).
 
-Environment:
+**Configuration (operations teams):**
 
 | Variable | Purpose |
 |----------|---------|
@@ -217,27 +429,19 @@ Environment:
 | `VRP_FAIL_CLOSED` | When `true` with `PROOF_BUCKET`, failed proof persistence blocks publish |
 | `VRP_ENVIRONMENT` | Environment label bound in `environment_binding` |
 
-Conformance: `npm run verify:conformance` runs published known-good/tampered vectors (`fixtures/vrp-conformance/`).
-
-Implementation: [`lib/vrp/`](../lib/vrp/)
+Conformance: `npm run verify:conformance` runs published known-good and tampered proof fixtures.
 
 ### Offline verification
 
-Consumers can verify a proof **without AWS credentials** using the producer's published public key:
+Consumers verify proofs **without AWS credentials** using the producer's published public key:
 
 ```bash
 node scripts/verify-vrp-proof.js path/to/proof.json --public-key producer-public.pem
 ```
 
-`verifyVrpProof(proof, { publicKeyPem, localPath })` in [`lib/vrp/verify.js`](../lib/vrp/verify.js) checks:
+`verifyVrpProof()` checks multiset or transform invariants, validity window, logical content (when rows supplied), optional file digest, signature, and optional transparency log membership.
 
-- multiset binding (`source_hash === sink_hash`, `sink_materialization: read_back`)
-- validity window (`not_before` / `not_after`)
-- Parquet footer digest re-hash when `localPath` is supplied
-- cryptographic signature (when present)
-- optional transparency log membership
-
-Agent MCP / API endpoints:
+**HTTP / MCP endpoints (integrators):**
 
 | Endpoint | Purpose |
 |----------|---------|
@@ -303,13 +507,13 @@ sequenceDiagram
 
 ### Gateway: served, not declared
 
-Attack 6 is addressed at the **data-access boundary**:
+Agents must consume data through the **proof-aware gateway**:
 
-1. Consumer calls `serveProofGatedDataset({ proof, sessionId, localPath })` - verifies the VRP proof, reads pinned snapshot materialization, returns rows + HMAC `gatewayToken`.
-2. Agent invocation passes `gatewayToken` (not raw `inputProofs`) to `POST /mcp/invoke`.
-3. `buildDecisionAttestation` resolves the token → verified proof; each `inputs[]` entry records `gateway_enforced: true`.
+1. Call `serveProofGatedDataset({ proof, sessionId })` - verifies the VRP proof, reads pinned snapshot rows, returns `gatewayToken`.
+2. Agent invocation passes `gatewayToken` (not a self-declared proof list) to `POST /mcp/invoke`.
+3. `buildDecisionAttestation` binds each input with `gateway_enforced: true`.
 
-Declared `inputProofs` are **rejected by default** (`VRP_ALLOW_DECLARED_INPUTS=true` only in tests). This closes the loophole where a compromised agent reads unproven data but lists only proven inputs in the attestation.
+Self-declared `inputProofs` are **rejected by default**. Set `VRP_ALLOW_DECLARED_INPUTS=true` only in automated tests, never in production.
 
 ### Verification
 
@@ -337,16 +541,14 @@ Live endpoints:
 
 ### Notes
 
-- Gateway + attestation are available on agent paths; your org chooses whether to require them in production (`VRP_ALLOW_DECLARED_INPUTS` should stay off in prod).
-- VRP proofs append to the transparency log today; decision attestations may use the same log in a future release.
-
-Implementation: [`lib/vrp/decision-attestation.js`](../lib/vrp/decision-attestation.js) · [`lib/vrp/proof-gateway.js`](../lib/vrp/proof-gateway.js) · wired in [`services/agent-mcp/server.js`](../services/agent-mcp/server.js)
+- Gateway + attestation are available on agent paths; your org chooses whether to require them in production.
+- VRP proofs append to the transparency log; decision attestations may use the same log in a future release.
 
 ---
 
-## VRP features
+## VRP features (summary)
 
-Product features for proof-gated publish (`proof_version: "3"`; v2 proofs still verify).
+Product features for proof-gated publish (`proof_version: "3"`; v2 proofs still verify). See [Data examples](#data-examples) for PASS/FAIL walkthroughs.
 
 ### Proof & custody
 
@@ -357,27 +559,19 @@ Product features for proof-gated publish (`proof_version: "3"`; v2 proofs still 
 - Real Iceberg snapshot ids and snapshot pin SQL
 - Transparency log for issued proofs
 - Signed contract hash and environment binding in each proof
-- Parquet via `@dsnp/parquetjs` with NDJSON fallback when needed
 
 ### Transform verification
 
-**Identity mode** - row-preserving pipelines (copy, CDC, repartition, dedupe): source and sink multisets must match on declared fields.
-
-**Aggregate mode** - set `spec.transform.pvdm.vrp.mode: aggregate` with `groupBy`, `amountField`, `feeMultiplier`, `moneyFields`, `numericTolerance`. The verifier checks derived sums, per-group lineage, and money invariants (swap attacks fail even when global totals match).
+- **Identity mode** - row-preserving pipelines: multisets must match (Examples 1-2).
+- **Aggregate mode** - `groupBy` + sum invariants + per-group lineage (Examples 3-5).
 
 ### Verification & operations
 
-- Per-group lineage and invariants derived from the transform spec
-- Money fields in minor units with rational multipliers
-- Merkle-based failure localization with hashed keys (no raw PII in failure records)
-- Compaction-safe `logical_content_hash` (primary after Iceberg `OPTIMIZE`)
-- Reproducible computation claim (`transform_content_hash` + output logical hash)
+- Money fields in minor units; rational multipliers (e.g. `feeMultiplier: "0.98"`)
+- Merkle failure localization with hashed keys (no raw PII)
+- Compaction-safe `logical_content_hash` after Iceberg `OPTIMIZE`
+- Reproducible computation claim in each v3 proof
 - Published conformance vectors (`npm run verify:conformance`)
-- Signing, transparency, or persistence failures block publish
-
-### Reproducible attested computation
-
-VRP v3 proofs include a **reproducible computation** claim: signed inputs, pinned transform spec, signed output logical digest. Consumers can re-run the declared transform and compare digests; correctness of the transform code is still a separate review step.
 
 ---
 
@@ -494,8 +688,11 @@ npm run test:vaquar
 # PVDM runtime unit tests (VRP, IceGuard, commit)
 npm run test:pvdm
 
-# VRP security hardening (fail-closed, JCS, KMS signing, field resolution)
+# VRP verification tests (fail-closed, JCS, signing, field resolution)
 npm run test:vrp-security
+
+# Verify published proof conformance vectors
+npm run verify:conformance
 
 # Generate mesh.yaml from example contract
 npm run vaquar:apply -- contracts/examples/structured-cdc-pipeline.yaml
@@ -509,15 +706,16 @@ npm run package:domain-writer
 
 ## Reference implementation
 
-The Vaquar Pattern is also embodied in the open-source **[AWS Serverless Data Mesh Framework](https://github.com/vaquarkhan/aws-serverless-datamesh-framework)** (`serverless-data-mesh` Python package). CogniMesh provides a **Node.js reference runtime** and **zero-code portal** on top of the same invariants.
+The Vaquar Pattern is also embodied in the open-source **[AWS Serverless Data Mesh Framework](https://github.com/vaquarkhan/aws-serverless-datamesh-framework)** (`serverless-data-mesh` Python package). CogniMesh provides a **Node.js runtime** and **visual portal** on top of the same invariants.
 
-| Layer | Repository path |
-|-------|-----------------|
+| Layer | Location |
+|-------|----------|
 | Pattern specification | This document |
+| Example contracts | `contracts/examples/` |
+| Proof conformance samples | `fixtures/vrp-conformance/` |
 | Mesh compiler | `lib/vaquar/` |
-| PVDM runtime | `services/pvdm-runtime/` |
-| Python domain writer (optional) | `services/domain-writer/handler.py` |
-| Terraform (prod) | `infra/terraform/` |
+| PVDM + VRP runtime | `services/pvdm-runtime/`, `lib/vrp/` |
+| Terraform (production) | `infra/terraform/` |
 
 ---
 

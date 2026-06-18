@@ -108,7 +108,7 @@ spec:
         numericTolerance: "0"
 ```
 
-Details: [Multiset equality vs transform verification](vaquar-pattern.md#multiset-equality-vs-transform-verification).
+Details: [Vaquar Pattern - Data examples](vaquar-pattern.md#data-examples) and [VRP features](vaquar-pattern.md#vrp-features).
 
 ### Does verification catch "swap" attacks (same total, wrong groups)?
 
