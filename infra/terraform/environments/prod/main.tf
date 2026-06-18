@@ -6,8 +6,9 @@ locals {
   # Include portal_cloudfront_url in portal_callback_urls after first apply (updates Cognito + API CORS).
   api_cors_origins = distinct(compact(var.portal_callback_urls))
   api_environment = {
-    NODE_ENV                  = "production"
-    AWS_REGION                = var.aws_region
+    NODE_ENV               = "production"
+    ENABLE_EMF_METRICS     = "true"
+    AWS_REGION             = var.aws_region
     CATALOG_STORAGE           = "memory"
     CATALOG_FALLBACK          = "embedded"
     COGNITO_USER_POOL_ID      = try(module.cognito[0].user_pool_id, "")
@@ -212,4 +213,23 @@ module "portal_cdn" {
   tags                = local.tags
 
   depends_on = [module.api_service]
+}
+
+module "observability" {
+  count  = var.enable_observability ? 1 : 0
+  source = "../../modules/observability"
+
+  name_prefix               = var.name_prefix
+  aws_region                = var.aws_region
+  alb_arn_suffix            = try(module.api_service[0].alb_arn_suffix, "")
+  target_group_arn_suffix   = try(module.api_service[0].target_group_arn_suffix, "")
+  ecs_cluster_name          = try(module.api_service[0].ecs_cluster_name, "")
+  ecs_service_name          = try(module.api_service[0].ecs_service_name, "")
+  api_desired_count         = var.api_desired_count
+  enable_waf_alarms         = var.enable_waf
+  waf_web_acl_name          = coalesce(try(module.api_service[0].waf_web_acl_name, null), try(module.portal_cdn[0].waf_web_acl_name, null), "")
+  alert_email               = var.ops_alert_email
+  tags                      = local.tags
+
+  depends_on = [module.api_service, module.portal_cdn]
 }

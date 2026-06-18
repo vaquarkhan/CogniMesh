@@ -270,6 +270,18 @@ output "api_alb_dns" {
   value = aws_lb.api.dns_name
 }
 
+output "alb_arn_suffix" {
+  value = aws_lb.api.arn_suffix
+}
+
+output "target_group_arn_suffix" {
+  value = aws_lb_target_group.api.arn_suffix
+}
+
+output "waf_web_acl_name" {
+  value = try(aws_wafv2_web_acl.api[0].name, null)
+}
+
 output "ecs_cluster_name" {
   value = aws_ecs_cluster.api.name
 }

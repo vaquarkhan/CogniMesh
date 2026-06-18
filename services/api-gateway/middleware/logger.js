@@ -24,6 +24,14 @@ function requestLogger(req, res, next) {
       duration_ms: Date.now() - start,
       user_id: req.auth?.sub,
     });
+    if (res.statusCode >= 500) {
+      try {
+        const { incEmf } = require("../../../lib/metrics-emf");
+        incEmf("http_5xx", 1, { path: req.path.replace(/\/[a-f0-9-]{20,}/gi, "/:id") });
+      } catch {
+        /* non-fatal */
+      }
+    }
   });
   next();
 }

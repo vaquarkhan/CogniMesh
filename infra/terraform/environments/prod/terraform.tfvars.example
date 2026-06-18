@@ -27,6 +27,8 @@ enable_platform_ops = true
 enable_kms_for_sensitive_buckets = true
 enable_security_logging = true
 enable_config = true
+enable_observability = true
+# ops_alert_email = "sre@yourcompany.com"
 
 portal_callback_urls = ["http://localhost:3000/", "https://portal.yourcompany.com/"]
 # After first apply, add terraform output portal_cloudfront_url here and re-apply.

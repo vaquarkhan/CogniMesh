@@ -160,3 +160,7 @@ output "cloudfront_url" {
 output "waf_enabled" {
   value = var.enable_waf
 }
+
+output "waf_web_acl_name" {
+  value = try(aws_wafv2_web_acl.portal[0].name, null)
+}

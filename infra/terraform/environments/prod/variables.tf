@@ -165,3 +165,15 @@ variable "enable_platform_ops" {
   default     = true
   description = "DynamoDB platform state, Athena workgroup, Bedrock/RDS Data API IAM for API gateway"
 }
+
+variable "enable_observability" {
+  type        = bool
+  default     = true
+  description = "CloudWatch dashboard + alarms for API/ECS/WAF/EMF metrics."
+}
+
+variable "ops_alert_email" {
+  type        = string
+  default     = ""
+  description = "Optional email for CloudWatch alarm SNS (requires confirmation click)."
+}

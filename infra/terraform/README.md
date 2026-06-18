@@ -21,7 +21,8 @@ Vaquar Pattern-aligned IaC for CogniMesh. Module layout mirrors [aws-serverless-
 | `eks` | EKS cluster for cognitive runtime (opt-in) |
 | `portal-cdn` | S3 + CloudFront OAC, security headers, optional WAF, `/api/*` proxy |
 | `api-service` | ECS Fargate + public ALB for `cognimesh-api` (private tasks) |
-| `security-logging` | CloudTrail + GuardDuty (optional) |
+| `security-logging` | CloudTrail + GuardDuty + Config (optional) |
+| `observability` | CloudWatch dashboard + alarms (ALB, ECS, EMF, WAF) |
 | `bootstrap/remote-state` | One-time S3 + DynamoDB + KMS for Terraform state |
 
 ## Environments
@@ -98,9 +99,25 @@ aws s3 sync dist/ s3://$(cd ../infra/terraform/environments/prod && terraform ou
 | `enable_api_service` | `true` | ECS Fargate API (requires `enable_platform_ops`) |
 | `enable_platform_ops` | `true` | Athena workgroup, platform DynamoDB, API IAM role |
 | `enable_kms_for_sensitive_buckets` | `true` | CMK for checkpoint + proof buckets |
-| `enable_security_logging` | `true` | CloudTrail + GuardDuty modules |
+| `enable_security_logging` | `true` | CloudTrail + GuardDuty + Config modules |
+| `enable_observability` | `true` | CloudWatch dashboard + alarms |
 
 Set `enable_waf = false` to reduce monthly cost if you accept L7 exposure on the portal.
+
+AWS Well-Architected reviews: see [docs/WELL_ARCHITECTED.md](../../docs/WELL_ARCHITECTED.md) and `scripts/register-well-architected-workload.sh`.
+
+## Observability (prod)
+
+| Layer | What you get |
+|-------|----------------|
+| **Logs** | ECS API to CloudWatch Logs `/ecs/{prefix}-api` (30d) |
+| **Metrics** | EMF from API (`CogniMesh` namespace): deploy, preview, http_5xx |
+| **Dashboard** | `terraform output ops_dashboard_name` |
+| **Alarms** | ALB 5xx, ECS tasks, deploy_failed, WAF blocks; optional SNS (`ops_alert_email`) |
+| **Product** | Run history persisted in DynamoDB; `/api/v1/pipelines/:name/observability` |
+| **Traces** | OpenTelemetry opt-in via `OTEL_SDK_ENABLED` + OTLP endpoint |
+
+See [docs/WELL_ARCHITECTED.md](../../docs/WELL_ARCHITECTED.md) for pillar mapping and formal WAFR workflow.
 
 ## Cognito default user
 

@@ -119,6 +119,14 @@ output "cloudtrail_bucket" {
   value = try(module.security_logging[0].cloudtrail_bucket, null)
 }
 
+output "ops_dashboard_name" {
+  value = try(module.observability[0].dashboard_name, null)
+}
+
+output "ops_alert_topic_arn" {
+  value = try(module.observability[0].sns_topic_arn, null)
+}
+
 output "platform_env" {
   value     = try(module.platform_ops[0].platform_env, {})
   sensitive = false
