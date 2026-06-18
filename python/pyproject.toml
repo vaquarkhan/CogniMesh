@@ -10,7 +10,7 @@ readme = "README.md"
 license = "LicenseRef-Proprietary"
 license-files = ["LICENSE"]
 requires-python = ">=3.10"
-authors = [{ name = "Vaquarkhan", email = "security@vaquarkhan.dev" }]
+authors = [{ name = "Vaquarkhan" }]
 keywords = ["data-mesh", "datacontract", "vaquar", "pvdm", "iceberg"]
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -38,6 +38,7 @@ cognimesh = "cognimesh.cli:main"
 Homepage = "https://github.com/vaquarkhan/CogniMesh"
 Documentation = "https://github.com/vaquarkhan/CogniMesh#readme"
 Repository = "https://github.com/vaquarkhan/CogniMesh"
+Issues = "https://github.com/vaquarkhan/CogniMesh/issues"
 
 [tool.setuptools.packages.find]
 where = ["."]

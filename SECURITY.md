@@ -7,19 +7,21 @@ describe PII-bearing datasets. We take security reports seriously.
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 0.1.x   | :white_check_mark: |
+| 1.0.x   | :white_check_mark: |
 
 ## Reporting a vulnerability
 
 **Please do not open public GitHub issues for security vulnerabilities.**
 
-1. Email **security@vaquarkhan.dev** (or open a private [GitHub Security Advisory](https://github.com/vaquarkhan/CogniMesh/security/advisories/new) on this repository).
+1. Open a **private** [GitHub Security Advisory](https://github.com/vaquarkhan/CogniMesh/security/advisories/new) on this repository.
 2. Include:
    - Description of the issue and impact
    - Steps to reproduce
    - Affected component (portal, API, catalog, Terraform, etc.)
    - CogniMesh version or commit SHA
-3. We aim to acknowledge within **3 business days** and provide a remediation timeline within **14 days** for confirmed issues.
+3. We aim to acknowledge advisory reports within **3 business days** and provide a remediation timeline within **14 days** for confirmed issues.
+
+For **non-security** bugs and feature requests, use [GitHub Issues](https://github.com/vaquarkhan/CogniMesh/issues).
 
 ## Security controls in CogniMesh
 
