@@ -118,12 +118,29 @@ resource "aws_cloudfront_distribution" "portal" {
     }
   }
 
-  custom_error_response {
-    error_code         = 403
-    response_code      = 200
-    response_page_path = "/index.html"
+  dynamic "ordered_cache_behavior" {
+    for_each = var.api_origin_domain != "" ? toset(["/health", "/metrics", "/api/health", "/api/metrics"]) : toset([])
+    content {
+      path_pattern           = ordered_cache_behavior.value
+      allowed_methods        = ["GET", "HEAD", "OPTIONS"]
+      cached_methods         = ["GET", "HEAD"]
+      target_origin_id       = "api-alb"
+      viewer_protocol_policy = "redirect-to-https"
+      response_headers_policy_id = aws_cloudfront_response_headers_policy.portal_security.id
+
+      forwarded_values {
+        query_string = false
+        headers      = ["Authorization", "Origin"]
+        cookies { forward = "none" }
+      }
+
+      min_ttl     = 0
+      default_ttl = 0
+      max_ttl     = 0
+    }
   }
 
+  # SPA fallback for S3 only — do NOT map 403→index.html (breaks API error passthrough on /api/*).
   custom_error_response {
     error_code         = 404
     response_code      = 200

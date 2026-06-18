@@ -1,12 +1,6 @@
 "use strict";
 
-const ALLOWED = (
-  process.env.CORS_ORIGINS ||
-  "http://localhost:3000,http://localhost:5173,http://localhost:4173"
-)
-  .split(",")
-  .map((o) => o.trim())
-  .filter(Boolean);
+const { isAllowedOrigin, isAllowedReferer } = require("../lib/cors-origins");
 
 const MUTATING = new Set(["POST", "PUT", "PATCH", "DELETE"]);
 
@@ -23,12 +17,9 @@ function csrfProtection(req, res, next) {
   const origin = req.headers.origin;
   const referer = req.headers.referer;
 
-  if (origin && ALLOWED.includes(origin)) return next();
+  if (origin && isAllowedOrigin(origin)) return next();
 
-  if (referer) {
-    const allowed = ALLOWED.some((o) => referer.startsWith(o));
-    if (allowed) return next();
-  }
+  if (referer && isAllowedReferer(referer)) return next();
 
   // Local dev: no Origin on some tools
   if (process.env.AUTH_DISABLED === "true" && !origin && !referer) {

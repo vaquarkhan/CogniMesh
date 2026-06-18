@@ -31,9 +31,12 @@ enable_observability = true
 # ops_alert_email = "sre@yourcompany.com"
 
 portal_callback_urls = ["http://localhost:3000/", "https://portal.yourcompany.com/"]
-# After first apply, add terraform output portal_cloudfront_url here and re-apply.
+portal_logout_urls   = ["http://localhost:3000/", "https://portal.yourcompany.com/"]
+# After first apply (terraform output portal_cloudfront_url):
+# portal_cloudfront_callback_url = "https://YOUR_DIST.cloudfront.net/"
+# portal_cloudfront_logout_url   = "https://YOUR_DIST.cloudfront.net/"
+# API CORS also allows *.cloudfront.net via CORS_ORIGIN_SUFFIXES in prod main.tf.
 
 portal_bucket_name = "cognimesh-prod-portal-UNIQUE"
-portal_logout_urls   = ["http://localhost:3000/", "https://portal.yourcompany.com/"]
 
 # Remote state: see backend.hcl.example and bootstrap/remote-state/

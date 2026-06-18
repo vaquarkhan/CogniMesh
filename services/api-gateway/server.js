@@ -32,13 +32,7 @@ const metrics = require("../../lib/metrics");
 const { startSpan } = require("../../lib/tracing");
 const { mountPlatformRoutes, savePipelineVersion, isDeployApprovalRequired, queueDeployApproval, approveDeploy } = require("../../lib/platform");
 
-const ALLOWED_ORIGINS = (
-  process.env.CORS_ORIGINS ||
-  "http://localhost:3000,http://localhost:5173,http://localhost:4173"
-)
-  .split(",")
-  .map((o) => o.trim())
-  .filter(Boolean);
+const { isAllowedOrigin } = require("./lib/cors-origins");
 
 const PORT = process.env.PORT || 4000;
 const CATALOG_URL = process.env.CATALOG_URL || "http://localhost:8080";
@@ -47,7 +41,13 @@ const app = express();
 app.use(securityHeaders);
 app.use(
   cors({
-    origin: ALLOWED_ORIGINS,
+    origin(origin, callback) {
+      if (!origin || isAllowedOrigin(origin)) {
+        callback(null, true);
+        return;
+      }
+      callback(new Error("CORS origin not allowed"));
+    },
     credentials: true,
     allowedHeaders: [
       "Content-Type",
@@ -121,7 +121,13 @@ async function deepHealth() {
   return { ok, checks };
 }
 
-app.get("/health", async (_req, res) => {
+app.get("/health", healthHandler);
+app.get("/api/health", healthHandler);
+
+app.get("/metrics", metricsHandler);
+app.get("/api/metrics", metricsHandler);
+
+async function healthHandler(_req, res) {
   const deep = await deepHealth();
   res.status(deep.ok ? 200 : 503).json({
     status: deep.ok ? "ok" : "degraded",
@@ -135,16 +141,16 @@ app.get("/health", async (_req, res) => {
     },
     checks: deep.checks,
   });
-});
+}
 
-app.get("/metrics", (_req, res) => {
+function metricsHandler(_req, res) {
   res.json(
     metrics.snapshot({
       lineage: lineageCatalogSummary(),
       executions: executionStats(),
     })
   );
-});
+}
 
 app.get("/api/v1/lineage/catalog", requireAuth, (req, res) => {
   const domain = req.query.domain;

@@ -19,7 +19,17 @@ export async function apiFetch(path, options = {}) {
   return res;
 }
 
-/** Never throws SyntaxError - returns null when body is HTML/plain text or API is down. */
+/** When the API returns HTML instead of JSON, explain likely causes (CloudFront SPA fallback, CORS, etc.). */
+function apiJsonErrorMessage(res, context) {
+  if (res.status === 403) {
+    return `${context}: request blocked (403). If using CloudFront, ensure CORS_ORIGIN_SUFFIXES includes .cloudfront.net or add the portal URL to portal_callback_urls and re-apply Terraform.`;
+  }
+  if (res.ok) {
+    return `${context}: received HTML instead of JSON — check CloudFront routes /api/* to the API origin (not the SPA bucket).`;
+  }
+  return `${context}: API unavailable (HTTP ${res.status}). Run npm run dev:api locally or check the ECS/ALB service.`;
+}
+
 export async function parseJsonResponse(res, context = "API") {
   const text = await res.text();
   if (!text || !text.trim()) {
@@ -28,13 +38,13 @@ export async function parseJsonResponse(res, context = "API") {
   const trimmed = text.trim();
   if (trimmed.startsWith("<") || trimmed.startsWith("<!")) {
     console.warn(`${context}: received HTML instead of JSON (${res.status})`);
-    return null;
+    return { status: "error", errors: [apiJsonErrorMessage(res, context)] };
   }
   try {
     return JSON.parse(text);
   } catch {
     console.warn(`${context}: invalid JSON (${res.status})`, trimmed.slice(0, 80));
-    return null;
+    return { status: "error", errors: [apiJsonErrorMessage(res, context)] };
   }
 }
 
@@ -52,6 +62,7 @@ export async function previewPipeline({ nodes, edges, pipelineMeta, token }) {
   if (!data) {
     return { status: "error", errors: ["API unavailable - run npm run start:dev (port 4000) for preview."] };
   }
+  if (data.status === "error" && data.errors) return data;
   return data;
 }
 
@@ -64,6 +75,9 @@ export async function deployPipeline({ nodes, edges, pipelineMeta, token }) {
   const data = await safeJson(res, "Deploy");
   if (!data) {
     return { ok: false, data: { errors: ["API unavailable - run npm run start:dev for deploy."] } };
+  }
+  if (data.status === "error" && data.errors) {
+    return { ok: false, data };
   }
   if (res.status === 202 && data.status === "pending_approval") {
     return { ok: true, pendingApproval: true, data };
@@ -241,10 +255,18 @@ export async function rejectAccessRequest({ token, requestId, reason }) {
   return { ok: res.ok, data: data || {} };
 }
 
-/** Quick check - avoids firing design-review against HTML error pages. */
+/** Quick check — uses /api/v1/auth/config (routed via CloudFront /api/*) or /api/health. */
 export async function getApiHealth() {
-  const res = await apiFetch("/health");
-  return parseJsonResponse(res, "Health");
+  const res = await apiFetch("/api/v1/auth/config");
+  const data = await parseJsonResponse(res, "Health");
+  if (data?.status === "error") return null;
+  if (data && (data.userPoolId != null || data.authDisabled != null)) {
+    return { status: "ok", auth: data.authDisabled ? "disabled" : "cognito" };
+  }
+  const res2 = await apiFetch("/api/health");
+  const deep = await parseJsonResponse(res2, "Health");
+  if (deep?.status === "error") return null;
+  return deep;
 }
 
 export async function isApiReachable() {

@@ -27,6 +27,17 @@ variable "mfa_configuration" {
   default = "OPTIONAL"
 }
 
+variable "additional_callback_urls" {
+  type        = list(string)
+  default     = []
+  description = "Extra Cognito callback URLs (e.g. CloudFront domain after first apply)."
+}
+
+variable "additional_logout_urls" {
+  type    = list(string)
+  default = []
+}
+
 variable "tags" {
   type    = map(string)
   default = {}
@@ -95,8 +106,8 @@ resource "aws_cognito_user_pool_client" "portal" {
 
   supported_identity_providers = ["COGNITO"]
 
-  callback_urls = var.portal_callback_urls
-  logout_urls   = var.portal_logout_urls
+  callback_urls = distinct(compact(concat(var.portal_callback_urls, var.additional_callback_urls)))
+  logout_urls   = distinct(compact(concat(var.portal_logout_urls, var.additional_logout_urls)))
 
   allowed_oauth_flows_user_pool_client = true
   allowed_oauth_flows                  = ["code", "implicit"]

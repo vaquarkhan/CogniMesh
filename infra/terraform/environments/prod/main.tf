@@ -8,6 +8,7 @@ locals {
   api_environment = {
     NODE_ENV               = "production"
     ENABLE_EMF_METRICS     = "true"
+    CORS_ORIGIN_SUFFIXES   = ".cloudfront.net"
     AWS_REGION             = var.aws_region
     CATALOG_STORAGE           = "memory"
     CATALOG_FALLBACK          = "embedded"
@@ -120,12 +121,14 @@ module "cognito" {
   count  = var.enable_cognito ? 1 : 0
   source = "../../modules/cognito"
 
-  name_prefix          = var.name_prefix
-  default_admin_email  = var.default_admin_email
-  portal_callback_urls = var.portal_callback_urls
-  portal_logout_urls   = var.portal_logout_urls
-  mfa_configuration    = var.cognito_mfa_configuration
-  tags                 = local.tags
+  name_prefix              = var.name_prefix
+  default_admin_email      = var.default_admin_email
+  portal_callback_urls     = var.portal_callback_urls
+  portal_logout_urls       = var.portal_logout_urls
+  additional_callback_urls = compact([var.portal_cloudfront_callback_url])
+  additional_logout_urls   = compact([var.portal_cloudfront_logout_url])
+  mfa_configuration        = var.cognito_mfa_configuration
+  tags                     = local.tags
 }
 
 module "integrity_gate_lambda" {

@@ -33,6 +33,17 @@ variable "portal_logout_urls" {
   default = ["http://localhost:3000/"]
 }
 
+variable "portal_cloudfront_callback_url" {
+  type        = string
+  default     = ""
+  description = "After first apply: https://YOUR_DIST.cloudfront.net/ (also set portal_cloudfront_logout_url). CORS uses .cloudfront.net suffix automatically."
+}
+
+variable "portal_cloudfront_logout_url" {
+  type    = string
+  default = ""
+}
+
 variable "checkpoint_bucket_name" {
   type = string
 }

@@ -71,11 +71,17 @@ npm run test:lambda-zips
 
 ### 4. Post-apply: Cognito callback + portal upload
 
-Add the CloudFront URL to Cognito callback/logout URLs (or re-apply with updated `portal_callback_urls`):
+Cognito login requires the CloudFront URL on the SPA client (API CORS allows `*.cloudfront.net` automatically):
 
 ```bash
 terraform output portal_cloudfront_url
+# Add to terraform.tfvars:
+# portal_cloudfront_callback_url = "https://YOUR_DIST.cloudfront.net/"
+# portal_cloudfront_logout_url   = "https://YOUR_DIST.cloudfront.net/"
+terraform apply
 ```
+
+CloudFront routes `/api/*`, `/health`, `/metrics`, and `/api/health` to the API ALB. SPA fallback is **404 only** (not 403), so API errors return JSON.
 
 Build and sync the portal (no `VITE_API_URL` needed when `enable_api_service` proxies `/api/*` via CloudFront):
 
