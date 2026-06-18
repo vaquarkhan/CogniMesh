@@ -112,7 +112,11 @@ body {
 
 .header-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
+  align-items: center;
+  justify-content: flex-end;
+  max-width: 52rem;
 }
 
 .deploy-btn,
@@ -147,6 +151,98 @@ body {
 .btn-secondary:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* WCAG 2.4.7 — visible keyboard focus */
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 2px solid #6ee7b7;
+  outline-offset: 2px;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[role="menuitem"]:focus-visible,
+[role="menuitemradio"]:focus-visible {
+  outline: 2px solid #6ee7b7;
+  outline-offset: 2px;
+}
+
+.header-menu {
+  position: relative;
+}
+
+.header-menu-trigger.is-active {
+  border-color: #6366f1;
+  color: #c7d2fe;
+}
+
+.header-menu-dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.35rem);
+  z-index: 200;
+  min-width: 11rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.35rem;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+.header-menu-dropdown button {
+  text-align: left;
+  width: 100%;
+  padding: 0.45rem 0.65rem;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #e7ecf3;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.header-menu-dropdown button:hover,
+.header-menu-dropdown button.active {
+  background: #334155;
+}
+
+.header-menu-close-all {
+  margin-top: 0.25rem;
+  border-top: 1px solid #334155 !important;
+  padding-top: 0.55rem !important;
+  color: #94a3b8 !important;
+  font-size: 0.8rem !important;
+}
+
+.error-boundary {
+  padding: 1rem;
+  margin: 0.5rem;
+  border: 1px solid #7f1d1d;
+  border-radius: 8px;
+  background: #1c1012;
+  color: #fecaca;
+  max-width: 22rem;
+}
+
+.error-boundary h3 {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+}
+
+.error-boundary-message {
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem;
+  color: #fca5a5;
 }
 
 .login-page {

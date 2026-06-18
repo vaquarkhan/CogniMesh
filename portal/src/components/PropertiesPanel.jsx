@@ -1,3 +1,4 @@
+import FormField from "./FormField";
 import { PIPELINE_META_TIPS, tipFor } from "../lib/field-tips";
 import { QUALITY_POLICIES, SCHEMA_EVOLUTION_POLICIES } from "../lib/data-quality-presets";
 import { AWS_SERVICES, PROCESSING_MODES } from "../lib/aws-services";
@@ -12,18 +13,6 @@ const SINK_ENCRYPTION_OPTIONS = [
   { value: "aws:kms", label: "AWS KMS" },
 ];
 const AWS_SERVICE_KEYS = Object.keys(AWS_SERVICES);
-
-function Field({ label, tip, children }) {
-  return (
-    <label className="field">
-      <span className="field-label-row">
-        <span>{label}</span>
-      </span>
-      {children}
-      {tip && <p className="field-tip">{tip}</p>}
-    </label>
-  );
-}
 
 export default function PropertiesPanel({
   node,
@@ -46,28 +35,28 @@ export default function PropertiesPanel({
         <p className="properties-intro">
           These apply to the whole pipeline. Click a block on the canvas to edit source, transform, or sink.
         </p>
-        <Field label="Name" tip={PIPELINE_META_TIPS.name}>
+        <FormField label="Name" tip={PIPELINE_META_TIPS.name}>
           <input
             value={pipelineMeta.name}
             onChange={(e) => onMetaChange({ ...pipelineMeta, name: e.target.value })}
             placeholder="customer-orders-cdc"
           />
-        </Field>
-        <Field label="Domain" tip={PIPELINE_META_TIPS.domain}>
+        </FormField>
+        <FormField label="Domain" tip={PIPELINE_META_TIPS.domain}>
           <input
             value={pipelineMeta.domain}
             onChange={(e) => onMetaChange({ ...pipelineMeta, domain: e.target.value })}
             placeholder="commerce"
           />
-        </Field>
-        <Field label="Version" tip={PIPELINE_META_TIPS.version}>
+        </FormField>
+        <FormField label="Version" tip={PIPELINE_META_TIPS.version}>
           <input
             value={pipelineMeta.version}
             onChange={(e) => onMetaChange({ ...pipelineMeta, version: e.target.value })}
             placeholder="1.0.0"
           />
-        </Field>
-        <Field label="Schema evolution" tip={PIPELINE_META_TIPS.schemaEvolutionPolicy}>
+        </FormField>
+        <FormField label="Schema evolution" tip={PIPELINE_META_TIPS.schemaEvolutionPolicy}>
           <select
             value={pipelineMeta.schemaEvolutionPolicy || "compatible"}
             onChange={(e) => onMetaChange({ ...pipelineMeta, schemaEvolutionPolicy: e.target.value })}
@@ -78,8 +67,8 @@ export default function PropertiesPanel({
               </option>
             ))}
           </select>
-        </Field>
-        <Field label="PII classification" tip={PIPELINE_META_TIPS.piiClassification}>
+        </FormField>
+        <FormField label="PII classification" tip={PIPELINE_META_TIPS.piiClassification}>
           <select
             value={pipelineMeta.piiClassification || "medium"}
             onChange={(e) => onMetaChange({ ...pipelineMeta, piiClassification: e.target.value })}
@@ -90,8 +79,8 @@ export default function PropertiesPanel({
               </option>
             ))}
           </select>
-        </Field>
-        <Field
+        </FormField>
+        <FormField
           label="Lake Formation governance"
           tip="Enable LF grants for mesh consumers (recommended when domain is not default)."
         >
@@ -106,7 +95,7 @@ export default function PropertiesPanel({
             />
             <span>Enable Lake Formation for gold tables</span>
           </label>
-        </Field>
+        </FormField>
         {pipelineMeta.meshAccounts && (
           <div className="mesh-accounts-panel">
             <h3>Mesh AWS accounts</h3>
@@ -204,12 +193,12 @@ export default function PropertiesPanel({
       )}
       <p className="field-tip block-tip">{tipFor(bt, "_default")}</p>
 
-      <Field label="Display label">
+      <FormField label="Display label">
         <input value={d.label} onChange={(e) => update({ label: e.target.value })} />
-      </Field>
+      </FormField>
 
       {AWS_SERVICE_KEYS.includes(d.awsService) || ["source", "transform", "sink"].includes(d.blockType) ? (
-        <Field label="AWS service" tip="Which AWS service backs this block in your account">
+        <FormField label="AWS service" tip="Which AWS service backs this block in your account">
           <select
             value={d.awsService || ""}
             onChange={(e) => {
@@ -225,12 +214,12 @@ export default function PropertiesPanel({
               </option>
             ))}
           </select>
-        </Field>
+        </FormField>
       ) : null}
 
       {d.blockType === "source" && (
         <>
-          <Field label="Source type" tip={tipFor("source", "sourceType")}>
+          <FormField label="Source type" tip={tipFor("source", "sourceType")}>
             <select
               value={d.sourceType || SOURCE_TYPES[0]}
               onChange={(e) => update({ sourceType: e.target.value, detail: e.target.value })}
@@ -241,51 +230,51 @@ export default function PropertiesPanel({
                 </option>
               ))}
             </select>
-          </Field>
+          </FormField>
           {(d.sourceType === "rds" || d.sourceType === "mysql") && (
             <>
-              <Field label="Database" tip={tipFor("source", "database")}>
+              <FormField label="Database" tip={tipFor("source", "database")}>
                 <input value={d.database || ""} onChange={(e) => update({ database: e.target.value })} />
-              </Field>
-              <Field label="Table" tip={tipFor("source", "table")}>
+              </FormField>
+              <FormField label="Table" tip={tipFor("source", "table")}>
                 <input value={d.table || ""} onChange={(e) => update({ table: e.target.value })} />
-              </Field>
-              <Field label="CDC enabled" tip={tipFor("source", "cdcEnabled")}>
+              </FormField>
+              <FormField label="CDC enabled" tip={tipFor("source", "cdcEnabled")}>
                 <input
                   type="checkbox"
                   checked={!!d.cdcEnabled}
                   onChange={(e) => update({ cdcEnabled: e.target.checked })}
                 />
-              </Field>
+              </FormField>
               {d.cdcEnabled && (
-                <Field label="Primary key (comma-separated)" tip={tipFor("source", "primaryKey")}>
+                <FormField label="Primary key (comma-separated)" tip={tipFor("source", "primaryKey")}>
                   <input value={d.primaryKey || ""} onChange={(e) => update({ primaryKey: e.target.value })} />
-                </Field>
+                </FormField>
               )}
-              <Field label="Secrets Manager ARN" tip="Required for AWS security review - never embed passwords">
+              <FormField label="Secrets Manager ARN" tip="Required for AWS security review - never embed passwords">
                 <input
                   value={d.secretArn || ""}
                   onChange={(e) => update({ secretArn: e.target.value })}
                   placeholder="arn:aws:secretsmanager:us-east-1:123456789012:secret:db-creds"
                 />
-              </Field>
-              <Field label="VPC security group (optional)" tip="Private subnet deployment for RDS">
+              </FormField>
+              <FormField label="VPC security group (optional)" tip="Private subnet deployment for RDS">
                 <input
                   value={d.vpcSecurityGroup || ""}
                   onChange={(e) => update({ vpcSecurityGroup: e.target.value })}
                   placeholder="sg-0abc123"
                 />
-              </Field>
+              </FormField>
             </>
           )}
           {(d.sourceType === "media_url" || d.sourceType === "s3" || d.sourceType === "kafka" || d.sourceType === "kinesis") && (
-            <Field label="Endpoint / stream / topic" tip={tipFor("source", "endpoint")}>
+            <FormField label="Endpoint / stream / topic" tip={tipFor("source", "endpoint")}>
               <input
                 value={d.endpoint || ""}
                 onChange={(e) => update({ endpoint: e.target.value })}
                 placeholder={d.sourceType === "kinesis" ? "stream-name or ARN" : "s3://bucket/prefix/ or topic"}
               />
-            </Field>
+            </FormField>
           )}
           {token && nodes?.length > 0 && (
             <DataPreviewButton token={token} nodes={nodes} edges={edges} pipelineMeta={pipelineMeta} />
@@ -295,7 +284,7 @@ export default function PropertiesPanel({
 
       {d.blockType === "transform" && (
         <>
-          <Field label="Processing mode" tip="ETL vs ELT vs enrichment - data architect pattern">
+          <FormField label="Processing mode" tip="ETL vs ELT vs enrichment - data architect pattern">
             <select
               value={d.processingMode || "sql"}
               onChange={(e) => {
@@ -314,8 +303,8 @@ export default function PropertiesPanel({
                 </option>
               ))}
             </select>
-          </Field>
-          <Field label="Transform type" tip={tipFor("transform", "transformType")}>
+          </FormField>
+          <FormField label="Transform type" tip={tipFor("transform", "transformType")}>
             <select
               value={d.transformType}
               onChange={(e) => update({ transformType: e.target.value, detail: e.target.value })}
@@ -326,8 +315,8 @@ export default function PropertiesPanel({
                 </option>
               ))}
             </select>
-          </Field>
-          <Field label="Execution mode" tip={tipFor("transform", "executionMode")}>
+          </FormField>
+          <FormField label="Execution mode" tip={tipFor("transform", "executionMode")}>
             <select value={d.executionMode || "batch"} onChange={(e) => update({ executionMode: e.target.value })}>
               {EXECUTION_MODES.map((m) => (
                 <option key={m} value={m}>
@@ -335,23 +324,23 @@ export default function PropertiesPanel({
                 </option>
               ))}
             </select>
-          </Field>
+          </FormField>
           {(d.transformType === "spark_sql" || d.transformType === "glue_etl" || d.transformType === "glue_streaming") && (
             <>
-              <Field label={d.transformType === "glue_etl" ? "Glue script / Spark SQL" : "Spark SQL"} tip={tipFor("transform", "sparkSql")}>
+              <FormField label={d.transformType === "glue_etl" ? "Glue script / Spark SQL" : "Spark SQL"} tip={tipFor("transform", "sparkSql")}>
                 <textarea rows={5} value={d.sparkSql || ""} onChange={(e) => update({ sparkSql: e.target.value })} />
-              </Field>
+              </FormField>
 
               <div className="properties-section">
                 <h3 className="properties-section-title">Data quality (PVDM)</h3>
-                <Field label="SparkRules enabled" tip={tipFor("transform", "sparkRulesEnabled")}>
+                <FormField label="SparkRules enabled" tip={tipFor("transform", "sparkRulesEnabled")}>
                   <input
                     type="checkbox"
                     checked={d.sparkRulesEnabled !== false}
                     onChange={(e) => update({ sparkRulesEnabled: e.target.checked })}
                   />
-                </Field>
-                <Field label="Quality policy" tip={tipFor("transform", "qualityPolicyId")}>
+                </FormField>
+                <FormField label="Quality policy" tip={tipFor("transform", "qualityPolicyId")}>
                   <select
                     value={d.qualityPolicyId || "strict-zero-drop"}
                     onChange={(e) => update({ qualityPolicyId: e.target.value, detail: `DQ · ${e.target.value}` })}
@@ -362,15 +351,15 @@ export default function PropertiesPanel({
                       </option>
                     ))}
                   </select>
-                </Field>
-                <Field label="VRP content fields" tip={tipFor("transform", "pvdmContentFields")}>
+                </FormField>
+                <FormField label="VRP content fields" tip={tipFor("transform", "pvdmContentFormFields")}>
                   <input
-                    value={d.pvdmContentFields || ""}
-                    onChange={(e) => update({ pvdmContentFields: e.target.value })}
+                    value={d.pvdmContentFormFields || ""}
+                    onChange={(e) => update({ pvdmContentFormFields: e.target.value })}
                     placeholder="order_id, customer_id, total_amount"
                   />
-                </Field>
-                <Field label="Max null % (content fields)" tip={tipFor("transform", "maxNullPct")}>
+                </FormField>
+                <FormField label="Max null % (content fields)" tip={tipFor("transform", "maxNullPct")}>
                   <input
                     type="number"
                     min={0}
@@ -378,7 +367,7 @@ export default function PropertiesPanel({
                     value={d.maxNullPct ?? 100}
                     onChange={(e) => update({ maxNullPct: Number(e.target.value) })}
                   />
-                </Field>
+                </FormField>
                 <BusinessRulesEditor
                   rules={d.businessRules || []}
                   onChange={(businessRules) => update({ businessRules })}
@@ -388,15 +377,15 @@ export default function PropertiesPanel({
           )}
           {d.transformType === "agentic" && (
             <>
-              <Field label="Model ID" tip={tipFor("transform", "modelId")}>
+              <FormField label="Model ID" tip={tipFor("transform", "modelId")}>
                 <input value={d.modelId || ""} onChange={(e) => update({ modelId: e.target.value })} />
-              </Field>
-              <Field label="Prompt template" tip={tipFor("transform", "promptTemplate")}>
+              </FormField>
+              <FormField label="Prompt template" tip={tipFor("transform", "promptTemplate")}>
                 <textarea rows={4} value={d.promptTemplate || ""} onChange={(e) => update({ promptTemplate: e.target.value })} />
-              </Field>
-              <Field label="Compensation handler" tip={tipFor("transform", "compensationHandler")}>
+              </FormField>
+              <FormField label="Compensation handler" tip={tipFor("transform", "compensationHandler")}>
                 <input value={d.compensationHandler || ""} onChange={(e) => update({ compensationHandler: e.target.value })} />
-              </Field>
+              </FormField>
             </>
           )}
         </>
@@ -404,7 +393,7 @@ export default function PropertiesPanel({
 
       {d.blockType === "sink" && (
         <>
-          <Field label="Target type" tip={tipFor("sink", "targetType")}>
+          <FormField label="Target type" tip={tipFor("sink", "targetType")}>
             <select value={d.targetType} onChange={(e) => update({ targetType: e.target.value, detail: e.target.value })}>
               {TARGET_TYPES.map((t) => (
                 <option key={t} value={t}>
@@ -412,17 +401,17 @@ export default function PropertiesPanel({
                 </option>
               ))}
             </select>
-          </Field>
-          <Field label="S3 location" tip={tipFor("sink", "location")}>
+          </FormField>
+          <FormField label="S3 location" tip={tipFor("sink", "location")}>
             <input value={d.location || ""} onChange={(e) => update({ location: e.target.value })} />
-          </Field>
-          <Field label="Catalog database" tip={tipFor("sink", "catalogDatabase")}>
+          </FormField>
+          <FormField label="Catalog database" tip={tipFor("sink", "catalogDatabase")}>
             <input value={d.catalogDatabase || ""} onChange={(e) => update({ catalogDatabase: e.target.value })} />
-          </Field>
-          <Field label="Catalog table" tip={tipFor("sink", "catalogTable")}>
+          </FormField>
+          <FormField label="Catalog table" tip={tipFor("sink", "catalogTable")}>
             <input value={d.catalogTable || ""} onChange={(e) => update({ catalogTable: e.target.value })} />
-          </Field>
-          <Field
+          </FormField>
+          <FormField
             label="Encryption at rest"
             tip="AES256 or KMS on lakehouse buckets — required by AWS Design Review for S3 targets."
           >
@@ -437,12 +426,12 @@ export default function PropertiesPanel({
                 </option>
               ))}
             </select>
-          </Field>
+          </FormField>
         </>
       )}
 
       {d.blockType === "parallel" && (
-        <Field label="Branches" tip={tipFor("parallel", "branchCount")}>
+        <FormField label="Branches" tip={tipFor("parallel", "branchCount")}>
           <input
             type="number"
             min={2}
@@ -450,25 +439,25 @@ export default function PropertiesPanel({
             value={d.branchCount || 2}
             onChange={(e) => update({ branchCount: Number(e.target.value) })}
           />
-        </Field>
+        </FormField>
       )}
 
       {d.blockType === "choice" && (
-        <Field label="Default route label" tip={tipFor("choice", "defaultRoute")}>
+        <FormField label="Default route label" tip={tipFor("choice", "defaultRoute")}>
           <input
             value={d.defaultRoute || "default"}
             onChange={(e) => update({ defaultRoute: e.target.value })}
             placeholder="default"
           />
-        </Field>
+        </FormField>
       )}
 
       {d.blockType === "map" && (
         <>
-          <Field label="Items path" tip={tipFor("map", "itemsPath")}>
+          <FormField label="Items path" tip={tipFor("map", "itemsPath")}>
             <input value={d.itemsPath || "$.items"} onChange={(e) => update({ itemsPath: e.target.value })} />
-          </Field>
-          <Field label="Max concurrency" tip={tipFor("map", "maxConcurrency")}>
+          </FormField>
+          <FormField label="Max concurrency" tip={tipFor("map", "maxConcurrency")}>
             <input
               type="number"
               min={1}
@@ -476,7 +465,7 @@ export default function PropertiesPanel({
               value={d.maxConcurrency || 10}
               onChange={(e) => update({ maxConcurrency: Number(e.target.value) })}
             />
-          </Field>
+          </FormField>
         </>
       )}
 

@@ -9,6 +9,9 @@ import MeshSwimlanes from "./components/MeshSwimlanes";
 import ToastStack, { useToast } from "./components/Toast";
 import MobileWarning from "./components/MobileWarning";
 import LoadingOverlay from "./components/LoadingOverlay";
+import ErrorBoundary from "./components/ErrorBoundary";
+import HeaderDockMenu from "./components/HeaderDockMenu";
+import { createNodeIdFactory } from "./lib/node-id";
 import { deployPipeline, previewPipeline, runAwsDesignReview, isApiReachable, getApiHealth, getDesignReviewFixHelp } from "./lib/api";
 import { insertIntegrityGate } from "./lib/integrity-gate-insert";
 import { analyzeImpact } from "./lib/platform-api";
@@ -43,8 +46,7 @@ function deploySuccessToast(data) {
   return "Pipeline deployed successfully";
 }
 
-let nodeId = 0;
-const nextId = () => `node-${++nodeId}`;
+const nodeIds = createNodeIdFactory();
 
 function snapshot(nodes, edges) {
   return {
@@ -98,14 +100,14 @@ export default function App() {
   const [deployError, setDeployError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState("Working…");
-  const [showDeploy, setShowDeploy] = useState(false);
-  const [showMarketplace, setShowMarketplace] = useState(false);
-  const [showLineageCatalog, setShowLineageCatalog] = useState(false);
-  const [showExecutionHistory, setShowExecutionHistory] = useState(false);
   const [catalogRefresh, setCatalogRefresh] = useState(0);
   const [showDeployConfirm, setShowDeployConfirm] = useState(false);
-  const [showStewardApprovals, setShowStewardApprovals] = useState(false);
-  const [showPlatformOps, setShowPlatformOps] = useState(false);
+  /** Right-dock panel: only one open at a time (ops, approvals, history, lineage, marketplace, deploy). */
+  const [activeDock, setActiveDock] = useState(null);
+  const toggleDock = useCallback((id) => {
+    setActiveDock((prev) => (prev === id ? null : id));
+  }, []);
+  const closeAllDocks = useCallback(() => setActiveDock(null), []);
   const [deployImpact, setDeployImpact] = useState(null);
   const [deployImpactLoading, setDeployImpactLoading] = useState(false);
   const [apiHealth, setApiHealth] = useState(null);
@@ -220,7 +222,7 @@ export default function App() {
 
   const applyPattern = useCallback(
     (instance) => {
-      nodeId = instance.nodes.length;
+      nodeIds.sync(instance.nodes);
       setNodes(instance.nodes);
       setEdges(instance.edges);
       setPipelineMeta(instance.pipelineMeta);
@@ -296,7 +298,7 @@ export default function App() {
       }
 
       const newNode = {
-        id: nextId(),
+        id: nodeIds.next(),
         type: "pipeline",
         position,
         data: { ...block.defaults },
@@ -326,7 +328,7 @@ export default function App() {
   );
 
   const addIntegrityGateToGraph = useCallback(() => {
-    const result = insertIntegrityGate(nodes, edges, nextId);
+    const result = insertIntegrityGate(nodes, edges, () => nodeIds.next());
     if (!result.added) {
       toastError(result.reason || "Could not add integrity gate");
       return false;
@@ -484,7 +486,7 @@ export default function App() {
 
   const handleAwsImport = useCallback((data) => {
     if (data.nodes?.length) {
-      nodeId = data.nodes.length;
+      nodeIds.sync(data.nodes);
       setNodes(data.nodes);
       setEdges(data.edges || []);
       pushHistory(data.nodes, data.edges || []);
@@ -500,7 +502,7 @@ export default function App() {
     setLoading(true);
     setLoadingMessage("Deploying pipeline…");
     setDeployError(null);
-    setShowDeploy(true);
+    setActiveDock("deploy");
     try {
       const meta = { ...pipelineMeta, ownerEmail: userEmail };
       const { ok, pendingApproval, data } = await deployPipeline({ nodes, edges, pipelineMeta: meta, token });
@@ -508,14 +510,13 @@ export default function App() {
         setDeployResult({ status: "pending_approval", ...data });
         setDeployError(null);
         setCatalogRefresh((k) => k + 1);
-        setShowStewardApprovals(true);
+        setActiveDock("approvals");
         success("Deploy submitted for steward approval");
       } else if (ok) {
         setDeployResult(data);
         setDeployError(null);
         setCatalogRefresh((k) => k + 1);
-        setShowExecutionHistory(true);
-        setShowMarketplace(true);
+        setActiveDock("history");
         success(deploySuccessToast(data));
         if (data?.aws && !data.aws.deployed) {
           const msg =
@@ -617,9 +618,7 @@ export default function App() {
           <button className="btn-secondary" type="button" onClick={redo} disabled={historyIndex >= history.length - 1}>
             Redo
           </button>
-          <button className="btn-secondary" type="button" onClick={() => setShowStewardApprovals((v) => !v)}>
-            Approvals
-          </button>
+          <HeaderDockMenu activeDock={activeDock} onSelect={toggleDock} onCloseAll={closeAllDocks} />
           <button
             className={`btn-secondary aws-review-header-btn ${awsReview?.overall?.deployBlocked ? "has-critical" : ""}`}
             type="button"
@@ -632,18 +631,6 @@ export default function App() {
             {awsReview?.overall?.score != null && !awsReview?.overall?.deployBlocked && (
               <span className="header-score score-ok">{awsReview.overall.score}</span>
             )}
-          </button>
-          <button className="btn-secondary" type="button" onClick={() => setShowPlatformOps((v) => !v)}>
-            Operations
-          </button>
-          <button className="btn-secondary" type="button" onClick={() => setShowExecutionHistory((v) => !v)}>
-            Run History
-          </button>
-          <button className="btn-secondary" type="button" onClick={() => setShowLineageCatalog((v) => !v)}>
-            Lineage
-          </button>
-          <button className="btn-secondary" type="button" onClick={() => setShowMarketplace((v) => !v)}>
-            Marketplace
           </button>
           <button className="btn-secondary" type="button" onClick={handlePreview} disabled={loading}>
             Preview YAML
@@ -661,8 +648,9 @@ export default function App() {
       </header>
 
       {designerMode === "agent" ? (
-        <Suspense fallback={<PanelFallback />}>
-          <AgentBuilderView
+        <ErrorBoundary name="Agent Builder">
+          <Suspense fallback={<PanelFallback />}>
+            <AgentBuilderView
             userEmail={userEmail}
             authDisabled={authDisabled}
             onLogout={logout}
@@ -671,7 +659,8 @@ export default function App() {
             onBootstrapApplied={() => setAgentBootstrap(null)}
             notify={{ success, error: toastError }}
           />
-        </Suspense>
+          </Suspense>
+        </ErrorBoundary>
       ) : (
       <div className="main">
         <DesignerSidebar
@@ -683,6 +672,7 @@ export default function App() {
           token={token}
         />
 
+        <ErrorBoundary name="Canvas">
         <div className="canvas-column">
           {!tipDismissed && (
             <CanvasTipBar
@@ -752,7 +742,9 @@ export default function App() {
             />
           </div>
         </div>
+        </ErrorBoundary>
 
+        <ErrorBoundary name="Properties">
         <PropertiesPanel
           node={selectedNode}
           onChange={updateNode}
@@ -771,8 +763,10 @@ export default function App() {
           nodes={nodes}
           edges={edges}
         />
+        </ErrorBoundary>
 
-        {showPlatformOps && (
+        {activeDock === "ops" && (
+          <ErrorBoundary name="Operations">
           <Suspense fallback={<PanelFallback />}>
             <PlatformOperationsPanel
               key={`ops-${catalogRefresh}`}
@@ -783,12 +777,14 @@ export default function App() {
               refreshKey={catalogRefresh}
               onRollback={handleVersionRollback}
               onImport={handleAwsImport}
-              onClose={() => setShowPlatformOps(false)}
+              onClose={() => setActiveDock(null)}
             />
           </Suspense>
+          </ErrorBoundary>
         )}
 
-        {showStewardApprovals && (
+        {activeDock === "approvals" && (
+          <ErrorBoundary name="Approvals">
           <Suspense fallback={<PanelFallback />}>
             <StewardApprovalsPanel
               token={token}
@@ -796,21 +792,27 @@ export default function App() {
               onCatalogRefresh={() => setCatalogRefresh((k) => k + 1)}
             />
           </Suspense>
+          </ErrorBoundary>
         )}
 
-        {showMarketplace && (
+        {activeDock === "marketplace" && (
+          <ErrorBoundary name="Marketplace">
           <Suspense fallback={<PanelFallback />}>
             <MarketplacePanel token={token} refreshKey={catalogRefresh} />
           </Suspense>
+          </ErrorBoundary>
         )}
 
-        {showLineageCatalog && (
+        {activeDock === "lineage" && (
+          <ErrorBoundary name="Lineage">
           <Suspense fallback={<PanelFallback />}>
             <LineageCatalogPanel token={token} refreshKey={catalogRefresh} />
           </Suspense>
+          </ErrorBoundary>
         )}
 
-        {showExecutionHistory && (
+        {activeDock === "history" && (
+          <ErrorBoundary name="Run History">
           <Suspense fallback={<PanelFallback />}>
             <ExecutionHistoryPanel
               token={token}
@@ -819,12 +821,15 @@ export default function App() {
               refreshKey={catalogRefresh}
             />
           </Suspense>
+          </ErrorBoundary>
         )}
 
-        {showDeploy && (
+        {activeDock === "deploy" && (
+          <ErrorBoundary name="Deploy">
           <Suspense fallback={<PanelFallback />}>
             <DeployPanel result={deployResult} loading={loading} error={deployError} token={token} />
           </Suspense>
+          </ErrorBoundary>
         )}
       </div>
       )}
