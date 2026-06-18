@@ -253,6 +253,7 @@ export default function AgentBuilderView({
         agentId: data.agentId,
         agentArn: data.agentArn,
         consoleUrl: data.agentArn ? bedrockAgentConsoleUrl(data.agentArn) : null,
+        chatUrl: data.chatUrl || null,
         message: data.message || data.reason || (data.errors?.[0]) || "Deploy finished",
         plan: data.plan,
       });
@@ -377,6 +378,16 @@ export default function AgentBuilderView({
                   Open in Bedrock Agents Console ↗
                 </a>
               )}
+              {deployMessage.chatUrl && (
+                <a
+                  href={deployMessage.chatUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="aws-console-link agent-chat-link"
+                >
+                  💬 Open Agent Chat UI ↗
+                </a>
+              )}
               <p className="properties-hint">{deployMessage.message}</p>
               {deployMessage.status === "simulated" && deployMessage.plan?.steps?.length > 0 && (
                 <ol className="aws-fix-steps">
@@ -388,7 +399,7 @@ export default function AgentBuilderView({
               {deployMessage.status === "simulated" && agentDeployCheck?.hint && (
                 <p className="properties-hint">
                   To deploy for real: set <code>AWS_BEDROCK_AGENT_ROLE_ARN</code> on the API server, restart API, then
-                  click Deploy again.
+                  click Deploy again. The agent chat UI will launch automatically.
                 </p>
               )}
             </div>

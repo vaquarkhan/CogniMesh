@@ -1763,6 +1763,7 @@ textarea:focus-visible,
 .aws-RUNNING { color: #93c5fd; }
 .aws-FAILED { color: #fca5a5; }
 .aws-console-link, .athena-link { display: inline-block; margin-top: 0.35rem; font-size: 0.78rem; }
+.agent-chat-link { margin-left: 1rem; font-weight: 600; color: #38bdf8; }
 .product-card-main { width: 100%; text-align: left; background: transparent; border: none; color: inherit; cursor: pointer; padding: 0; }
 .product-detail-modal { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 0.75rem; margin-bottom: 0.75rem; }
 .product-detail-header { display: flex; justify-content: space-between; align-items: center; }
