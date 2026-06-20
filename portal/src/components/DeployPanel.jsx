@@ -2,6 +2,7 @@ import { useState } from "react";
 import LineageGraph from "./LineageGraph";
 import VrpProofPanel from "./VrpProofPanel";
 import AwsDeployStatusBanner from "./AwsDeployStatusBanner";
+import DeployProgress from "./DeployProgress";
 
 const TABS = ["contract", "lineage", "vaquar", "history", "stepfunctions", "deploy"];
 
@@ -48,10 +49,15 @@ export default function DeployPanel({
   const hasError = errorList.length > 0;
 
   if (loading && !result) {
+    const isDeploying = /deploy/i.test(loadingLabel || "");
     return (
       <aside className="deploy-panel">
         <h2>{loadingLabel || "Working…"}</h2>
-        <p className="deploy-status loading">{loadingLabel || "Validating → Compiling → Registering"}</p>
+        {isDeploying ? (
+          <DeployProgress deploying={true} result={null} token={token} />
+        ) : (
+          <p className="deploy-status loading">{loadingLabel || "Validating → Compiling → Registering"}</p>
+        )}
       </aside>
     );
   }
@@ -94,6 +100,7 @@ export default function DeployPanel({
 
       {result.status === "success" && (
         <div className="deploy-summary">
+          {result.aws && <DeployProgress deploying={false} result={result} token={token} />}
           <AwsDeployStatusBanner aws={result.aws} token={token} />
           <p>✓ Graph topology validated</p>
           <p>✓ DataContract schema passed</p>

@@ -676,6 +676,41 @@ if (require.main === module) {
     console.error(JSON.stringify({ ts: new Date().toISOString(), event: "unhandled_rejection", message }));
   });
 
+  // ---- Public, no-login status dashboard ----
+  const { PUBLIC_DASHBOARD_HTML } = require("./public-dashboard");
+
+  app.get("/api/v1/public/status", async (_req, res) => {
+    const region = process.env.AWS_REGION || "us-east-1";
+    const pipelines = [];
+    const agents = [];
+    try {
+      const { SFNClient, ListStateMachinesCommand } = require("@aws-sdk/client-sfn");
+      const sfn = new SFNClient({ region });
+      const prefix = process.env.AWS_NAME_PREFIX || "cognimesh-prod";
+      const sms = await sfn.send(new ListStateMachinesCommand({ maxResults: 100 }));
+      for (const sm of (sms.stateMachines || []).filter((s) => s.name.startsWith(prefix))) {
+        pipelines.push({ name: sm.name, created: sm.creationDate, lastRun: null });
+      }
+    } catch { /* sfn list unavailable */ }
+    try {
+      const { BedrockAgentClient, ListAgentsCommand } = require("@aws-sdk/client-bedrock-agent");
+      const ba = new BedrockAgentClient({ region });
+      const agentRes = await ba.send(new ListAgentsCommand({ maxResults: 100 }));
+      for (const a of agentRes.agentSummaries || []) agents.push({ name: a.agentName, id: a.agentId, status: a.agentStatus });
+    } catch { /* bedrock list unavailable */ }
+    res.json({ status: "ok", region, pipelines, agents, generatedAt: new Date().toISOString() });
+  });
+
+  app.get("/api/v1/public/dashboard", (_req, res) => {
+    res.set("Content-Type", "text/html; charset=utf-8");
+    res.send(PUBLIC_DASHBOARD_HTML);
+  });
+
+  app.get("/api/v1/compute-engines", requireAuth, (_req, res) => {
+    const { listEngines } = require("../../lib/contract-builder/compute-engines");
+    res.json({ engines: listEngines() });
+  });
+
   const { bootstrapPlatformStores } = require("../../lib/platform/bootstrap-stores");
   bootstrapPlatformStores()
     .then((info) => {

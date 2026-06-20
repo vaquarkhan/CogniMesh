@@ -325,7 +325,7 @@ export const ARCHITECTURE_PATTERNS = [
     awsServices: ["Kinesis", "Glue", "Flink", "Iceberg", "Lambda"],
     nodes: [
       { id: "src", type: "pipeline", position: { x: 80, y: 180 }, data: { label: "Kinesis Stream", blockType: "source", sourceType: "kinesis", awsService: "kinesis", endpoint: "arn:aws:kinesis:us-east-1:123456789012:stream/clicks", detail: "🌊 Kinesis · log" } },
-      { id: "str", type: "pipeline", position: { x: 300, y: 180 }, data: { label: "Glue Streaming", blockType: "transform", transformType: "glue_etl", awsService: "flink", processingMode: "stream_window", executionMode: "stream", sparkSql: "SELECT window, user_id, COUNT(*) clicks FROM stream.clicks GROUP BY window, user_id", detail: "〰 Flink · κ path" } },
+      { id: "str", type: "pipeline", position: { x: 300, y: 180 }, data: { label: "Glue Streaming", blockType: "transform", transformType: "glue_etl", awsService: "glue", processingMode: "stream_window", executionMode: "stream", sparkSql: "SELECT window, user_id, COUNT(*) clicks FROM stream.clicks GROUP BY window, user_id", detail: "〰 Glue Streaming (Spark) · κ path" } },
       { id: "ded", type: "pipeline", position: { x: 520, y: 180 }, data: { label: "Dedupe", blockType: "transform", transformType: "spark_sql", awsService: "glue", processingMode: "dedupe", executionMode: "stream", sparkSql: "SELECT * FROM (SELECT *, ROW_NUMBER() OVER (PARTITION BY event_id ORDER BY ts DESC) rn FROM stream.events) WHERE rn=1", detail: "Dedupe · event_id" } },
       { id: "enr", type: "pipeline", position: { x: 740, y: 180 }, data: { label: "Enrichment", blockType: "transform", transformType: "spark_sql", awsService: "glue", processingMode: "enrichment", executionMode: "stream", sparkSql: "SELECT e.*, d.campaign FROM events e LEFT JOIN dim_campaigns d ON e.campaign_id = d.id", detail: "Enrichment join" } },
       { id: "gt", type: "pipeline", position: { x: 960, y: 180 }, data: { label: "VRP Gate", blockType: "integrity_gate", awsService: "lambda" } },
@@ -356,7 +356,7 @@ export const ARCHITECTURE_PATTERNS = [
     description: "Lambda architecture: batch layer (Glue daily ETL to Iceberg serving layer) + speed layer (Kinesis/Flink real-time aggregates) merged at query time in Athena/Redshift.",
     whenToUse: "Need both accurate batch history and low-latency recent data - classic λ before full Kappa migration.",
     exampleScenario: "E-commerce: nightly batch revenue + Kinesis speed layer last-hour sales → Athena UNION view.",
-    exampleFlow: "Parallel[Batch: S3→Glue→Iceberg | Speed: Kinesis→Flink→Iceberg] → Merge → Athena serving",
+    exampleFlow: "Parallel[Batch: S3→Glue→Iceberg | Speed: Kinesis→Glue streaming→Iceberg] → Merge → Athena serving",
     architectureDiagram:
       "         ┌─ Batch (Glue daily) ──▶ Iceberg batch/\nSource ──┤\n         └─ Speed (Kinesis) ──▶ Iceberg speed/\n                    ↓\n              Athena VIEW = UNION",
     awsServices: ["Glue", "Kinesis", "Flink", "Iceberg", "Athena", "Step Functions"],
@@ -367,7 +367,7 @@ export const ARCHITECTURE_PATTERNS = [
       { id: "bt", type: "pipeline", position: { x: 560, y: 100 }, data: { label: "Batch ETL", blockType: "transform", transformType: "spark_sql", awsService: "glue", processingMode: "etl", executionMode: "batch", schedule: "0 2 * * *", sparkSql: "SELECT DATE(ts) d, SUM(revenue) revenue FROM history GROUP BY 1", detail: "🧊 Batch layer" } },
       { id: "bsk", type: "pipeline", position: { x: 760, y: 100 }, data: { label: "Batch Iceberg", blockType: "sink", targetType: "iceberg", awsService: "iceberg", location: "s3://lambda-serving/batch/", catalogDatabase: "lambda", catalogTable: "revenue_batch" } },
       { id: "ss", type: "pipeline", position: { x: 360, y: 340 }, data: { label: "Kinesis Live", blockType: "source", sourceType: "kinesis", awsService: "kinesis", endpoint: "sales-realtime", detail: "🌊 Speed layer" } },
-      { id: "st2", type: "pipeline", position: { x: 560, y: 340 }, data: { label: "Speed Stream", blockType: "transform", transformType: "glue_etl", awsService: "flink", processingMode: "stream_window", executionMode: "stream", sparkSql: "SELECT window, SUM(revenue) revenue FROM stream.sales GROUP BY window", detail: "〰 Speed layer" } },
+      { id: "st2", type: "pipeline", position: { x: 560, y: 340 }, data: { label: "Speed Stream", blockType: "transform", transformType: "glue_etl", awsService: "glue", processingMode: "stream_window", executionMode: "stream", sparkSql: "SELECT window, SUM(revenue) revenue FROM stream.sales GROUP BY window", detail: "〰 Glue streaming · speed layer" } },
       { id: "ssk", type: "pipeline", position: { x: 760, y: 340 }, data: { label: "Speed Iceberg", blockType: "sink", targetType: "iceberg", awsService: "iceberg", location: "s3://lambda-serving/speed/", catalogDatabase: "lambda", catalogTable: "revenue_speed" } },
       { id: "mg", type: "pipeline", position: { x: 980, y: 220 }, data: { label: "Merge", blockType: "merge" } },
       { id: "sv", type: "pipeline", position: { x: 1180, y: 220 }, data: { label: "Serving View", blockType: "sink", targetType: "s3", awsService: "athena", location: "s3://lambda-serving/views/", catalogDatabase: "lambda", catalogTable: "revenue_unified", detail: "🔍 Athena UNION view" } },
@@ -426,7 +426,7 @@ export const ARCHITECTURE_PATTERNS = [
   {
     id: "arch-msk-glue-streaming",
     name: "MSK → Glue Streaming → Lakehouse",
-    subtitle: "Kafka-compatible · exactly-once · MSK",
+    subtitle: "Kafka-compatible · at-least-once + idempotent MERGE · MSK",
     category: "Streaming",
     architecture: "streaming",
     architectureTags: ["streaming", "lakehouse"],
