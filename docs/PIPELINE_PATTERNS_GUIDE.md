@@ -37,6 +37,21 @@ This document explains every architecture pattern available in the CogniMesh por
   - High quality → Gold Iceberg sink
   - Low quality → Archive S3 sink
 
+```mermaid
+flowchart LR
+  Start --> Parallel
+  Parallel --> S1[RDS CDC]
+  Parallel --> S2[S3 Files]
+  S1 --> T1[Spark ETL]
+  S2 --> T2[Spark ELT]
+  T1 --> Merge
+  T2 --> Merge
+  Merge --> Gate[Integrity Gate]
+  Gate --> Choice{Quality?}
+  Choice -->|High| Gold[Iceberg Gold]
+  Choice -->|Low| Archive[S3 Archive]
+```
+
 **Why this architecture:**
 Step Functions orchestrates parallel ETL branches like a DAG. The Choice block implements conditional routing — good rows go to gold, quarantine rows go to archive. This is the recommended starting pattern for multi-source pipelines.
 
@@ -60,6 +75,15 @@ Step Functions orchestrates parallel ETL branches like a DAG. The Choice block i
 - An Iceberg sink with Glue Data Catalog registration
 - Behind the scenes: PVDM proof-gated writes (Physical → Verify → Durable → Metadata)
 
+```mermaid
+flowchart LR
+  RDS[RDS CDC] --> Transform[Spark SQL]
+  Transform --> Sink[Iceberg Gold]
+  subgraph PVDM
+    Sink -.-> VRP[VRP Proof]
+  end
+```
+
 **Why this architecture:**
 The Vaquar Pattern ensures every write to the gold Iceberg table is cryptographically verified before the metadata commit. If VRP (Verify-Read-back Protocol) fails, the Iceberg snapshot is rolled back. This guarantees data integrity at the storage layer.
 
@@ -80,6 +104,13 @@ The Vaquar Pattern ensures every write to the gold Iceberg table is cryptographi
 - A media URL source (S3 prefix with PDFs, images, or videos)
 - An **agentic** transform that invokes Amazon Bedrock to extract entities, summarize content, or classify media
 - An Iceberg sink for the structured extraction output
+
+```mermaid
+flowchart LR
+  S3[Media S3] --> Agent[Bedrock Agent]
+  Agent --> Sink[Iceberg Gold]
+  Agent -.-> Comp[Compensation Handler]
+```
 
 **Why this architecture:**
 Cognitive pipelines use AI models (Claude, Titan, Nova) to transform unstructured media into structured Parquet. The compensation handler ensures idempotency — if the agent fails mid-batch, it resumes without reprocessing.
@@ -102,6 +133,11 @@ Cognitive pipelines use AI models (Claude, Titan, Nova) to transform unstructure
 - A Spark SQL transform for cleansing and typing
 - An Iceberg sink with catalog registration
 
+```mermaid
+flowchart LR
+  S3[S3 Landing] --> Glue[Spark SQL] --> Iceberg[Iceberg Gold]
+```
+
 **Why this architecture:**
 The simplest production-ready pipeline. Files land in S3, Glue ETL processes them on a cron schedule, and writes ACID-committed Iceberg tables. No streaming, no CDC, no agent — just clean batch ETL.
 
@@ -117,6 +153,11 @@ The simplest production-ready pipeline. Files land in S3, Glue ETL processes the
 - A Glue streaming transform with windowed aggregation
 - An Iceberg sink for the streaming output
 
+```mermaid
+flowchart LR
+  MSK[Kafka/MSK] --> Glue[Glue Streaming] --> Iceberg[Iceberg Gold]
+```
+
 **Why this architecture:**
 Event-driven architectures on Kafka need a streaming ETL to lakehouse bridge. Glue streaming (Spark Structured Streaming) consumes from MSK with checkpointing and writes micro-batches to Iceberg with exactly-once semantics via idempotent MERGE.
 
@@ -131,6 +172,11 @@ Event-driven architectures on Kafka need a streaming ETL to lakehouse bridge. Gl
 - A MySQL source with CDC
 - A Spark SQL transform
 - A Redshift sink (COPY command)
+
+```mermaid
+flowchart LR
+  MySQL[MySQL CDC] --> Glue[Spark SQL] --> RS[Redshift]
+```
 
 **Why this architecture:**
 Classic OLTP-to-warehouse sync. MySQL CDC captures changes, Glue transforms and deduplicates, Redshift receives the final analytical layer. Good for teams already on Redshift who want managed ETL.
@@ -152,6 +198,20 @@ Classic OLTP-to-warehouse sync. MySQL CDC captures changes, Glue transforms and 
   - **Publisher** — registers the Iceberg product in the catalog with Lake Formation grants
 - Each block is tagged with its mesh role for governance tracing
 
+```mermaid
+flowchart LR
+  subgraph Producer AC
+    RDS[RDS CDC] --> Bronze --> Silver --> Gold
+  end
+  subgraph Steward AC
+    Gold --> Gate[PVDM Gate]
+  end
+  subgraph Publisher AC
+    Gate --> Iceberg[Iceberg Product]
+    Iceberg --> LF[Lake Formation]
+  end
+```
+
 **Why this architecture:**
 In a data mesh, each domain owns its data-as-a-product. This pattern implements the complete product lifecycle: CDC ingest, quality transformation, integrity verification, and self-serve publishing via Lake Formation tags.
 
@@ -170,6 +230,23 @@ In a data mesh, each domain owns its data-as-a-product. This pattern implements 
 - Each branch runs in its own producer AWS account and region
 - Merge → Enrichment (Customer 360 join) → Steward Gate → Publisher Gold
 
+```mermaid
+flowchart LR
+  Start --> Par[Parallel]
+  Par --> O[Commerce RDS]
+  Par --> I[Inventory Kafka]
+  Par --> C[CRM S3]
+  O --> OT[Orders ETL]
+  I --> IT[Stock Stream]
+  C --> CT[CRM ELT]
+  OT --> Merge
+  IT --> Merge
+  CT --> Merge
+  Merge --> Enrich[Customer 360]
+  Enrich --> Gate[Mesh Gate]
+  Gate --> Gold[360 Gold]
+```
+
 **Why this architecture:**
 Cross-domain analytics without a central ETL team. Three domain pipelines run independently, the publisher account merges them into a federated product. Matches the Vaquar SDM framework's producer/steward/publisher account model.
 
@@ -184,6 +261,11 @@ Cross-domain analytics without a central ETL team. Three domain pipelines run in
 
 **What the UI builds:**
 - S3 raw landing zone → Glue Crawler (schema-on-read) → Curated ETL → Quality Gate → Curated Parquet → Athena consumption view
+
+```mermaid
+flowchart LR
+  S3[S3 Raw] --> Crawler[Glue Crawler] --> ETL[Curated ETL] --> Gate[Quality Gate] --> Parquet[Curated Parquet] --> Athena[Athena View]
+```
 
 **Why this architecture:**
 Classic data lake with immutable raw zone, typed curated zone, and Athena-queryable consumption layer. Good starting point before migrating to Iceberg lakehouse.
@@ -203,6 +285,12 @@ Classic data lake with immutable raw zone, typed curated zone, and Athena-querya
 - Aggregate gold (business KPIs)
 - VRP proof on every gold commit
 
+```mermaid
+flowchart LR
+  DMS[DMS CDC] --> Bronze[Iceberg Bronze] --> Silver[MERGE Silver] --> Gold[Agg Gold]
+  Gold -.-> VRP[VRP Proof]
+```
+
 **Why this architecture:**
 Modern lakehouse replaces Hive/Parquet with Iceberg ACID tables. MERGE handles CDC upserts, time travel enables rollback, and PVDM proof-gates every gold commit for auditability.
 
@@ -217,6 +305,11 @@ Modern lakehouse replaces Hive/Parquet with Iceberg ACID tables. MERGE handles C
 
 **What the UI builds:**
 - Kinesis source (event log) → Glue Streaming (window aggregation) → Dedupe → Enrichment join → VRP Gate → Iceberg Gold
+
+```mermaid
+flowchart LR
+  Kinesis[Kinesis] --> Stream[Glue Streaming] --> Dedupe --> Enrich[Enrichment] --> Gate[VRP Gate] --> Gold[Iceberg Gold]
+```
 
 **Why this architecture:**
 Kappa treats everything as a stream — no separate batch layer. Historical reprocessing = replay the Kinesis stream with a new versioned job. Simpler operations than Lambda architecture at the cost of replay complexity.
@@ -236,6 +329,18 @@ Kappa treats everything as a stream — no separate batch layer. Historical repr
   - **Speed layer:** Kinesis real-time → Glue streaming → Iceberg speed table
 - Merge → Athena serving view (UNION of batch + speed)
 
+```mermaid
+flowchart LR
+  Start --> Par[Parallel]
+  Par --> BS[S3 History]
+  Par --> SS[Kinesis Live]
+  BS --> BT[Batch ETL] --> BI[Batch Iceberg]
+  SS --> ST[Speed Stream] --> SI[Speed Iceberg]
+  BI --> Merge
+  SI --> Merge
+  Merge --> Athena[Athena UNION View]
+```
+
 **Why this architecture:**
 When you need both accurate batch history AND low-latency recent data. The batch layer provides complete, correct aggregates; the speed layer provides last-N-minutes approximations. Athena UNION merges both views at query time.
 
@@ -252,6 +357,12 @@ When you need both accurate batch history AND low-latency recent data. The batch
 - Kinesis Data Streams (producer ingest) → Firehose delivery (buffered S3 write) → Bronze S3
 - Glue streaming enrichment → Stream Gate (integrity) → Gold Iceberg
 
+```mermaid
+flowchart LR
+  Kinesis[Kinesis] --> FH[Firehose] --> S3[Bronze S3]
+  S3 --> Glue[Glue Enrich] --> Gate[Stream Gate] --> Gold[Gold Iceberg]
+```
+
 **Why this architecture:**
 Production streaming stack for clickstream, IoT, or application logs. Firehose handles delivery/buffering to S3 (no code needed), then Glue streaming enriches and writes to Iceberg gold for SQL analytics.
 
@@ -264,6 +375,11 @@ Production streaming stack for clickstream, IoT, or application logs. Firehose h
 
 **What the UI builds:**
 - MSK topic → Window aggregation → CDC MERGE into silver → Aggregate gold KPIs → PVDM Gate → Iceberg Gold
+
+```mermaid
+flowchart LR
+  MSK[MSK Topic] --> Window[Window Agg] --> CDC[CDC Merge] --> Agg[Gold KPIs] --> Gate[PVDM Gate] --> Gold[Iceberg Gold]
+```
 
 **Why this architecture:**
 For teams already on Kafka/MSK who want managed streaming to lakehouse. Glue streaming handles window aggregations, idempotent MERGE handles exactly-once at the sink level (at-least-once delivery + dedup).
@@ -281,6 +397,11 @@ For teams already on Kafka/MSK who want managed streaming to lakehouse. Glue str
 - DMS CDC extract → Enrichment → Dedupe → Aggregate → Quality Gate → Iceberg Gold
 - Each transform is a separate Glue job in a chained Step Functions workflow
 
+```mermaid
+flowchart LR
+  DMS[DMS CDC] --> Enrich[Enrichment] --> Dedupe --> Agg[Aggregate] --> Gate[Quality Gate] --> Gold[Iceberg Gold]
+```
+
 **Why this architecture:**
 When you need multiple ETL stages (extract, enrich, dedupe, aggregate) as separate testable jobs. Each stage has its own Spark SQL, can be retried independently, and the chain is visible in the Step Functions console.
 
@@ -293,6 +414,11 @@ When you need multiple ETL stages (extract, enrich, dedupe, aggregate) as separa
 
 **What the UI builds:**
 - S3 landing → Glue COPY to Redshift staging → Redshift SQL transforms → Redshift marts
+
+```mermaid
+flowchart LR
+  S3[S3 CSV] --> Copy[Glue COPY] --> SQL[Redshift SQL] --> Gate[Gate] --> Mart[Redshift Mart]
+```
 
 **Why this architecture:**
 ELT pattern — load raw data into Redshift first (fast COPY from S3), then transform using Redshift's compute engine (SQL stored procedures or dbt). Good for teams with existing Redshift investment.
@@ -308,41 +434,105 @@ ELT pattern — load raw data into Redshift first (fast COPY from S3), then tran
 
 Classic three-layer lakehouse with explicit bronze (raw), silver (conformed), and gold (aggregated) Iceberg tables.
 
+```mermaid
+flowchart LR
+  RDS[RDS] --> Bronze --> Silver --> Gold --> Gate[Gate] --> Sink[Iceberg]
+```
+
 ### Payment Ledger (Double-Entry)
 **ID:** `finance-payment-ledger`  
 Finance domain with strict data quality, audit trail, and double-entry ledger pattern.
+
+```mermaid
+flowchart LR
+  Kafka[MSK] --> Bronze --> Silver[Double-Entry] --> Gold[Ledger] --> Gate --> Iceberg
+```
 
 ### FHIR Resources → HIPAA Gold
 **ID:** `healthcare-fhir`  
 Healthcare domain with PII masks (restricted classification), HIPAA-compliant pipeline.
 
+```mermaid
+flowchart LR
+  S3[FHIR S3] --> Bronze[Bronze FHIR] --> Gate[HIPAA Gate] --> Gold[Gold Cohort]
+```
+
 ### Clickstream → Real-Time Dashboards
 **ID:** `retail-clickstream`  
 Retail domain with Kinesis streaming, sub-minute latency for real-time analytics.
+
+```mermaid
+flowchart LR
+  Kafka[Clickstream Kafka] --> Stream[Sessionize] --> Sink[Gold Sessions]
+```
 
 ### IoT Sensor Fleet → Timestream Gold
 **ID:** `iot-sensor-fleet`  
 IoT domain with parallel fleet ingestion and high-volume sensor data processing.
 
+```mermaid
+flowchart LR
+  Start --> Par[Parallel]
+  Par --> A[Fleet A Kafka]
+  Par --> B[Fleet B Kafka]
+  A --> Merge
+  B --> Merge
+  Merge --> Enrich --> Gate --> Gold[IoT Gold]
+```
+
 ### SCD Type 2 Customer Dimension
 **ID:** `scd2-customers`  
 Slowly Changing Dimension Type 2 pattern for customer master data.
+
+```mermaid
+flowchart LR
+  RDS[RDS] --> Bronze --> SCD2[SCD Type 2] --> Gold --> Gate --> Iceberg
+```
 
 ### Fraud Scoring (Parallel Rules + ML)
 **ID:** `fraud-detection-parallel`  
 Finance domain with parallel branches for rules engine and ML scoring, choice-routed output.
 
+```mermaid
+flowchart LR
+  Start --> Par[Parallel]
+  Par --> Rules[Rules Engine]
+  Par --> ML[ML Scoring]
+  Rules --> Merge
+  ML --> Merge
+  Merge --> Choice{Score?}
+  Choice -->|High| Block[Block Sink]
+  Choice -->|Low| Pass[Pass Sink]
+```
+
 ### Documents → RAG Knowledge Base
 **ID:** `genai-rag-documents`  
 Cognitive pattern using Bedrock to chunk/embed documents for RAG retrieval.
+
+```mermaid
+flowchart LR
+  S3[S3 PDFs] --> Chunk[Bedrock Chunk] --> Gold[RAG Iceberg]
+```
 
 ### Data Quality Quarantine Lane
 **ID:** `dq-quarantine`  
 Compliance pattern that routes bad rows to a quarantine sink instead of failing the pipeline.
 
+```mermaid
+flowchart LR
+  Source --> ETL --> Choice{DQ Pass?}
+  Choice -->|Yes| Gold[Gold Sink]
+  Choice -->|No| Quarantine[Quarantine Sink]
+```
+
 ### Feature Store Pipeline
 **ID:** `feature-store-ml`  
 ML platform pattern that computes and publishes features to SageMaker Feature Store.
+
+```mermaid
+flowchart LR
+  RDS[RDS] --> Bronze --> Features[Feature Compute] --> Gold --> Store[Feature Store]
+```
 
 ---
 
@@ -431,6 +621,17 @@ When you click **Use template**, the Agent Builder:
 - **Content Guardrail** (denies legal advice, medical diagnosis topics)
 - **Session Memory** (30-minute TTL)
 
+```mermaid
+flowchart TD
+  RT[Runtime] --> Model[Claude Sonnet]
+  RT --> KB[FAQ Knowledge Base]
+  RT --> GW[Gateway]
+  RT --> PII[PII Guardrail]
+  RT --> Content[Content Guardrail]
+  RT --> Mem[Session Memory]
+  GW --> Lambda[Order Lookup λ]
+```
+
 **Use case:** Customer-facing chatbot that answers FAQs, looks up orders, and respects PII boundaries.
 
 ---
@@ -447,6 +648,14 @@ When you click **Use template**, the Agent Builder:
 - **Knowledge Base** (enterprise docs with hybrid retrieval)
 - **Content Guardrail** (blocks hate/violence, denies confidential leaks)
 - **Observability** (traces enabled for debugging retrieval quality)
+
+```mermaid
+flowchart TD
+  RT[Runtime] --> Model[Claude]
+  RT --> KB[Docs KB]
+  RT --> GR[Content Guardrail]
+  RT --> Obs[Observability]
+```
 
 **Use case:** Internal knowledge assistant that answers questions from company documents with citations.
 
@@ -467,6 +676,16 @@ When you click **Use template**, the Agent Builder:
 - **SQL Guardrail** (denies DROP TABLE, DELETE FROM, TRUNCATE)
 - **Identity** (Lake Formation tag-based access scope)
 
+```mermaid
+flowchart TD
+  RT[Runtime] --> Model[Claude]
+  RT --> GW[Gateway]
+  RT --> GR[SQL Guardrail]
+  RT --> ID[Identity/LF Tags]
+  GW --> MCP[CogniMesh MCP]
+  GW --> Lambda[Athena Query λ]
+```
+
 **Use case:** Natural language to SQL analyst that queries the data mesh catalog and runs Athena queries with governance constraints.
 
 ---
@@ -486,6 +705,16 @@ When you click **Use template**, the Agent Builder:
 - **Human-in-the-Loop** (escalation to fraud analyst for high-risk cases)
 - **Long Memory** (cross-session case tracking)
 
+```mermaid
+flowchart TD
+  RT[Runtime] --> Model[Claude]
+  RT --> KB[Fraud Patterns KB]
+  RT --> GR[Strict Guardrail]
+  RT --> HITL[Human-in-Loop]
+  RT --> Mem[Long Memory]
+  RT --> Lambda[Transaction Lookup λ]
+```
+
 **Use case:** Fraud analyst assistant that investigates suspicious transactions, references historical patterns, and escalates to humans for final decisions.
 
 ---
@@ -502,6 +731,14 @@ When you click **Use template**, the Agent Builder:
 - **Code Interpreter** (Python/JS sandbox for testing)
 - **Security Guardrail** (blocks secrets in output, denies system access topics)
 - **Observability** (traces for review accuracy tracking)
+
+```mermaid
+flowchart TD
+  RT[Runtime] --> Model[Claude]
+  RT --> Code[Code Interpreter]
+  RT --> GR[Security Guardrail]
+  RT --> Obs[Observability]
+```
 
 **Use case:** Automated code reviewer that analyzes PRs, runs test snippets in sandbox, and flags security issues.
 
@@ -520,6 +757,14 @@ When you click **Use template**, the Agent Builder:
 - **Content Guardrail** (denies salary negotiation advice, legal counsel, medical diagnosis)
 - **Identity** (employee role-based access)
 
+```mermaid
+flowchart TD
+  RT[Runtime] --> Model[Claude]
+  RT --> KB[HR Policy KB]
+  RT --> GR[Content Guardrail]
+  RT --> ID[Identity/Role]
+```
+
 **Use case:** Employee self-service assistant that answers HR policy questions (PTO, benefits, procedures) without giving legal/medical advice.
 
 ---
@@ -536,6 +781,16 @@ When you click **Use template**, the Agent Builder:
 - **Gateway** (routes requests to appropriate specialist)
 - **Tool: Lambda** (sub-agent invocation — support, billing, technical)
 - **Memory** (session context passed between agents)
+
+```mermaid
+flowchart TD
+  Supervisor[Supervisor Runtime] --> Model[Claude]
+  Supervisor --> GW[Gateway Router]
+  Supervisor --> Mem[Session Memory]
+  GW --> Support[Support Agent λ]
+  GW --> Billing[Billing Agent λ]
+  GW --> Tech[Technical Agent λ]
+```
 
 **Use case:** Complex multi-turn workflows where a supervisor agent routes questions to specialized sub-agents (support, billing, technical) and synthesizes their responses.
 
@@ -554,6 +809,15 @@ When you click **Use template**, the Agent Builder:
 - **Tool: Lambda** (Lake Formation grant operations)
 - **Guardrail** (cannot auto-approve without human review)
 - **Identity** (steward role scope)
+
+```mermaid
+flowchart TD
+  RT[Runtime] --> Model[Claude]
+  RT --> MCP[CogniMesh MCP]
+  RT --> Lambda[LF Grant λ]
+  RT --> GR[Governance Guardrail]
+  RT --> ID[Steward Identity]
+```
 
 **Use case:** Data steward assistant that reviews access requests, explains data products, and executes Lake Formation grants with governance guardrails.
 
@@ -574,6 +838,16 @@ When you click **Use template**, the Agent Builder:
 - **Human-in-the-Loop** (production changes require human approval)
 - **Observability** (all actions logged for incident review)
 
+```mermaid
+flowchart TD
+  RT[Runtime] --> Model[Claude]
+  RT --> KB[Runbooks KB]
+  RT --> GR[Prod Guardrail]
+  RT --> HITL[Human Approval]
+  RT --> Obs[Observability]
+  RT --> Lambda[CloudWatch/ECS λ]
+```
+
 **Use case:** SRE assistant that diagnoses incidents from CloudWatch metrics, suggests runbook actions, and executes non-destructive commands with human approval for production changes.
 
 ---
@@ -591,6 +865,14 @@ When you click **Use template**, the Agent Builder:
 - **Content Guardrail** (basic safety — you customize)
 - **Observability** (traces — you add tools and KB)
 
+```mermaid
+flowchart TD
+  RT[Runtime] --> Model[Claude]
+  RT --> GW[Gateway]
+  RT --> GR[Basic Guardrail]
+  RT --> Obs[Observability]
+```
+
 **Use case:** Starting point for building a custom agent. Provides the skeleton (runtime + model + gateway) — you add tools, knowledge bases, and domain-specific guardrails.
 
 ---
@@ -602,6 +884,11 @@ When you click **Use template**, the Agent Builder:
 
 **What the UI builds:**
 - Empty canvas — drag blocks from the Agent palette
+
+```mermaid
+flowchart TD
+  Empty[Empty Canvas - Drag blocks from palette]
+```
 
 **Use case:** Full manual control. Build your agent graph from scratch using the AgentCore block palette.
 
