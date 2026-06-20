@@ -87,6 +87,14 @@ function resolvePlaybook(findingId) {
     if (findingId.startsWith(`${key}.`) || findingId === key) return PLAYBOOK[key];
   }
   if (findingId.startsWith("sec.integrity_gate")) return PLAYBOOK["sec.integrity_gate"];
+  // Integrity-gate findings (sec.integrity.security.<rule>) reuse the security playbooks.
+  if (findingId.startsWith("sec.integrity")) {
+    if (findingId.includes("secrets_manager")) return PLAYBOOK["sec.secrets_manager"];
+    if (findingId.includes("s3_encryption") || findingId.endsWith(".encryption"))
+      return PLAYBOOK["sec.s3_encryption"];
+    if (findingId.includes("glue") || findingId.includes("catalog")) return PLAYBOOK["sec.glue_catalog"];
+    if (findingId.includes("lake_formation")) return PLAYBOOK["sec.lake_formation"];
+  }
   if (findingId.startsWith("arch.schema_evolution")) return PLAYBOOK["arch.schema_evolution"];
   if (findingId.startsWith("validation.")) {
     return {
@@ -105,7 +113,15 @@ function resolvePlaybook(findingId) {
 
 function nodeForFinding(finding, nodes) {
   const id = finding.nodeIds?.[0];
-  return id ? nodes.find((n) => n.id === id) : null;
+  if (id) return nodes.find((n) => n.id === id);
+  const fid = finding.id || "";
+  if (fid.includes("secrets_manager")) {
+    return nodes.find((n) => ["rds", "mysql"].includes(n.data?.sourceType));
+  }
+  if (fid.includes("s3_encryption") || fid.endsWith(".encryption") || fid.includes("glue") || fid.includes("catalog")) {
+    return nodes.find((n) => n.data?.blockType === "sink");
+  }
+  return null;
 }
 
 /** Build a fix plan locally — works offline and without Bedrock. */
