@@ -863,6 +863,7 @@ export default function App() {
             bootstrap={agentBootstrap}
             onBootstrapApplied={() => setAgentBootstrap(null)}
             notify={{ success, error: toastError }}
+            defaultDeployTarget="bedrock-agents"
           />
           </Suspense>
         </ErrorBoundary>
