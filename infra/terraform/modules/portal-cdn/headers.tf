@@ -5,7 +5,7 @@ resource "aws_cloudfront_response_headers_policy" "portal_security" {
     content_type_options { override = true }
     frame_options {
       frame_option = "DENY"
-      override       = true
+      override     = true
     }
     referrer_policy {
       referrer_policy = "strict-origin-when-cross-origin"
@@ -13,9 +13,9 @@ resource "aws_cloudfront_response_headers_policy" "portal_security" {
     }
     strict_transport_security {
       access_control_max_age_sec = 31536000
-      include_subdomains       = true
-      preload                  = true
-      override                 = true
+      include_subdomains         = true
+      preload                    = true
+      override                   = true
     }
     xss_protection {
       mode_block = true

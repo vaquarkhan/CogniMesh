@@ -233,11 +233,11 @@ output "bedrock_agent_role_arn" {
 
 output "platform_env" {
   value = {
-    PLATFORM_STORE               = "dynamodb"
-    PLATFORM_DYNAMODB_TABLE      = aws_dynamodb_table.platform_state.name
-    ATHENA_WORKGROUP             = aws_athena_workgroup.platform.name
-    ATHENA_OUTPUT_LOCATION       = "s3://${var.lakehouse_bucket_name}/athena-results/"
-    AWS_BEDROCK_AGENT_ROLE_ARN   = aws_iam_role.bedrock_agent.arn
-    AWS_AGENT_DEPLOY_ENABLED     = "true"
+    PLATFORM_STORE             = "dynamodb"
+    PLATFORM_DYNAMODB_TABLE    = aws_dynamodb_table.platform_state.name
+    ATHENA_WORKGROUP           = aws_athena_workgroup.platform.name
+    ATHENA_OUTPUT_LOCATION     = "s3://${var.lakehouse_bucket_name}/athena-results/"
+    AWS_BEDROCK_AGENT_ROLE_ARN = aws_iam_role.bedrock_agent.arn
+    AWS_AGENT_DEPLOY_ENABLED   = "true"
   }
 }

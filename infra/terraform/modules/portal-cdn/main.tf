@@ -99,11 +99,11 @@ resource "aws_cloudfront_distribution" "portal" {
   dynamic "ordered_cache_behavior" {
     for_each = var.api_origin_domain != "" ? [1] : []
     content {
-      path_pattern           = "/api/*"
-      allowed_methods        = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
-      cached_methods         = ["GET", "HEAD"]
-      target_origin_id       = "api-alb"
-      viewer_protocol_policy = "redirect-to-https"
+      path_pattern               = "/api/*"
+      allowed_methods            = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
+      cached_methods             = ["GET", "HEAD"]
+      target_origin_id           = "api-alb"
+      viewer_protocol_policy     = "redirect-to-https"
       response_headers_policy_id = aws_cloudfront_response_headers_policy.portal_security.id
 
       forwarded_values {
@@ -121,11 +121,11 @@ resource "aws_cloudfront_distribution" "portal" {
   dynamic "ordered_cache_behavior" {
     for_each = var.api_origin_domain != "" ? toset(["/health", "/metrics", "/api/health", "/api/metrics"]) : toset([])
     content {
-      path_pattern           = ordered_cache_behavior.value
-      allowed_methods        = ["GET", "HEAD", "OPTIONS"]
-      cached_methods         = ["GET", "HEAD"]
-      target_origin_id       = "api-alb"
-      viewer_protocol_policy = "redirect-to-https"
+      path_pattern               = ordered_cache_behavior.value
+      allowed_methods            = ["GET", "HEAD", "OPTIONS"]
+      cached_methods             = ["GET", "HEAD"]
+      target_origin_id           = "api-alb"
+      viewer_protocol_policy     = "redirect-to-https"
       response_headers_policy_id = aws_cloudfront_response_headers_policy.portal_security.id
 
       forwarded_values {

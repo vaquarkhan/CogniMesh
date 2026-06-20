@@ -160,14 +160,14 @@ output "platform_env" {
 output "aws_deploy_env" {
   description = "Copy into .env for live Step Functions deploy from the portal"
   value = {
-    AWS_DEPLOY_ENABLED            = "true"
-    AWS_AGENT_DEPLOY_ENABLED      = var.enable_platform_ops ? "true" : "false"
-    AWS_BEDROCK_AGENT_ROLE_ARN    = var.enable_platform_ops ? module.platform_ops[0].bedrock_agent_role_arn : null
-    AWS_REGION                    = var.aws_region
-    AWS_STEP_FUNCTIONS_ROLE_ARN   = module.iam.pipeline_orchestrator_role_arn
-    CHECKPOINT_BUCKET_NAME        = "${var.project_name}-${var.environment}-checkpoints-${local.account_id}"
-    PROOF_BUCKET_NAME             = "${var.project_name}-${var.environment}-proofs-${local.account_id}"
-    VAQUAR_DOMAIN_WRITER_ARN      = var.enable_pvdm_lambdas ? module.domain_writer_lambda[0].function_arn : null
-    INTEGRITY_GATE_FUNCTION       = var.enable_pvdm_lambdas ? module.integrity_gate_lambda[0].function_name : null
+    AWS_DEPLOY_ENABLED          = "true"
+    AWS_AGENT_DEPLOY_ENABLED    = var.enable_platform_ops ? "true" : "false"
+    AWS_BEDROCK_AGENT_ROLE_ARN  = var.enable_platform_ops ? module.platform_ops[0].bedrock_agent_role_arn : null
+    AWS_REGION                  = var.aws_region
+    AWS_STEP_FUNCTIONS_ROLE_ARN = module.iam.pipeline_orchestrator_role_arn
+    CHECKPOINT_BUCKET_NAME      = "${var.project_name}-${var.environment}-checkpoints-${local.account_id}"
+    PROOF_BUCKET_NAME           = "${var.project_name}-${var.environment}-proofs-${local.account_id}"
+    VAQUAR_DOMAIN_WRITER_ARN    = var.enable_pvdm_lambdas ? module.domain_writer_lambda[0].function_arn : null
+    INTEGRITY_GATE_FUNCTION     = var.enable_pvdm_lambdas ? module.integrity_gate_lambda[0].function_name : null
   }
 }
