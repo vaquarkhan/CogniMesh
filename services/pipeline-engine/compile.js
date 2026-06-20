@@ -16,15 +16,15 @@ function compile(contractPath) {
 
 function compileContractSmart(contract, options = {}) {
   const aws = options.aws || {};
-  if (contract.spec?.transform?.type === "agentic") {
-    return { pattern: "cognitive-eks", stateMachine: compileContract(contract) };
-  }
+  // Execute every pattern through the provisioned PVDM domain-writer runtime so the deployed
+  // state machine is always valid and runnable.
   if (isVaquarContract(contract)) {
     const { generateVaquarArtifacts } = require("../../lib/vaquar");
     const vaquar = generateVaquarArtifacts(contract, aws);
     return { pattern: "vaquar-pvdm", stateMachine: vaquar.stateMachine, vaquar };
   }
-  return { pattern: "legacy-glue", stateMachine: compileContract(contract) };
+  const pattern = contract.spec?.transform?.type === "agentic" ? "cognitive" : "legacy";
+  return { pattern, stateMachine: compileVaquarStateMachine(contract, aws) };
 }
 
 function compileContract(contract) {
