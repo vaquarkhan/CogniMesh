@@ -396,3 +396,252 @@ Set `computeEngine` on a transform block in Properties to override the default (
 | Stream-only (no batch) | `arch-kappa-stream-only` |
 | Feature engineering | `feature-store-ml` |
 | Fraud detection | `fraud-detection-parallel` |
+
+
+---
+
+## Agent Builder Templates
+
+The **Agent Builder** panel (switch to it via the header toggle) provides 11 pre-built agent templates. Each template creates a visual graph of AgentCore components that deploys to Amazon Bedrock Agents.
+
+### How Agent Templates Work
+
+When you click **Use template**, the Agent Builder:
+1. Places runtime, model, tools, guardrails, and memory blocks on the canvas
+2. Wires them with edges (runtime → model, runtime → tools, etc.)
+3. Sets agent metadata (name, domain, version, description)
+4. Click **Deploy to AWS** → creates a real Bedrock Agent with alias "live"
+5. Chat URL links to the deployed agent (Streamlit or Bedrock Console)
+
+---
+
+### Customer Support Agent
+**ID:** `customer-support`  
+**Category:** Customer Experience  
+**Difficulty:** Starter  
+**AWS Services:** AgentCore Runtime, Bedrock, Knowledge Base, Lambda, Guardrails
+
+**What the UI builds:**
+- **Runtime** block (Strands framework, session isolation enabled)
+- **Foundation Model** (Claude Sonnet, temperature 0.2 for deterministic responses)
+- **Knowledge Base** (FAQ retrieval with hybrid search)
+- **Gateway** (dual auth — API key + Cognito)
+- **Tool: Lambda** (Order Lookup function)
+- **PII Guardrail** (anonymizes EMAIL, PHONE, SSN)
+- **Content Guardrail** (denies legal advice, medical diagnosis topics)
+- **Session Memory** (30-minute TTL)
+
+**Use case:** Customer-facing chatbot that answers FAQs, looks up orders, and respects PII boundaries.
+
+---
+
+### RAG Document Q&A
+**ID:** `rag-doc-qa`  
+**Category:** Enterprise  
+**Difficulty:** Starter  
+**AWS Services:** AgentCore Runtime, Bedrock, Knowledge Base, Guardrails
+
+**What the UI builds:**
+- **Runtime** (LangChain framework)
+- **Foundation Model** (Claude, temperature 0.1 for factual answers)
+- **Knowledge Base** (enterprise docs with hybrid retrieval)
+- **Content Guardrail** (blocks hate/violence, denies confidential leaks)
+- **Observability** (traces enabled for debugging retrieval quality)
+
+**Use case:** Internal knowledge assistant that answers questions from company documents with citations.
+
+---
+
+### Data Analyst Agent
+**ID:** `data-analyst`  
+**Category:** Data & Analytics  
+**Difficulty:** Intermediate  
+**AWS Services:** AgentCore Runtime, Bedrock, MCP, Lambda, Guardrails
+
+**What the UI builds:**
+- **Runtime** (Strands framework)
+- **Foundation Model** (Claude, temperature 0 for exact SQL generation)
+- **Gateway** (Lambda + MCP protocols)
+- **Tool: MCP** (CogniMesh marketplace — list_products, query_lineage)
+- **Tool: Lambda** (Athena query execution)
+- **SQL Guardrail** (denies DROP TABLE, DELETE FROM, TRUNCATE)
+- **Identity** (Lake Formation tag-based access scope)
+
+**Use case:** Natural language to SQL analyst that queries the data mesh catalog and runs Athena queries with governance constraints.
+
+---
+
+### Fraud Investigation Agent
+**ID:** `fraud-detection`  
+**Category:** Security  
+**Difficulty:** Advanced  
+**AWS Services:** AgentCore Runtime, Bedrock, Lambda, Knowledge Base, Guardrails
+
+**What the UI builds:**
+- **Runtime** with long-term memory enabled
+- **Foundation Model** (Claude, low temperature)
+- **Knowledge Base** (fraud patterns + investigation playbooks)
+- **Tool: Lambda** (transaction lookup, risk scoring API)
+- **Strict Guardrail** (no PII exposure, no investigation leaks)
+- **Human-in-the-Loop** (escalation to fraud analyst for high-risk cases)
+- **Long Memory** (cross-session case tracking)
+
+**Use case:** Fraud analyst assistant that investigates suspicious transactions, references historical patterns, and escalates to humans for final decisions.
+
+---
+
+### Code Review Agent
+**ID:** `code-review`  
+**Category:** Developer  
+**Difficulty:** Intermediate  
+**AWS Services:** AgentCore Runtime, Bedrock, Code Interpreter, Guardrails
+
+**What the UI builds:**
+- **Runtime** (Strands framework)
+- **Foundation Model** (Claude for code understanding)
+- **Code Interpreter** (Python/JS sandbox for testing)
+- **Security Guardrail** (blocks secrets in output, denies system access topics)
+- **Observability** (traces for review accuracy tracking)
+
+**Use case:** Automated code reviewer that analyzes PRs, runs test snippets in sandbox, and flags security issues.
+
+---
+
+### HR Policy Assistant
+**ID:** `hr-policy`  
+**Category:** Enterprise  
+**Difficulty:** Starter  
+**AWS Services:** AgentCore Runtime, Bedrock, Knowledge Base, Guardrails
+
+**What the UI builds:**
+- **Runtime** (Strands framework)
+- **Foundation Model** (Claude, temperature 0.1)
+- **Knowledge Base** (HR policy documents)
+- **Content Guardrail** (denies salary negotiation advice, legal counsel, medical diagnosis)
+- **Identity** (employee role-based access)
+
+**Use case:** Employee self-service assistant that answers HR policy questions (PTO, benefits, procedures) without giving legal/medical advice.
+
+---
+
+### Multi-Agent Supervisor
+**ID:** `multi-agent-supervisor`  
+**Category:** Enterprise  
+**Difficulty:** Advanced  
+**AWS Services:** AgentCore Runtime, Bedrock, Multiple Sub-Agents, Gateway
+
+**What the UI builds:**
+- **Supervisor Runtime** (orchestrates sub-agents)
+- **Foundation Model** (Claude for routing decisions)
+- **Gateway** (routes requests to appropriate specialist)
+- **Tool: Lambda** (sub-agent invocation — support, billing, technical)
+- **Memory** (session context passed between agents)
+
+**Use case:** Complex multi-turn workflows where a supervisor agent routes questions to specialized sub-agents (support, billing, technical) and synthesizes their responses.
+
+---
+
+### CogniMesh Data Steward
+**ID:** `cognimesh-steward`  
+**Category:** CogniMesh  
+**Difficulty:** Intermediate  
+**AWS Services:** AgentCore Runtime, Bedrock, MCP, Lambda, Guardrails
+
+**What the UI builds:**
+- **Runtime** (Strands framework)
+- **Foundation Model** (Claude for governance decisions)
+- **Tool: MCP** (CogniMesh marketplace — list products, approve requests, grant access)
+- **Tool: Lambda** (Lake Formation grant operations)
+- **Guardrail** (cannot auto-approve without human review)
+- **Identity** (steward role scope)
+
+**Use case:** Data steward assistant that reviews access requests, explains data products, and executes Lake Formation grants with governance guardrails.
+
+---
+
+### DevOps / SRE Agent
+**ID:** `devops-sre`  
+**Category:** DevOps  
+**Difficulty:** Intermediate  
+**AWS Services:** AgentCore Runtime, Bedrock, Knowledge Base, Lambda, CloudWatch, Guardrails, Step Functions
+
+**What the UI builds:**
+- **Runtime** (Strands framework)
+- **Foundation Model** (Claude for incident analysis)
+- **Knowledge Base** (runbooks, architecture docs, past incidents)
+- **Tool: Lambda** (CloudWatch query, ECS service restart, Step Functions trigger)
+- **Content Guardrail** (blocks destructive commands in prod without HITL)
+- **Human-in-the-Loop** (production changes require human approval)
+- **Observability** (all actions logged for incident review)
+
+**Use case:** SRE assistant that diagnoses incidents from CloudWatch metrics, suggests runbook actions, and executes non-destructive commands with human approval for production changes.
+
+---
+
+### Custom Agent Starter
+**ID:** `custom-agent-starter`  
+**Category:** Developer  
+**Difficulty:** Starter  
+**AWS Services:** AgentCore Runtime, Bedrock, Gateway, Guardrails, CloudWatch
+
+**What the UI builds:**
+- **Runtime** (Strands framework, minimal config)
+- **Foundation Model** (Claude — you pick the variant)
+- **Gateway** (API endpoint — you wire tools)
+- **Content Guardrail** (basic safety — you customize)
+- **Observability** (traces — you add tools and KB)
+
+**Use case:** Starting point for building a custom agent. Provides the skeleton (runtime + model + gateway) — you add tools, knowledge bases, and domain-specific guardrails.
+
+---
+
+### Blank Agent
+**ID:** `blank-agent`  
+**Category:** Developer  
+**Difficulty:** Starter
+
+**What the UI builds:**
+- Empty canvas — drag blocks from the Agent palette
+
+**Use case:** Full manual control. Build your agent graph from scratch using the AgentCore block palette.
+
+---
+
+## Agent Block Types Reference
+
+| Block | Icon | Purpose |
+|-------|------|---------|
+| **Runtime** | ⚡ | Agent execution environment (Strands, LangChain, AutoGen) |
+| **Supervisor** | 👔 | Multi-agent orchestrator that routes to specialists |
+| **Foundation Model** | 🤖 | LLM connection (Claude, Nova, Titan, Llama) |
+| **Knowledge Base** | 📚 | RAG retrieval (Bedrock KB with OpenSearch/Aurora) |
+| **Guardrail** | 🔒 | Content filters, PII detection, denied topics |
+| **Tool: Lambda** | λ | AWS Lambda function invocation |
+| **Tool: MCP** | 🔌 | Model Context Protocol server connection |
+| **Tool: API** | 🌐 | OpenAPI spec-based external API tool |
+| **Code Interpreter** | 💻 | Sandboxed code execution (Python/JS) |
+| **Browser** | 🌍 | Headless browser for web interaction |
+| **Gateway** | 🌐 | API entry point (auth, rate limits, protocols) |
+| **Memory: Session** | 🧠 | Short-term conversation memory (TTL-based) |
+| **Memory: Long** | 📝 | Persistent memory across sessions |
+| **Identity** | 🪪 | Access scope (Lake Formation tags, IAM roles) |
+| **Human-in-Loop** | 👤 | Escalation point requiring human approval |
+| **Observability** | 📊 | Traces, metrics, and audit logging |
+
+---
+
+## Agent Selection Guide
+
+| I need... | Use this template |
+|-----------|------------------|
+| Customer chatbot with FAQ | `customer-support` |
+| Document Q&A (RAG) | `rag-doc-qa` |
+| Natural language SQL | `data-analyst` |
+| Fraud investigation | `fraud-detection` |
+| Code review automation | `code-review` |
+| HR policy questions | `hr-policy` |
+| Multi-agent routing | `multi-agent-supervisor` |
+| Data mesh governance | `cognimesh-steward` |
+| Incident response (SRE) | `devops-sre` |
+| Build my own agent | `custom-agent-starter` |
+| Start completely blank | `blank-agent` |
