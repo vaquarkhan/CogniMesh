@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { getExecutionStatus } from "../lib/api";
 
 const TERMINAL = new Set(["SUCCEEDED", "FAILED", "TIMED_OUT", "ABORTED"]);
 
@@ -24,7 +25,25 @@ export default function DeployProgress({ deploying, result, token }) {
 
   useEffect(() => {
     setExecStatus(result?.aws?.executionStatus || null);
-  }, [result]);
+    if (!arn || !token) return;
+    let cancelled = false;
+    const poll = async () => {
+      try {
+        const s = await getExecutionStatus({ token, executionArn: arn });
+        if (!cancelled) setExecStatus(s);
+        if (s && TERMINAL.has(s.status)) return true;
+      } catch { /* keep last */ }
+      return false;
+    };
+    (async () => {
+      if (await poll()) return;
+      const id = setInterval(async () => {
+        if (await poll()) clearInterval(id);
+      }, 4000);
+      timerRef.current = id;
+    })();
+    return () => { cancelled = true; clearInterval(timerRef.current); };
+  }, [arn, token, result]);
 
   if (!deploying && !result) return null;
 
@@ -39,7 +58,7 @@ export default function DeployProgress({ deploying, result, token }) {
   function stateFor(i) {
     if (deploying) return i <= animStage ? "active" : "pending";
     if (deployFailed) {
-      if (i < 3) return deployedOk ? "done" : i === 0 ? "error" : "pending";
+      if (i < 3) return result?.stage === "vrp_verification" || deployedOk ? "done" : i === 0 ? "error" : "pending";
       return "pending";
     }
     if (i < 3) return "done";

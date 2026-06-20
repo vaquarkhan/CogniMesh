@@ -1,3 +1,5 @@
+import { fetchAuthSession } from "aws-amplify/auth";
+
 const API_BASE = import.meta.env.VITE_API_URL || "";
 
 function authHeaders(token) {
@@ -6,13 +8,24 @@ function authHeaders(token) {
   return headers;
 }
 
+async function resolveToken(passedToken) {
+  if (passedToken === "local-dev") return passedToken;
+  try {
+    const session = await fetchAuthSession();
+    const idToken = session.tokens?.idToken?.toString();
+    if (idToken) return idToken;
+  } catch { /* no active session — fall back to passed token */ }
+  return passedToken;
+}
+
 export async function apiFetch(path, options = {}) {
   const { token, headers: extraHeaders, ...fetchOptions } = options;
+  const freshToken = await resolveToken(token);
   const res = await fetch(`${API_BASE}${path}`, {
     credentials: "include",
     ...fetchOptions,
     headers: {
-      ...authHeaders(token),
+      ...authHeaders(freshToken),
       ...extraHeaders,
     },
   });
@@ -255,35 +268,24 @@ export async function rejectAccessRequest({ token, requestId, reason }) {
   return { ok: res.ok, data: data || {} };
 }
 
-/** Quick check — merges /api/v1/auth/config with /api/health deploy readiness. */
 export async function getApiHealth() {
-  let base = null;
   try {
-    const res = await apiFetch("/api/v1/auth/config");
-    const data = await parseJsonResponse(res, "Health");
-    if (data?.status !== "error" && data && (data.userPoolId != null || data.authDisabled != null)) {
-      base = {
-        status: "ok",
-        auth: data.authDisabled ? "disabled" : "cognito",
-        region: data.region || null,
-      };
+    const res = await fetch(`${API_BASE}/api/health`);
+    if (res.ok) {
+      const deep = await res.json();
+      if (deep && deep.status !== "error" && deep.checks) return deep;
     }
-  } catch {
-    /* fall through to /api/health */
-  }
+  } catch { /* fall through */ }
   try {
-    const res2 = await apiFetch("/api/health");
-    const deep = await parseJsonResponse(res2, "Health");
-    if (deep?.status === "error") return base;
-    if (!deep) return base;
-    return {
-      ...deep,
-      auth: base?.auth || deep.auth,
-      region: base?.region || deep.region || null,
-    };
-  } catch {
-    return base;
-  }
+    const res = await fetch(`${API_BASE}/api/v1/auth/config`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.status !== "error") {
+        return { status: "ok", auth: data.authDisabled ? "disabled" : "cognito", region: data.region || null };
+      }
+    }
+  } catch { /* no health available */ }
+  return null;
 }
 
 export async function isApiReachable() {

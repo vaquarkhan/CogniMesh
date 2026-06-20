@@ -573,6 +573,10 @@ export default function App() {
     setDeployImpact(null);
     setDeployImpactLoading(true);
     setShowDeployConfirm(true);
+    // Refresh AWS deploy capability so the panel never shows a stale "AWS deploy off".
+    getApiHealth().then((health) => {
+      if (health) setApiHealth(health);
+    }).catch(() => {});
     try {
       const meta = { ...pipelineMeta, ownerEmail: userEmail };
       const impact = await analyzeImpact(token, {
@@ -639,7 +643,7 @@ export default function App() {
         setDeployResult(data);
         setDeployError(null);
         setCatalogRefresh((k) => k + 1);
-        setActiveDock("history");
+        setActiveDock("deploy");
         success(deploySuccessToast(data));
         if (data?.aws && !data.aws.deployed) {
           const msg =
@@ -757,6 +761,15 @@ export default function App() {
             >
               Agent Builder
             </button>
+            <a
+              className="dashboard-link"
+              href="/api/v1/public/dashboard"
+              target="_blank"
+              rel="noreferrer"
+              title="Central view of all deployed pipelines & agents"
+            >
+              📊 Dashboard
+            </a>
           </div>
         </div>
         {designerMode === "pipeline" && (
