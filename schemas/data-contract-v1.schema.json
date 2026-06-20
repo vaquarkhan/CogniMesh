@@ -77,8 +77,8 @@
             "slaMinutes": { "type": "integer", "minimum": 1 },
             "pattern": {
               "type": "string",
-              "enum": ["vaquar", "glue", "cognitive"],
-              "description": "Runtime pattern: Vaquar PVDM, legacy Glue, or cognitive EKS"
+              "enum": ["vaquar", "standard", "glue", "cognitive"],
+              "description": "Runtime pattern: Vaquar PVDM (proof-gated), standard (plain ETL, no proof-gate), legacy Glue, or cognitive EKS"
             },
             "pvdm": {
               "type": "object",
