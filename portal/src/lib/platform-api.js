@@ -33,8 +33,8 @@ export async function previewSourceData(token, { nodes, edges, pipelineMeta, lim
   return platformPost("/api/v1/platform/preview-source", { nodes, edges, pipelineMeta, limit }, token);
 }
 
-export async function deployAgentManifest(token, manifest) {
-  return platformPost("/api/v1/agents/deploy", { manifest }, token);
+export async function deployAgentManifest(token, manifest, deployTarget = "bedrock-agents") {
+  return platformPost("/api/v1/agents/deploy", { manifest, deployTarget }, token);
 }
 
 export async function getHealthScores(token, domain) {
