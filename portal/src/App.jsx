@@ -39,6 +39,8 @@ const ExecutionHistoryPanel = lazy(() => import("./components/ExecutionHistoryPa
 const StewardApprovalsPanel = lazy(() => import("./components/StewardApprovalsPanel"));
 const PlatformOperationsPanel = lazy(() => import("./components/PlatformOperationsPanel"));
 const PipelineFlow = lazy(() => import("./components/PipelineFlow"));
+const DashboardView = lazy(() => import("./components/DashboardView"));
+const AgentCoreStudioView = lazy(() => import("./components/AgentCoreStudioView"));
 
 function PanelFallback() {
   return (
@@ -744,7 +746,11 @@ export default function App() {
           <p className="subtitle">
             {designerMode === "pipeline"
               ? "Step Functions–style workflow · many sources · parallel · choice"
-              : "Amazon Bedrock AgentCore · drag-drop agents · guardrails · templates"}
+              : designerMode === "dashboard"
+                ? "Live view of all deployed pipelines and agents"
+                : designerMode === "agentcore"
+                  ? "AWS AgentCore self-service platform (embedded)"
+                  : "Amazon Bedrock AgentCore · drag-drop agents · guardrails · templates"}
           </p>
           <div className="designer-mode-switch">
             <button
@@ -770,6 +776,20 @@ export default function App() {
             >
               📊 Dashboard
             </a>
+            <button
+              type="button"
+              className={designerMode === "agentcore" ? "active" : ""}
+              onClick={() => setDesignerMode("agentcore")}
+            >
+              AgentCore Studio
+            </button>
+            <button
+              type="button"
+              className={designerMode === "dashboard" ? "active" : ""}
+              onClick={() => setDesignerMode("dashboard")}
+            >
+              📊 Dashboard
+            </button>
           </div>
         </div>
         {designerMode === "pipeline" && (
@@ -820,7 +840,19 @@ export default function App() {
         )}
       </header>
 
-      {designerMode === "agent" ? (
+      {designerMode === "dashboard" ? (
+        <ErrorBoundary name="Dashboard">
+          <Suspense fallback={<PanelFallback />}>
+            <DashboardView />
+          </Suspense>
+        </ErrorBoundary>
+      ) : designerMode === "agentcore" ? (
+        <ErrorBoundary name="AgentCore Studio">
+          <Suspense fallback={<PanelFallback />}>
+            <AgentCoreStudioView />
+          </Suspense>
+        </ErrorBoundary>
+      ) : designerMode === "agent" ? (
         <ErrorBoundary name="Agent Builder">
           <Suspense fallback={<PanelFallback />}>
             <AgentBuilderView
@@ -831,6 +863,7 @@ export default function App() {
             bootstrap={agentBootstrap}
             onBootstrapApplied={() => setAgentBootstrap(null)}
             notify={{ success, error: toastError }}
+            defaultDeployTarget="bedrock-agents"
           />
           </Suspense>
         </ErrorBoundary>

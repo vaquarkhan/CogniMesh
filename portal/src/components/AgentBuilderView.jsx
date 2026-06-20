@@ -17,6 +17,7 @@ import { useToast } from "./Toast";
 import { validateAgentBlocks } from "../lib/validate-agent-blocks";
 import { exportAgentManifest, downloadAgentManifest } from "../lib/agent-export";
 import { deployAgentManifest } from "../lib/platform-api";
+import { downloadZip } from "../lib/zip-download";
 import { getApiHealth } from "../lib/api";
 import { validateAgentInstruction } from "../lib/agent-instruction";
 import { bedrockAgentConsoleUrl } from "../lib/aws-console-urls";
@@ -39,6 +40,7 @@ export default function AgentBuilderView({
   bootstrap,
   onBootstrapApplied,
   notify,
+  defaultDeployTarget = "bedrock-agents",
 }) {
   const internalToast = useToast();
   const success = notify?.success ?? internalToast.success;
@@ -64,6 +66,7 @@ export default function AgentBuilderView({
   const [deployMessage, setDeployMessage] = useState(null);
   const [deployLoading, setDeployLoading] = useState(false);
   const [agentDeployCheck, setAgentDeployCheck] = useState(null);
+  const [deployTarget, setDeployTarget] = useState(defaultDeployTarget);
 
   const validation = useMemo(() => validateAgentBlocks(nodes, edges), [nodes, edges]);
 
@@ -242,9 +245,29 @@ export default function AgentBuilderView({
     setDeployLoading(true);
     setDeployMessage(null);
     try {
-      const data = await deployAgentManifest(token, result.manifest);
+      const data = await deployAgentManifest(token, result.manifest, deployTarget);
       if (!data) {
         toastError("Agent deploy API unavailable");
+        return;
+      }
+      // AgentCore Runtime branch
+      if (deployTarget === "agentcore-runtime") {
+        setDeployMessage({
+          status: data.deployed ? "deployed" : data.generated ? "generated" : "failed",
+          target: "agentcore-runtime",
+          agentName: agentMeta.name,
+          framework: data.framework,
+          model: data.model,
+          agentRuntimeArn: data.agentRuntimeArn || null,
+          consoleUrl: data.consoleUrl || null,
+          project: data.project || null,
+          projectFiles: data.projectFiles || [],
+          nextSteps: data.nextSteps || [],
+          message: data.message || data.reason || data.errors?.[0] || "AgentCore Runtime finished",
+        });
+        if (data.deployed) success(`AgentCore Runtime created: ${data.agentRuntimeId || agentMeta.name}`);
+        else if (data.generated) success("AgentCore Runtime project generated");
+        else toastError(data.errors?.[0] || "AgentCore Runtime deploy failed");
         return;
       }
       setDeployMessage({
@@ -319,6 +342,14 @@ export default function AgentBuilderView({
         <button className="deploy-btn agent-deploy-btn" type="button" onClick={handleExportManifest} disabled={!nodes.length}>
           Export manifest
         </button>
+        <select
+          className="agent-deploy-target-select"
+          value={deployTarget}
+          onChange={(e) => setDeployTarget(e.target.value)}
+        >
+          <option value="bedrock-agents">Bedrock Agents</option>
+          <option value="agentcore-runtime">AgentCore Runtime (Strands)</option>
+        </select>
         <button
           className="deploy-btn agent-deploy-btn"
           type="button"
@@ -389,6 +420,36 @@ export default function AgentBuilderView({
                 </a>
               )}
               <p className="properties-hint">{deployMessage.message}</p>
+              {deployMessage.target === "agentcore-runtime" && deployMessage.project && (
+                <div className="agentcore-project">
+                  <p className="properties-hint">Framework: <code>{deployMessage.framework}</code> · Model: <code>{deployMessage.model}</code></p>
+                  <div className="agentcore-actions">
+                    <button
+                      type="button"
+                      className="deploy-btn"
+                      onClick={() => {
+                        downloadZip(`${deployMessage.agentName || "agentcore-agent"}-agentcore`, deployMessage.project);
+                        success("AgentCore project downloaded (.zip)");
+                      }}
+                    >
+                      ⬇ Download project (.zip)
+                    </button>
+                    {deployMessage.agentRuntimeArn ? (
+                      <a className="aws-console-link" href={deployMessage.consoleUrl || "#"} target="_blank" rel="noreferrer">Open AgentCore Runtime ↗</a>
+                    ) : (
+                      <span className="agentcore-deploy-hint">To deploy directly: unzip → run <code>./deploy.sh</code> (builds ARM64 image, pushes to ECR, calls CreateAgentRuntime). Requires Docker + an AgentCore runtime role.</span>
+                    )}
+                  </div>
+                  <div className="agentcore-file-tabs">
+                    {deployMessage.projectFiles.map((f) => (
+                      <details key={f} className="agentcore-file">
+                        <summary>{f}</summary>
+                        <pre className="agentcore-file-body">{deployMessage.project[f]}</pre>
+                      </details>
+                    ))}
+                  </div>
+                </div>
+              )}
               {deployMessage.status === "simulated" && deployMessage.plan?.steps?.length > 0 && (
                 <ol className="aws-fix-steps">
                   {deployMessage.plan.steps.map((step, i) => (

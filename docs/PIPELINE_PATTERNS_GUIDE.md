@@ -932,3 +932,44 @@ flowchart TD
 | Incident response (SRE) | `devops-sre` |
 | Build my own agent | `custom-agent-starter` |
 | Start completely blank | `blank-agent` |
+
+
+---
+
+## New Features (ui-enhancement-2026-06-20)
+
+### AgentCore Runtime (Strands) Deploy Target
+
+In the Agent Builder, a new deploy target dropdown lets you choose:
+- **Bedrock Agents** (default) — creates a Bedrock Agent with alias
+- **AgentCore Runtime (Strands)** — generates a downloadable Python project
+
+The AgentCore Runtime target generates a complete standalone project:
+- `agent.py` — Strands Agent + BedrockModel with your tools as @tool stubs
+- `requirements.txt` — Python deps (strands-agents, boto3, bedrock-agentcore)
+- `Dockerfile` — linux/arm64 container
+- `deploy.sh` — ECR build+push + create-agent-runtime CLI command
+- `.env.example` — configuration reference
+- `README.md` — usage instructions
+
+Click **⬇ Download project (.zip)** to get the full project as a ZIP file.
+
+### Native Dashboard Tab
+
+The **📊 Dashboard** tab in the header shows a live view of ALL deployed infrastructure:
+- KPI cards: Pipelines, Succeeded, Failed, Agents
+- SVG donut chart of pipeline run-status distribution
+- Bar chart of agents by status
+- Full tables of all pipelines and agents with status badges
+- Auto-refreshes every 15 seconds from `/api/v1/public/status`
+
+### AgentCore Studio Tab
+
+The **AgentCore Studio** tab embeds the AWS-sample AgentCore self-service platform
+(deployed separately as its own CDK stack) in an iframe. This provides:
+- Full agent template creation workflow
+- Tool/guardrail configuration
+- Runtime deployment via the AWS sample's own infrastructure
+
+If the iframe is blocked by browser cookie policy, a fallback panel with
+"Open in new tab ↗" is shown.
