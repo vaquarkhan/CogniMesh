@@ -1,3 +1,5 @@
+import { fetchAuthSession } from "aws-amplify/auth";
+
 const API_BASE = import.meta.env.VITE_API_URL || "";
 
 function authHeaders(token) {
@@ -6,13 +8,24 @@ function authHeaders(token) {
   return headers;
 }
 
+async function resolveToken(passedToken) {
+  if (passedToken === "local-dev") return passedToken;
+  try {
+    const session = await fetchAuthSession();
+    const idToken = session.tokens?.idToken?.toString();
+    if (idToken) return idToken;
+  } catch { /* no active session - fall back to passed token */ }
+  return passedToken;
+}
+
 export async function apiFetch(path, options = {}) {
   const { token, headers: extraHeaders, ...fetchOptions } = options;
+  const freshToken = await resolveToken(token);
   const res = await fetch(`${API_BASE}${path}`, {
     credentials: "include",
     ...fetchOptions,
     headers: {
-      ...authHeaders(token),
+      ...authHeaders(freshToken),
       ...extraHeaders,
     },
   });
@@ -25,7 +38,7 @@ function apiJsonErrorMessage(res, context) {
     return `${context}: request blocked (403). If using CloudFront, ensure CORS_ORIGIN_SUFFIXES includes .cloudfront.net or add the portal URL to portal_callback_urls and re-apply Terraform.`;
   }
   if (res.ok) {
-    return `${context}: received HTML instead of JSON — check CloudFront routes /api/* to the API origin (not the SPA bucket).`;
+    return `${context}: received HTML instead of JSON - check CloudFront routes /api/* to the API origin (not the SPA bucket).`;
   }
   return `${context}: API unavailable (HTTP ${res.status}). Run npm run dev:api locally or check the ECS/ALB service.`;
 }
@@ -179,7 +192,7 @@ export async function runAwsDesignReview({ nodes, edges, pipelineMeta, token }) 
   if (!data) {
     return {
       status: "error",
-      errors: ["API unavailable — start the gateway with npm run dev:api"],
+      errors: ["API unavailable - start the gateway with npm run dev:api"],
       fixHint: "Run npm run dev:minimal from the repo root, then click Re-scan.",
     };
   }
@@ -255,22 +268,24 @@ export async function rejectAccessRequest({ token, requestId, reason }) {
   return { ok: res.ok, data: data || {} };
 }
 
-/** Quick check — uses /api/v1/auth/config (routed via CloudFront /api/*) or /api/health. */
 export async function getApiHealth() {
-  const res = await apiFetch("/api/v1/auth/config");
-  const data = await parseJsonResponse(res, "Health");
-  if (data?.status === "error") return null;
-  if (data && (data.userPoolId != null || data.authDisabled != null)) {
-    return {
-      status: "ok",
-      auth: data.authDisabled ? "disabled" : "cognito",
-      region: data.region || null,
-    };
-  }
-  const res2 = await apiFetch("/api/health");
-  const deep = await parseJsonResponse(res2, "Health");
-  if (deep?.status === "error") return null;
-  return deep;
+  try {
+    const res = await fetch(`${API_BASE}/api/health`);
+    if (res.ok) {
+      const deep = await res.json();
+      if (deep && deep.status !== "error" && deep.checks) return deep;
+    }
+  } catch { /* fall through */ }
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/auth/config`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.status !== "error") {
+        return { status: "ok", auth: data.authDisabled ? "disabled" : "cognito", region: data.region || null };
+      }
+    }
+  } catch { /* no health available */ }
+  return null;
 }
 
 export async function isApiReachable() {

@@ -42,6 +42,12 @@ variable "tags" {
   default = {}
 }
 
+variable "extra_environment" {
+  type        = map(string)
+  description = "Additional Lambda env vars merged with NODE_ENV"
+  default     = {}
+}
+
 locals {
   zip_hash = coalesce(var.source_code_hash, filebase64sha256(var.package_path))
 }
@@ -57,9 +63,7 @@ resource "aws_lambda_function" "this" {
   source_code_hash = local.zip_hash
 
   environment {
-    variables = {
-      NODE_ENV = "production"
-    }
+    variables = merge({ NODE_ENV = "production" }, var.extra_environment)
   }
 
   tags = var.tags

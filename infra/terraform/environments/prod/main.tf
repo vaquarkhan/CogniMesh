@@ -12,19 +12,26 @@ locals {
     )) : trimsuffix(url, "/")
   ])
   api_environment = {
-    NODE_ENV               = "production"
-    ENABLE_EMF_METRICS     = "true"
-    CORS_ORIGIN_SUFFIXES   = ".cloudfront.net"
-    AWS_REGION             = var.aws_region
-    CATALOG_STORAGE           = "memory"
-    CATALOG_FALLBACK          = "embedded"
-    COGNITO_USER_POOL_ID      = try(module.cognito[0].user_pool_id, "")
-    COGNITO_CLIENT_ID         = try(module.cognito[0].client_id, "")
-    PLATFORM_STORE            = try(module.platform_ops[0].platform_env.PLATFORM_STORE, "file")
-    PLATFORM_DYNAMODB_TABLE   = try(module.platform_ops[0].platform_env.PLATFORM_DYNAMODB_TABLE, "")
-    ATHENA_WORKGROUP          = try(module.platform_ops[0].platform_env.ATHENA_WORKGROUP, "")
-    ATHENA_OUTPUT_LOCATION    = try(module.platform_ops[0].platform_env.ATHENA_OUTPUT_LOCATION, "")
-    AWS_BEDROCK_AGENT_ROLE_ARN = try(module.platform_ops[0].platform_env.AWS_BEDROCK_AGENT_ROLE_ARN, "")
+    NODE_ENV                    = "production"
+    ENABLE_EMF_METRICS          = "true"
+    CORS_ORIGIN_SUFFIXES        = ".cloudfront.net"
+    AWS_REGION                  = var.aws_region
+    CATALOG_STORAGE             = "memory"
+    CATALOG_FALLBACK            = "embedded"
+    COGNITO_USER_POOL_ID        = try(module.cognito[0].user_pool_id, "")
+    COGNITO_CLIENT_ID           = try(module.cognito[0].client_id, "")
+    PLATFORM_STORE              = try(module.platform_ops[0].platform_env.PLATFORM_STORE, "file")
+    PLATFORM_DYNAMODB_TABLE     = try(module.platform_ops[0].platform_env.PLATFORM_DYNAMODB_TABLE, "")
+    ATHENA_WORKGROUP            = try(module.platform_ops[0].platform_env.ATHENA_WORKGROUP, "")
+    ATHENA_OUTPUT_LOCATION      = try(module.platform_ops[0].platform_env.ATHENA_OUTPUT_LOCATION, "")
+    AWS_BEDROCK_AGENT_ROLE_ARN  = try(module.platform_ops[0].platform_env.AWS_BEDROCK_AGENT_ROLE_ARN, "")
+    AWS_AGENT_DEPLOY_ENABLED    = try(module.platform_ops[0].platform_env.AWS_AGENT_DEPLOY_ENABLED, "false")
+    AWS_DEPLOY_ENABLED          = "true"
+    AWS_DEPLOY_EXECUTE          = "true"
+    AWS_STEP_FUNCTIONS_ROLE_ARN = module.iam.pipeline_orchestrator_role_arn
+    AWS_NAME_PREFIX             = var.name_prefix
+    COPILOT_LLM_ENABLED         = "true"
+    COPILOT_BEDROCK_MODEL_ID    = "anthropic.claude-3-haiku-20240307-v1:0"
   }
 }
 
@@ -163,6 +170,17 @@ module "domain_writer_lambda" {
   timeout          = 120
   memory_size      = 512
   tags             = merge(local.tags, { Component = "domain-writer" })
+
+  # Lambda /var/task is read-only; PVDM staging/proofs/state must use the writable /tmp.
+  extra_environment = {
+    PVDM_STAGING_DIR       = "/tmp/pvdm-staging"
+    VRP_PROOF_DIR          = "/tmp/pvdm-proofs"
+    VRP_TRANSPARENCY_LOG   = "/tmp/data/vrp-transparency-log.jsonl"
+    ICEBERG_SNAPSHOT_STATE = "/tmp/data/iceberg-snapshots.json"
+    PLATFORM_DATA_DIR      = "/tmp/data"
+    PROOF_BUCKET           = var.proof_bucket_name
+    CHECKPOINT_BUCKET      = var.checkpoint_bucket_name
+  }
 }
 
 module "eks" {
@@ -214,12 +232,12 @@ module "portal_cdn" {
     aws.us_east_1 = aws.us_east_1
   }
 
-  name_prefix         = var.name_prefix
-  portal_bucket_name  = var.portal_bucket_name
-  enable_waf          = var.enable_waf
-  waf_rate_limit      = var.waf_rate_limit
-  api_origin_domain   = try(module.api_service[0].api_alb_dns, "")
-  tags                = local.tags
+  name_prefix        = var.name_prefix
+  portal_bucket_name = var.portal_bucket_name
+  enable_waf         = var.enable_waf
+  waf_rate_limit     = var.waf_rate_limit
+  api_origin_domain  = try(module.api_service[0].api_alb_dns, "")
+  tags               = local.tags
 
   depends_on = [module.api_service]
 }
@@ -228,19 +246,19 @@ module "observability" {
   count  = var.enable_observability ? 1 : 0
   source = "../../modules/observability"
 
-  name_prefix               = var.name_prefix
-  aws_region                = var.aws_region
-  alb_arn_suffix            = try(module.api_service[0].alb_arn_suffix, "")
-  target_group_arn_suffix   = try(module.api_service[0].target_group_arn_suffix, "")
-  ecs_cluster_name          = try(module.api_service[0].ecs_cluster_name, "")
-  ecs_service_name          = try(module.api_service[0].ecs_service_name, "")
-  api_desired_count         = var.api_desired_count
-  enable_waf_alarms         = var.enable_waf
-  enable_alb_alarms         = var.enable_api_service
-  enable_ecs_alarms           = var.enable_api_service
-  waf_web_acl_name          = coalesce(try(module.api_service[0].waf_web_acl_name, null), try(module.portal_cdn[0].waf_web_acl_name, null), "")
-  alert_email               = var.ops_alert_email
-  tags                      = local.tags
+  name_prefix             = var.name_prefix
+  aws_region              = var.aws_region
+  alb_arn_suffix          = try(module.api_service[0].alb_arn_suffix, "")
+  target_group_arn_suffix = try(module.api_service[0].target_group_arn_suffix, "")
+  ecs_cluster_name        = try(module.api_service[0].ecs_cluster_name, "")
+  ecs_service_name        = try(module.api_service[0].ecs_service_name, "")
+  api_desired_count       = var.api_desired_count
+  enable_waf_alarms       = var.enable_waf
+  enable_alb_alarms       = var.enable_api_service
+  enable_ecs_alarms       = var.enable_api_service
+  waf_web_acl_name        = coalesce(try(module.api_service[0].waf_web_acl_name, null), try(module.portal_cdn[0].waf_web_acl_name, null), "")
+  alert_email             = var.ops_alert_email
+  tags                    = local.tags
 
   depends_on = [module.api_service, module.portal_cdn]
 }

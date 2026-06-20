@@ -25,18 +25,22 @@ describe("DeployConfirmModal", () => {
     expect(onConfirm).toHaveBeenCalled();
   });
 
-  it("blocks confirm when AWS review is critical", () => {
+  it("allows deploy with an advisory note when AWS review has criticals (never blocks)", () => {
     const onConfirm = vi.fn();
     render(
       <DeployConfirmModal
         open
         pipelineName="orders-cdc"
+        awsRegion="us-east-1"
         awsReview={{ overall: { score: 40, deployBlocked: true, criticalCount: 2 } }}
         onConfirm={onConfirm}
         onCancel={() => {}}
       />
     );
-    const btn = screen.getByRole("button", { name: /Fix issues first/i });
-    expect(btn).toBeDisabled();
+    const btn = screen.getByRole("button", { name: /Yes, deploy to us-east-1/i });
+    expect(btn).not.toBeDisabled();
+    fireEvent.click(btn);
+    expect(onConfirm).toHaveBeenCalled();
+    expect(screen.getByText(/advisory/i)).toBeInTheDocument();
   });
 });

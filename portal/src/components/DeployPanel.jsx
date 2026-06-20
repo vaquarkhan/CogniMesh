@@ -2,35 +2,82 @@ import { useState } from "react";
 import LineageGraph from "./LineageGraph";
 import VrpProofPanel from "./VrpProofPanel";
 import AwsDeployStatusBanner from "./AwsDeployStatusBanner";
+import DeployProgress from "./DeployProgress";
 
 const TABS = ["contract", "lineage", "vaquar", "history", "stepfunctions", "deploy"];
 
-export default function DeployPanel({ result, loading, error, token, loadingLabel }) {
+function normalizeErrors(error) {
+  if (!error) return [];
+  const list = Array.isArray(error) ? error : [error];
+  return list.map((e) => (typeof e === "string" ? e : e.message || `${e.path}: ${e.message}`));
+}
+
+function DeployErrorHero({ title, errors, onOpenFixWizard }) {
+  if (!errors.length) return null;
+  return (
+    <div className="deploy-error-hero" data-testid="deploy-error-hero">
+      <h3>{title}</h3>
+      <ul className="error-list preview-error-banner">
+        {errors.map((msg, i) => (
+          <li key={i}>{msg}</li>
+        ))}
+      </ul>
+      {onOpenFixWizard && (
+        <>
+          <button type="button" className="deploy-btn" onClick={onOpenFixWizard}>
+            Fix in guided wizard
+          </button>
+          <p className="properties-hint deploy-error-hint">
+            We update blocks on the canvas for you - no YAML editing.
+          </p>
+        </>
+      )}
+    </div>
+  );
+}
+
+export default function DeployPanel({
+  result,
+  loading,
+  error,
+  token,
+  loadingLabel,
+  onOpenFixWizard,
+}) {
   const [tab, setTab] = useState("contract");
+  const errorList = normalizeErrors(error);
+  const hasError = errorList.length > 0;
 
   if (loading && !result) {
+    const isDeploying = /deploy/i.test(loadingLabel || "");
     return (
       <aside className="deploy-panel">
         <h2>{loadingLabel || "Working…"}</h2>
-        <p className="deploy-status loading">{loadingLabel || "Validating → Compiling → Registering"}</p>
+        {isDeploying ? (
+          <DeployProgress deploying={true} result={null} token={token} />
+        ) : (
+          <p className="deploy-status loading">{loadingLabel || "Validating → Compiling → Registering"}</p>
+        )}
       </aside>
     );
   }
 
-  if (error && !result) {
+  if (hasError && !result) {
     return (
       <aside className="deploy-panel">
-        <h2>Preview failed</h2>
-        <ul className="error-list">
-          {(Array.isArray(error) ? error : [error]).map((e, i) => (
-            <li key={i}>{typeof e === "string" ? e : `${e.path}: ${e.message}`}</li>
-          ))}
-        </ul>
+        <h2>Deploy blocked</h2>
+        <DeployErrorHero
+          title="What went wrong"
+          errors={errorList}
+          onOpenFixWizard={onOpenFixWizard}
+        />
       </aside>
     );
   }
 
   if (!result) return null;
+
+  const showErrorHero = hasError || result.status !== "success";
 
   return (
     <aside className="deploy-panel">
@@ -39,16 +86,21 @@ export default function DeployPanel({ result, loading, error, token, loadingLabe
         <span className={`badge badge-${result.status}`}>{result.status}</span>
       </div>
 
-      {error && (
-        <ul className="error-list preview-error-banner">
-          {(Array.isArray(error) ? error : [error]).map((e, i) => (
-            <li key={i}>{typeof e === "string" ? e : `${e.path}: ${e.message}`}</li>
-          ))}
-        </ul>
+      {showErrorHero && (
+        <DeployErrorHero
+          title={hasError ? "Deploy blocked" : "Preview needs attention"}
+          errors={
+            hasError
+              ? errorList
+              : ["Preview did not pass all checks - use the fix wizard to resolve issues on the canvas."]
+          }
+          onOpenFixWizard={onOpenFixWizard}
+        />
       )}
 
       {result.status === "success" && (
         <div className="deploy-summary">
+          {result.aws && <DeployProgress deploying={false} result={result} token={token} />}
           <AwsDeployStatusBanner aws={result.aws} token={token} />
           <p>✓ Graph topology validated</p>
           <p>✓ DataContract schema passed</p>

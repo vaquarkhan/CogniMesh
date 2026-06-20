@@ -2,7 +2,7 @@
 
 <p align="center">
   <img src="../../assets/portal-canvas-datamesh.png" alt="MSK → Glue Streaming → Lakehouse - CogniMesh canvas" width="720" />
-  <br /><em>Kafka-compatible · exactly-once · MSK</em>
+  <br /><em>Kafka-compatible · at-least-once + idempotent MERGE · MSK</em>
 </p>
 
 [← All tutorials](../README.md) · [Portal UI](../../PORTAL_UI.md)

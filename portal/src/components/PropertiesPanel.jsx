@@ -55,7 +55,7 @@ export default function PropertiesPanel({
           >
             {AWS_REGIONS.map((r) => (
               <option key={r.id} value={r.id}>
-                {r.id} — {r.label}
+                {r.id} - {r.label}
               </option>
             ))}
           </select>
@@ -107,6 +107,37 @@ export default function PropertiesPanel({
             <span>Enable Lake Formation for gold tables</span>
           </label>
         </FormField>
+        <FormField
+          label="VPC infrastructure"
+          tip="Create new VPC with private subnets, NAT, security groups via Terraform - or use an existing VPC."
+        >
+          <select
+            data-testid="pipeline-vpc-mode"
+            value={pipelineMeta.vpcMode || "create_new"}
+            onChange={(e) => onMetaChange({ ...pipelineMeta, vpcMode: e.target.value })}
+          >
+            <option value="create_new">Create new VPC (Terraform)</option>
+            <option value="existing">Use existing VPC</option>
+          </select>
+        </FormField>
+        {pipelineMeta.vpcMode === "existing" && (
+          <>
+            <FormField label="VPC ID" tip="Your existing VPC - all resources deploy in private subnets">
+              <input
+                value={pipelineMeta.vpcId || ""}
+                onChange={(e) => onMetaChange({ ...pipelineMeta, vpcId: e.target.value })}
+                placeholder="vpc-0abc123def456"
+              />
+            </FormField>
+            <FormField label="Private subnet IDs" tip="Comma-separated subnet IDs for data workloads">
+              <input
+                value={pipelineMeta.privateSubnetIds || ""}
+                onChange={(e) => onMetaChange({ ...pipelineMeta, privateSubnetIds: e.target.value })}
+                placeholder="subnet-aaa, subnet-bbb"
+              />
+            </FormField>
+          </>
+        )}
         {pipelineMeta.meshAccounts && (
           <div className="mesh-accounts-panel">
             <h3>Mesh AWS accounts</h3>
@@ -404,7 +435,7 @@ export default function PropertiesPanel({
             <strong>AWS issues on this block ({awsFindings.length})</strong>
           </div>
           <p className="props-aws-findings-hint">
-            Fix below — opens the design review guide with steps for encryption, Lake Formation, integrity gate, and more.
+            Fix below - opens the design review guide with steps for encryption, Lake Formation, integrity gate, and more.
           </p>
           <ul className="props-aws-findings-list">
             {awsFindings.map((f) => (

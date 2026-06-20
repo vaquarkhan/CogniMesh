@@ -119,11 +119,25 @@ resource "aws_iam_role_policy" "api_platform" {
         Effect = "Allow"
         Action = [
           "bedrock:InvokeModel",
-          "bedrock-agent:CreateAgent", "bedrock-agent:CreateAgentAlias",
+          "bedrock:ListAgents", "bedrock:ListAgentAliases",
+          "bedrock:CreateAgent", "bedrock:PrepareAgent", "bedrock:GetAgent",
+          "bedrock:CreateAgentAlias",
+          "bedrock:AssociateAgentKnowledgeBase", "bedrock:AssociateAgentGuardrail",
+          "bedrock-agent:ListAgents", "bedrock-agent:ListAgentAliases",
+          "bedrock-agent:CreateAgent", "bedrock-agent:PrepareAgent", "bedrock-agent:GetAgent",
+          "bedrock-agent:CreateAgentAlias", "bedrock-agent:ListAgentAliases",
           "bedrock-agent:AssociateAgentKnowledgeBase", "bedrock-agent:AssociateAgentGuardrail",
-          "bedrock-agent:GetAgent",
         ]
         Resource = "*"
+      },
+      {
+        Sid      = "BedrockAgentPassRole"
+        Effect   = "Allow"
+        Action   = ["iam:PassRole"]
+        Resource = aws_iam_role.bedrock_agent.arn
+        Condition = {
+          StringEquals = { "iam:PassedToService" = "bedrock.amazonaws.com" }
+        }
       },
       {
         Sid      = "RdsDataApiPreview"
@@ -132,10 +146,25 @@ resource "aws_iam_role_policy" "api_platform" {
         Resource = "*"
       },
       {
-        Sid      = "SfnImport"
-        Effect   = "Allow"
-        Action   = ["states:DescribeStateMachine", "states:ListStateMachines"]
+        Sid    = "SfnDeploy"
+        Effect = "Allow"
+        Action = [
+          "states:DescribeStateMachine", "states:ListStateMachines",
+          "states:CreateStateMachine", "states:UpdateStateMachine",
+          "states:TagResource",
+          "states:StartExecution", "states:DescribeExecution", "states:GetExecutionHistory",
+          "states:ListExecutions",
+        ]
         Resource = "*"
+      },
+      {
+        Sid      = "SfnPassRole"
+        Effect   = "Allow"
+        Action   = ["iam:PassRole"]
+        Resource = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.name_prefix}-pipeline-orchestrator"
+        Condition = {
+          StringEquals = { "iam:PassedToService" = "states.amazonaws.com" }
+        }
       },
       {
         Sid      = "SecretsForRds"
@@ -209,5 +238,6 @@ output "platform_env" {
     ATHENA_WORKGROUP           = aws_athena_workgroup.platform.name
     ATHENA_OUTPUT_LOCATION     = "s3://${var.lakehouse_bucket_name}/athena-results/"
     AWS_BEDROCK_AGENT_ROLE_ARN = aws_iam_role.bedrock_agent.arn
+    AWS_AGENT_DEPLOY_ENABLED   = "true"
   }
 }

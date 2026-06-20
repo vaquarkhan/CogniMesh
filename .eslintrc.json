@@ -15,6 +15,10 @@
       "extends": ["plugin:react-hooks/recommended"],
       "parserOptions": { "ecmaVersion": 2022, "sourceType": "module", "ecmaFeatures": { "jsx": true } },
       "rules": { "no-unused-vars": "warn" }
+    },
+    {
+      "files": ["scripts/capture-portal-demo.js", "scripts/test-portal-e2e.js"],
+      "globals": { "document": "readonly" }
     }
   ]
 }

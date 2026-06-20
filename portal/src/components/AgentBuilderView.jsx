@@ -17,6 +17,7 @@ import { useToast } from "./Toast";
 import { validateAgentBlocks } from "../lib/validate-agent-blocks";
 import { exportAgentManifest, downloadAgentManifest } from "../lib/agent-export";
 import { deployAgentManifest } from "../lib/platform-api";
+import { getApiHealth } from "../lib/api";
 import { validateAgentInstruction } from "../lib/agent-instruction";
 import { bedrockAgentConsoleUrl } from "../lib/aws-console-urls";
 import { instantiateAgentTemplate, getAgentTemplateById } from "../lib/agent-templates";
@@ -62,8 +63,24 @@ export default function AgentBuilderView({
   const [showPreview, setShowPreview] = useState(false);
   const [deployMessage, setDeployMessage] = useState(null);
   const [deployLoading, setDeployLoading] = useState(false);
+  const [agentDeployCheck, setAgentDeployCheck] = useState(null);
 
   const validation = useMemo(() => validateAgentBlocks(nodes, edges), [nodes, edges]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const health = await getApiHealth();
+        if (!cancelled) setAgentDeployCheck(health?.checks?.aws_agent_deploy || null);
+      } catch {
+        if (!cancelled) setAgentDeployCheck(null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [token]);
 
   const nodesWithValidation = useMemo(
     () =>
@@ -236,11 +253,24 @@ export default function AgentBuilderView({
         agentId: data.agentId,
         agentArn: data.agentArn,
         consoleUrl: data.agentArn ? bedrockAgentConsoleUrl(data.agentArn) : null,
+        chatUrl: data.chatUrl || null,
         message: data.message || data.reason || (data.errors?.[0]) || "Deploy finished",
         plan: data.plan,
       });
       if (data.deployed || data.simulated) {
-        success(data.deployed ? `Agent deployed: ${data.agentId}` : "Agent deploy simulated — see banner");
+        success(
+          data.deployed
+            ? `Agent deployed: ${data.agentId}`
+            : "Agent deploy simulated - configure API for Bedrock (see banner)"
+        );
+        if (!data.simulated) {
+          try {
+            const health = await getApiHealth();
+            setAgentDeployCheck(health?.checks?.aws_agent_deploy || null);
+          } catch {
+            /* ignore */
+          }
+        }
       } else if (data.partial && data.agentId) {
         toastError(`Agent ${data.agentId} created but alias failed: ${data.errors?.[0] || "see banner"}`);
       } else {
@@ -312,6 +342,15 @@ export default function AgentBuilderView({
         />
 
         <div className="canvas-column">
+          {agentDeployCheck && !agentDeployCheck.enabled && (
+            <div className="agent-deploy-banner agent-deploy-simulated">
+              <strong>Bedrock deploy not configured on API</strong>
+              <p className="properties-hint">
+                {agentDeployCheck.message}
+                {agentDeployCheck.hint ? ` (${agentDeployCheck.hint})` : ""}
+              </p>
+            </div>
+          )}
           {deployMessage && (
             <div className={`agent-deploy-banner agent-deploy-${deployMessage.status}`}>
               <strong>
@@ -339,7 +378,30 @@ export default function AgentBuilderView({
                   Open in Bedrock Agents Console ↗
                 </a>
               )}
+              {deployMessage.chatUrl && (
+                <a
+                  href={deployMessage.chatUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="aws-console-link agent-chat-link"
+                >
+                  💬 Open Agent Chat UI ↗
+                </a>
+              )}
               <p className="properties-hint">{deployMessage.message}</p>
+              {deployMessage.status === "simulated" && deployMessage.plan?.steps?.length > 0 && (
+                <ol className="aws-fix-steps">
+                  {deployMessage.plan.steps.map((step, i) => (
+                    <li key={i}>{step}</li>
+                  ))}
+                </ol>
+              )}
+              {deployMessage.status === "simulated" && agentDeployCheck?.hint && (
+                <p className="properties-hint">
+                  To deploy for real: set <code>AWS_BEDROCK_AGENT_ROLE_ARN</code> on the API server, restart API, then
+                  click Deploy again. The agent chat UI will launch automatically.
+                </p>
+              )}
             </div>
           )}
 

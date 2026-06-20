@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import FormField from "./FormField";
 import { getDesignReviewFixHelp } from "../lib/api";
+import { buildClientFixPlan } from "../lib/client-fix-plan";
 import { filterFindings, sortFindingsForWizard } from "../lib/fix-wizard-findings";
 
 const SEV_LABEL = {
@@ -65,7 +66,7 @@ function FieldEditor({ field, node, onApplyField }) {
   if (field === "rdsProvisioningMode") {
     return (
       <p className="properties-hint fix-wizard-hint">
-        Or switch the RDS block to <strong>Create new</strong> in Properties — no ARN required.
+        Or switch the RDS block to <strong>Create new</strong> in Properties - no ARN required.
       </p>
     );
   }
@@ -87,6 +88,7 @@ export default function FixIssuesWizardModal({
   onFocusNode,
   onApplyFindingFix,
   onApplyNodeFix,
+  onApplyPipelineMeta,
   applyingFindingId,
   title = "Fix pipeline issues",
 }) {
@@ -102,21 +104,35 @@ export default function FixIssuesWizardModal({
   const node = selected?.nodeIds?.[0] ? nodes.find((n) => n.id === selected.nodeIds[0]) : null;
 
   const loadPlan = useCallback(
-    async (findingId) => {
-      if (!findingId || !token) return;
-      setPlanLoading(true);
+    async (finding) => {
+      if (!finding?.id) return;
+      const clientPlan = buildClientFixPlan(finding, nodes, pipelineMeta);
+      setPlan(clientPlan);
       setPlanError(null);
+      if (!token) return;
+      setPlanLoading(true);
       try {
         const data = await getDesignReviewFixHelp({
           token,
           nodes,
           edges,
           pipelineMeta,
-          findingId,
+          findingId: finding.id,
         });
-        setPlan(data.plans?.[0] || null);
+        const apiPlan = data.plans?.[0];
+        if (apiPlan) {
+          setPlan({
+            ...clientPlan,
+            steps: apiPlan.steps?.length ? apiPlan.steps : clientPlan.steps,
+            fields: apiPlan.fields?.length ? apiPlan.fields : clientPlan.fields,
+            propertyPatch: clientPlan.propertyPatch || apiPlan.propertyPatch,
+            pipelineMetaPatch: clientPlan.pipelineMetaPatch || apiPlan.pipelineMetaPatch,
+            nodeId: clientPlan.nodeId || apiPlan.nodeId,
+            aiExplanation: apiPlan.aiExplanation,
+            mode: apiPlan.mode,
+          });
+        }
       } catch (err) {
-        setPlan(null);
         setPlanError(err.message);
       } finally {
         setPlanLoading(false);
@@ -132,10 +148,9 @@ export default function FixIssuesWizardModal({
   }, [open, visible, selectedId]);
 
   useEffect(() => {
-    if (!open || !selected?.id) return;
-    setPlan(null);
-    loadPlan(selected.id);
-  }, [open, selected?.id, loadPlan]);
+    if (!open || !selected) return;
+    loadPlan(selected);
+  }, [open, selected, loadPlan]);
 
   if (!open) return null;
 
@@ -160,7 +175,7 @@ export default function FixIssuesWizardModal({
           <div>
             <h2 id="fix-wizard-title">{title}</h2>
             <p className="properties-hint">
-              Pick an issue below — we show guided steps and fields to update. No hunting through the canvas HUD.
+              We fix issues on your canvas automatically - click Apply fix below.
             </p>
           </div>
           <button type="button" className="btn-ghost fix-wizard-close" onClick={onClose} aria-label="Close">
@@ -198,7 +213,7 @@ export default function FixIssuesWizardModal({
             {selected && (
               <div className="fix-wizard-detail">
                 <p className={`fix-wizard-sev sev-${selected.severity}`}>
-                  {SEV_LABEL[selected.severity] || selected.severity} — {selected.title}
+                  {SEV_LABEL[selected.severity] || selected.severity} - {selected.title}
                 </p>
                 <p className="fix-wizard-msg">{selected.message}</p>
 
@@ -213,20 +228,28 @@ export default function FixIssuesWizardModal({
                   </div>
                 )}
 
-                {planLoading && <p className="properties-hint">Loading AI fix guide…</p>}
-                {planError && <p className="deploy-errors">{planError}</p>}
+                {planLoading && <p className="properties-hint">Loading fix guide…</p>}
+                {planError && (
+                  <p className="properties-hint">Fix guide unavailable - use Apply fix below.</p>
+                )}
 
                 {plan?.aiExplanation && (
                   <div className="aws-ai-fix-box">
-                    <strong>AI fix guide</strong>
                     <p>{plan.aiExplanation}</p>
-                    {plan.mode === "amazon_q" && (
-                      <span className="properties-hint">Amazon Q</span>
-                    )}
-                    {plan.mode === "llm" && (
-                      <span className="properties-hint">Amazon Bedrock</span>
-                    )}
+                    <span className="aws-ai-fix-badge">
+                      {plan.mode === "amazon_q" ? "Amazon Q" : "AI-assisted"}
+                    </span>
                   </div>
+                )}
+
+                {!plan?.aiExplanation && !planLoading && !planError && selected && (
+                  <button
+                    type="button"
+                    className="btn-secondary fix-wizard-ask-ai"
+                    onClick={() => loadPlan(selected)}
+                  >
+                    🤖 Get AI fix guide
+                  </button>
                 )}
 
                 {(plan?.fields?.length > 0 || node) && (
@@ -255,6 +278,17 @@ export default function FixIssuesWizardModal({
               onClick={() => onFocusNode?.(selected.nodeIds[0])}
             >
               Go to block
+            </button>
+          )}
+          {plan?.pipelineMetaPatch &&
+            Object.keys(plan.pipelineMetaPatch).length > 0 &&
+            onApplyPipelineMeta && (
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={() => onApplyPipelineMeta(plan.pipelineMetaPatch)}
+            >
+              Apply pipeline settings
             </button>
           )}
           {plan?.propertyPatch && plan.nodeId && onApplyNodeFix && (

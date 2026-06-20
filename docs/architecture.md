@@ -70,6 +70,46 @@ Implementation: `services/cognitive-runtime/`
 2. CI runs `aiv-integrity-gate` (quality, security, compliance)
 3. On approval → Glue Data Catalog + Lake Formation policies
 
+## VPC Provisioning Mode
+
+The portal supports two VPC modes when generating infrastructure:
+
+- **Create new (Terraform)**: Generates a complete VPC with public/private subnets, NAT gateway, internet gateway, route tables, and security groups. Default for new pipelines.
+- **Existing VPC**: References an existing VPC by ID. Users supply `vpcId`, `privateSubnetIds`, and `glueSecurityGroupId` in the pipeline properties panel.
+
+The VPC mode is set in `pipelineMeta.vpcMode` (`"create_new"` or `"existing"`) and affects both Terraform export and the draw.io architecture diagram.
+
+## Streamlit Agent Chat
+
+After deploying a Bedrock Agent from the Agent Builder panel, CogniMesh launches a **Streamlit chat UI** automatically. The launcher (`lib/platform/streamlit-launcher.js`) manages per-agent Streamlit processes with:
+
+- Automatic port allocation (starts at 8501, scans for free ports)
+- Session-based conversation with the deployed agent via `bedrock-agent-runtime`
+- Sidebar showing agent ID, alias, region, and session controls
+- Process lifecycle management (reuse existing, graceful stop)
+
+The chat app (`services/streamlit-agent-chat/app.py`) connects directly to Bedrock Agent Runtime using the deployed agent's ID and alias.
+
+## Amazon Q Fix Integration
+
+When the AWS Design Review panel finds issues (e.g., missing encryption, public RDS), CogniMesh can invoke **Amazon Q Business** to generate fix guidance. This is controlled by:
+
+- `AMAZON_Q_FIX_ENABLED=true` - enables the integration
+- `AMAZON_Q_APPLICATION_ID` - the Q Business application ID
+
+The fix assistant (`lib/platform/amazon-q-fix.js`) sends a structured prompt with the finding details, severity, suggested fix steps, and block data. Amazon Q returns a concise remediation guide (max 120 words) with numbered steps and the specific Properties panel fields to change.
+
+## Dynamic Draw.io Export
+
+The draw.io architecture export (`portal/src/lib/infrastructure-export.js`) reads the **actual canvas nodes** to build the diagram dynamically:
+
+- Only shows services that exist on the canvas (RDS, Kinesis, MSK, Glue, Firehose, etc.)
+- Adapts IAM roles, security groups, and subnets to the actual pipeline composition
+- Shows the correct count of sources, transforms, and sinks
+- Handles edge cases: empty canvas produces a minimal diagram; partial pipelines don't crash
+- VPC/subnet structure adjusts based on `vpcMode` (existing vs. Terraform-provisioned)
+- Connections between services are wired based on the actual data flow
+
 ## Documentation
 
 | Document | Description |
@@ -78,5 +118,7 @@ Implementation: `services/cognitive-runtime/`
 | [vaquar-pattern.md](vaquar-pattern.md) | The Vaquar Pattern (PVDM) |
 | [drag-drop-pipeline-flow.md](drag-drop-pipeline-flow.md) | Portal E2E |
 | [data-contract-spec.md](data-contract-spec.md) | DataContract spec |
+| [TUTORIAL_AGENT_DEPLOY.md](TUTORIAL_AGENT_DEPLOY.md) | Tutorial: Deploy agent with Streamlit chat |
+| [TUTORIAL_DRAWIO_EXPORT.md](TUTORIAL_DRAWIO_EXPORT.md) | Tutorial: Export architecture diagrams |
 
 See [README](../README.md) for service and infrastructure paths.

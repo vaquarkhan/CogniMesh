@@ -29,7 +29,7 @@ Need both accurate batch history and low-latency recent data - classic λ before
 ## How it works
 
 ```
-Parallel[Batch: S3→Glue→Iceberg | Speed: Kinesis→Flink→Iceberg] → Merge → Athena serving
+Parallel[Batch: S3→Glue→Iceberg | Speed: Kinesis→Glue streaming→Iceberg] → Merge → Athena serving
 ```
 
 **Diagram:**

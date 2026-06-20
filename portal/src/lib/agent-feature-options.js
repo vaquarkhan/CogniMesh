@@ -181,6 +181,16 @@ function addMissingFeatureBlocks(nodes, edges, runtime, features) {
     });
 
     if (feat.id === "gateway") {
+      // Wire the auto-added Gateway to the runtime so it isn't an orphan block.
+      const runtime = nextNodes.find((n) => n.data?.blockType === "runtime" || n.data?.blockType === "supervisor");
+      if (runtime) {
+        nextEdges.push({
+          id: `ae-add-rt-${newId}`,
+          source: runtime.id,
+          target: newId,
+          animated: true,
+        });
+      }
       continue;
     }
     if (["tool_lambda", "tool_mcp", "tool_api", "code_interpreter", "browser"].includes(block.defaults.blockType)) {

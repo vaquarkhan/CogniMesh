@@ -12,11 +12,18 @@ function nodeForFinding(finding, nodes) {
 function patchForFinding(finding, node, pipelineMeta) {
   const id = finding.id;
 
+  if (id.startsWith("setup.rds_secret") && node) {
+    if (node.data?.secretArn?.trim()) return null;
+    return {
+      nodeId: node.id,
+      propertyPatch: { rdsProvisioningMode: "provision", secretArn: "" },
+    };
+  }
   if (id.startsWith("setup.rds_secret")) {
     return null;
   }
   if (id.startsWith("sec.secrets_manager") && node) {
-    if (node.data?.rdsProvisioningMode === "existing") return null;
+    if (node.data?.secretArn?.trim()) return null;
     return {
       nodeId: node.id,
       propertyPatch: { rdsProvisioningMode: "provision" },
@@ -40,8 +47,15 @@ function patchForFinding(finding, node, pipelineMeta) {
       },
     };
   }
-  if (id.startsWith("sec.s3_encryption") && node) {
-    return { nodeId: node.id, propertyPatch: { encryption: "AES256" } };
+  if (id.startsWith("setup.s3_encryption") || id.startsWith("sec.s3_encryption")) {
+    if (!node) return null;
+    return {
+      nodeId: node.id,
+      propertyPatch: {
+        encryption: "AES256",
+        sinkProvisioningMode: node.data?.sinkProvisioningMode || "provision",
+      },
+    };
   }
   if (id.startsWith("sec.glue_catalog") && node) {
     return {
