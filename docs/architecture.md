@@ -110,6 +110,41 @@ The draw.io architecture export (`portal/src/lib/infrastructure-export.js`) read
 - VPC/subnet structure adjusts based on `vpcMode` (existing vs. Terraform-provisioned)
 - Connections between services are wired based on the actual data flow
 
+## AgentCore Runtime (Strands) Deploy Target
+
+The Agent Builder supports two deploy targets via a dropdown:
+
+- **Bedrock Agents** (default): Creates a managed Bedrock Agent with alias, knowledge bases, and guardrails.
+- **AgentCore Runtime (Strands)**: Generates a standalone Python project using Strands + BedrockAgentCoreApp, downloadable as a ZIP.
+
+The AgentCore Runtime project (`lib/platform/agentcore-runtime-deploy.js`) generates:
+- `agent.py` — Strands Agent with BedrockModel and @tool stubs from the manifest
+- `Dockerfile` — linux/arm64 container for ECR
+- `deploy.sh` — ECR push + `aws bedrock-agentcore-control create-agent-runtime`
+- `requirements.txt`, `.env.example`, `README.md`
+
+When `AGENTCORE_RUNTIME_ENABLED=true` + `AGENTCORE_RUNTIME_ROLE_ARN` + `AGENTCORE_ECR_IMAGE_URI` are set, the API can also call `CreateAgentRuntime` directly.
+
+## Native Dashboard
+
+The portal includes a built-in **Dashboard tab** (`portal/src/components/DashboardView.jsx`) that provides a live view of all deployed infrastructure:
+
+- 4 KPI cards: Pipelines deployed, Runs succeeded, Runs failed, Agents deployed
+- SVG donut chart of pipeline run-status distribution
+- Bar chart of agents by status (PREPARED, PREPARING, etc.)
+- Full tables of all pipelines and agents with status badges
+- Auto-refreshes every 15 seconds from `/api/v1/public/status` (no auth required)
+
+## AgentCore Studio (Embedded)
+
+The **AgentCore Studio tab** (`portal/src/components/AgentCoreStudioView.jsx`) embeds the AWS-sample AgentCore self-service platform via an iframe. This is a separately deployed CDK stack (`aws-samples/sample-ai-agent-factory`) that provides:
+
+- Agent template creation workflow
+- Tool/guardrail visual configuration
+- Bedrock AgentCore runtime deployment
+
+The studio URL is configured via `VITE_AGENTCORE_STUDIO_URL` (baked at build time). If the iframe is blocked by browser third-party cookie policy, a fallback panel with "Open in new tab" is shown.
+
 ## Documentation
 
 | Document | Description |

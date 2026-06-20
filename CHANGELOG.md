@@ -7,9 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added - `ui-enhancement` branch
+### Added — `ui-enhancement-2026-06-20` branch
 
-- **Dynamic draw.io export**: Architecture diagram reads actual canvas nodes - only shows RDS, Kinesis, Glue, Firehose, Integrity Gate, etc. when those blocks exist on the pipeline canvas
+- **AgentCore Runtime (Strands) deploy target**: New deploy dropdown in Agent Builder — generates a downloadable Python project (agent.py, Dockerfile, deploy.sh) using Strands + BedrockAgentCoreApp. Optionally calls CreateAgentRuntime when env configured.
+- **Native Dashboard tab**: In-app dashboard with KPI cards, SVG donut chart (pipeline run status), bar chart (agents by status), and full pipeline/agent tables. Auto-refreshes every 15s from `/api/v1/public/status`.
+- **AgentCore Studio tab**: Embeds the AWS-sample AgentCore self-service platform (separately deployed CDK stack) via iframe. Fallback "Open in new tab" when blocked.
+- **ZIP download utility**: Dependency-free browser ZIP builder (CRC32 + store) for downloading generated projects.
+- **4-tab header navigation**: Data Pipeline | Agent Builder | AgentCore Studio | 📊 Dashboard
+
+### Added — `ui-enhancement-2026-06-18` branch
+
+- **Dynamic draw.io export**: Architecture diagram reads actual canvas nodes — only shows RDS, Kinesis, Glue, Firehose, Integrity Gate, etc. when those blocks exist on the pipeline canvas
 - **VPC provisioning mode**: Choose between Terraform-managed VPC or reference an existing VPC (affects Terraform export and draw.io diagrams)
 - **Streamlit agent chat UI**: Auto-launches a Streamlit chat interface after deploying a Bedrock Agent from the Agent Builder panel
 - **Amazon Q fix integration**: Design Review findings can invoke Amazon Q Business to generate step-by-step remediation guides
