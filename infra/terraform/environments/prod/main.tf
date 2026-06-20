@@ -26,6 +26,12 @@ locals {
     ATHENA_OUTPUT_LOCATION    = try(module.platform_ops[0].platform_env.ATHENA_OUTPUT_LOCATION, "")
     AWS_BEDROCK_AGENT_ROLE_ARN = try(module.platform_ops[0].platform_env.AWS_BEDROCK_AGENT_ROLE_ARN, "")
     AWS_AGENT_DEPLOY_ENABLED   = try(module.platform_ops[0].platform_env.AWS_AGENT_DEPLOY_ENABLED, "false")
+    AWS_DEPLOY_ENABLED          = "true"
+    AWS_DEPLOY_EXECUTE          = "true"
+    AWS_STEP_FUNCTIONS_ROLE_ARN = module.iam.pipeline_orchestrator_role_arn
+    AWS_NAME_PREFIX             = var.name_prefix
+    COPILOT_LLM_ENABLED         = "true"
+    COPILOT_BEDROCK_MODEL_ID    = "anthropic.claude-3-haiku-20240307-v1:0"
   }
 }
 
@@ -164,6 +170,17 @@ module "domain_writer_lambda" {
   timeout          = 120
   memory_size      = 512
   tags             = merge(local.tags, { Component = "domain-writer" })
+
+  # Lambda /var/task is read-only; PVDM staging/proofs/state must use the writable /tmp.
+  extra_environment = {
+    PVDM_STAGING_DIR       = "/tmp/pvdm-staging"
+    VRP_PROOF_DIR          = "/tmp/pvdm-proofs"
+    VRP_TRANSPARENCY_LOG   = "/tmp/data/vrp-transparency-log.jsonl"
+    ICEBERG_SNAPSHOT_STATE = "/tmp/data/iceberg-snapshots.json"
+    PLATFORM_DATA_DIR      = "/tmp/data"
+    PROOF_BUCKET           = var.proof_bucket_name
+    CHECKPOINT_BUCKET      = var.checkpoint_bucket_name
+  }
 }
 
 module "eks" {
