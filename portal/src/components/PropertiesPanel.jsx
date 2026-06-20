@@ -55,7 +55,7 @@ export default function PropertiesPanel({
           >
             {AWS_REGIONS.map((r) => (
               <option key={r.id} value={r.id}>
-                {r.id} — {r.label}
+                {r.id} - {r.label}
               </option>
             ))}
           </select>
@@ -109,7 +109,7 @@ export default function PropertiesPanel({
         </FormField>
         <FormField
           label="VPC infrastructure"
-          tip="Create new VPC with private subnets, NAT, security groups via Terraform — or use an existing VPC."
+          tip="Create new VPC with private subnets, NAT, security groups via Terraform - or use an existing VPC."
         >
           <select
             data-testid="pipeline-vpc-mode"
@@ -122,7 +122,7 @@ export default function PropertiesPanel({
         </FormField>
         {pipelineMeta.vpcMode === "existing" && (
           <>
-            <FormField label="VPC ID" tip="Your existing VPC — all resources deploy in private subnets">
+            <FormField label="VPC ID" tip="Your existing VPC - all resources deploy in private subnets">
               <input
                 value={pipelineMeta.vpcId || ""}
                 onChange={(e) => onMetaChange({ ...pipelineMeta, vpcId: e.target.value })}
@@ -435,7 +435,7 @@ export default function PropertiesPanel({
             <strong>AWS issues on this block ({awsFindings.length})</strong>
           </div>
           <p className="props-aws-findings-hint">
-            Fix below — opens the design review guide with steps for encryption, Lake Formation, integrity gate, and more.
+            Fix below - opens the design review guide with steps for encryption, Lake Formation, integrity gate, and more.
           </p>
           <ul className="props-aws-findings-list">
             {awsFindings.map((f) => (

@@ -1,12 +1,12 @@
 """
-CogniMesh Agent Chat — Streamlit UI for Bedrock Agents.
+CogniMesh Agent Chat - Streamlit UI for Bedrock Agents.
 
 Usage:
   streamlit run app.py -- --agent-id AGENT_ID --alias-id ALIAS_ID --region us-east-1
 
 Environment:
   AWS credentials must be configured (profile, env vars, or IAM role).
-  COGNIMESH_API_URL (optional) — API gateway URL for session logging.
+  COGNIMESH_API_URL (optional) - API gateway URL for session logging.
 """
 
 import os
@@ -43,7 +43,7 @@ AGENT_NAME = args.agent_name
 # ---------------------------------------------------------------------------
 
 st.set_page_config(
-    page_title=f"{AGENT_NAME} — CogniMesh",
+    page_title=f"{AGENT_NAME} - CogniMesh",
     page_icon="🤖",
     layout="centered",
 )

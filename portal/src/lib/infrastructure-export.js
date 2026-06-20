@@ -119,7 +119,7 @@ export function generatePipelineTerraform({ nodes, pipelineMeta = {} }) {
   }
 
   const lines = [
-    `# CogniMesh pipeline infrastructure — ${pipelineMeta.name || prefix}`,
+    `# CogniMesh pipeline infrastructure - ${pipelineMeta.name || prefix}`,
     `# domain: ${domain} · export from portal AWS Design Review`,
     "",
     'terraform {',
@@ -429,7 +429,7 @@ export function generateDrawioArchitecture({ topology, nodes = [], pipelineMeta 
   let yPos = 40;
   let rightCol = 40; // y-offset for right column in privSubnet1
 
-  // RDS sources — one box per actual RDS source on the canvas
+  // RDS sources - one box per actual RDS source on the canvas
   if (caps.hasRds) {
     for (const src of caps.rdsSources) {
       const d = src.data || {};
@@ -542,7 +542,7 @@ export function generateDrawioArchitecture({ topology, nodes = [], pipelineMeta 
     }
   }
 
-  // Lake Formation (show if any sinks present — governance layer)
+  // Lake Formation (show if any sinks present - governance layer)
   if (caps.allSinks.length > 0) {
     serviceIds.lf = addService("Lake Formation (governance)", 20, yPos2, 210, 45, privSubnet2, { fill: "#fce7f3", stroke: "#db2777" });
     yPos2 += 55;
@@ -567,7 +567,7 @@ export function generateDrawioArchitecture({ topology, nodes = [], pipelineMeta 
   }
 
   // ═══════════════════════════════════════════════════
-  // IAM Roles — only for services that exist
+  // IAM Roles - only for services that exist
   // ═══════════════════════════════════════════════════
   const iamRoles = [];
   if (caps.hasGlue) iamRoles.push("GlueJobRole");
@@ -593,7 +593,7 @@ export function generateDrawioArchitecture({ topology, nodes = [], pipelineMeta 
   }
 
   // ═══════════════════════════════════════════════════
-  // Security Groups — only for services that need them
+  // Security Groups - only for services that need them
   // ═══════════════════════════════════════════════════
   const sgRules = [];
   if (caps.hasRds) sgRules.push("sg-rds (3306/5432 from Glue SG)");
@@ -615,7 +615,7 @@ export function generateDrawioArchitecture({ topology, nodes = [], pipelineMeta 
   }
 
   // ═══════════════════════════════════════════════════
-  // Connections — based on what's actually wired up
+  // Connections - based on what's actually wired up
   // ═══════════════════════════════════════════════════
   if (serviceIds.rds && serviceIds.secrets) addEdge(serviceIds.rds, serviceIds.secrets, "credentials");
   if (serviceIds.rds && serviceIds.glue) addEdge(serviceIds.rds, serviceIds.glue, "CDC extract");
@@ -646,7 +646,7 @@ export function generateDrawioArchitecture({ topology, nodes = [], pipelineMeta 
   const rdsSources = listRdsSources(nodes);
   const noteId = nextId();
   const noteLines = [
-    `Pipeline: ${pipelineMeta.name || "—"}`,
+    `Pipeline: ${pipelineMeta.name || "-"}`,
     `Domain: ${domain}`,
     `Region: ${region}`,
     `VPC: ${vpcMode === "existing" ? "existing" : "Terraform-provisioned"}`,

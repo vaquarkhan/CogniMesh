@@ -382,7 +382,7 @@ export default function App() {
     setEdges(result.edges);
     pushHistory(result.nodes, result.edges);
     if (result.gateId) setSelectedId(result.gateId);
-    success("Added Integrity Gate block — wire or re-scan AWS review");
+    success("Added Integrity Gate block - wire or re-scan AWS review");
     return true;
   }, [nodes, edges, setNodes, setEdges, pushHistory, success, toastError]);
 
@@ -397,22 +397,22 @@ export default function App() {
         const applyAction = (action) => {
           if (action.type === "add_integrity_gate") {
             if (addIntegrityGateToGraph()) {
-              success("Added Integrity Gate — re-scanning AWS review…");
+              success("Added Integrity Gate - re-scanning AWS review…");
               setTimeout(runDesignReviewScan, 400);
             } else {
-              toastError("Could not add integrity gate — wire transform → sink first");
+              toastError("Could not add integrity gate - wire transform → sink first");
             }
             return true;
           }
           if (action.type === "pipelineMeta") {
             setPipelineMeta((m) => ({ ...m, ...action.patch }));
-            success("Applied suggested fix — re-scanning AWS review…");
+            success("Applied suggested fix - re-scanning AWS review…");
             setTimeout(runDesignReviewScan, 400);
             return true;
           }
           if (action.type === "node" && action.nodeId && action.patch) {
             updateNode(action.nodeId, action.patch);
-            success("Applied suggested fix — re-scanning AWS review…");
+            success("Applied suggested fix - re-scanning AWS review…");
             setTimeout(runDesignReviewScan, 400);
             return true;
           }
@@ -427,13 +427,13 @@ export default function App() {
 
         if (clientPlan?.propertyPatch && clientPlan.nodeId) {
           updateNode(clientPlan.nodeId, clientPlan.propertyPatch);
-          success("Applied fix on canvas — re-scanning…");
+          success("Applied fix on canvas - re-scanning…");
           setTimeout(runDesignReviewScan, 400);
           return;
         }
         if (clientPlan?.pipelineMetaPatch) {
           setPipelineMeta((m) => ({ ...m, ...clientPlan.pipelineMetaPatch }));
-          success("Applied pipeline settings — re-scanning…");
+          success("Applied pipeline settings - re-scanning…");
           setTimeout(runDesignReviewScan, 400);
           return;
         }
@@ -461,15 +461,15 @@ export default function App() {
 
         if (plan?.propertyPatch && plan.nodeId) {
           updateNode(plan.nodeId, plan.propertyPatch);
-          success("Applied suggested fix — re-scanning AWS review…");
+          success("Applied suggested fix - re-scanning AWS review…");
           setTimeout(runDesignReviewScan, 400);
           return;
         }
 
         toastError(
           clientPlan?.steps?.[0] || plan?.steps?.[0]
-            ? "Follow the steps above — some issues need manual fields (e.g. paste an ARN)"
-            : "No automatic patch for this issue — use the guided fields"
+            ? "Follow the steps above - some issues need manual fields (e.g. paste an ARN)"
+            : "No automatic patch for this issue - use the guided fields"
         );
       } catch (err) {
         toastError(err.message || "Could not apply fix");
@@ -500,7 +500,7 @@ export default function App() {
     });
     const safe = (meta.name || "cognimesh").replace(/[^a-z0-9-]+/gi, "-").toLowerCase();
     downloadTextFile(`${safe}-architecture.drawio`, xml, "application/xml");
-    success("Architecture diagram downloaded — open in diagrams.net");
+    success("Architecture diagram downloaded - open in diagrams.net");
   }, [awsReview?.topology, nodes, pipelineMeta, userEmail, success]);
 
   const exportInfrastructureTerraform = useCallback(() => {
@@ -542,7 +542,7 @@ export default function App() {
         setDeployResult({ ...result, status: "error" });
         setDeployError(errs);
         setFixWizardOpen(true);
-        toastError(errs[0] || "Preview failed — fix in wizard");
+        toastError(errs[0] || "Preview failed - fix in wizard");
       }
     } catch (err) {
       setDeployError([err.message]);
@@ -567,8 +567,8 @@ export default function App() {
       return;
     }
     if (awsReview?.overall?.criticalCount > 0) {
-      // Advisory only — never block deploy. Surface findings, then proceed.
-      toastError(`${awsReview.overall.criticalCount} finding(s) flagged — review in AWS Review. Deploying anyway.`);
+      // Advisory only - never block deploy. Surface findings, then proceed.
+      toastError(`${awsReview.overall.criticalCount} finding(s) flagged - review in AWS Review. Deploying anyway.`);
     }
     setDeployImpact(null);
     setDeployImpactLoading(true);
@@ -649,7 +649,7 @@ export default function App() {
           const msg =
             data.aws.error ||
             data.aws.reason ||
-            "Pipeline compiled locally — Step Functions was not pushed to AWS.";
+            "Pipeline compiled locally - Step Functions was not pushed to AWS.";
           toastError(
             data.aws.hint
               ? `${msg} (${data.aws.hint})`
@@ -662,7 +662,7 @@ export default function App() {
         setDeployResult(data.contract ? data : null);
         setActiveDock("deploy");
         setFixWizardOpen(true);
-        toastError(errs[0] || "Deploy blocked — fix in wizard");
+        toastError(errs[0] || "Deploy blocked - fix in wizard");
       }
     } catch (err) {
       setDeployError([err.message]);
@@ -905,7 +905,7 @@ export default function App() {
               onAutoLoadFixHandled={() => setAwsAutoLoadFixForId(null)}
               onApplyNodeFix={(nodeId, patch) => {
                 updateNode(nodeId, patch);
-                success("Applied suggested fix — re-scanning AWS review…");
+                success("Applied suggested fix - re-scanning AWS review…");
                 setTimeout(runDesignReviewScan, 400);
               }}
               onApplyFindingFix={applyAwsFindingFix}

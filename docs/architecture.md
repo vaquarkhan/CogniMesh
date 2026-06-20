@@ -94,8 +94,8 @@ The chat app (`services/streamlit-agent-chat/app.py`) connects directly to Bedro
 
 When the AWS Design Review panel finds issues (e.g., missing encryption, public RDS), CogniMesh can invoke **Amazon Q Business** to generate fix guidance. This is controlled by:
 
-- `AMAZON_Q_FIX_ENABLED=true` — enables the integration
-- `AMAZON_Q_APPLICATION_ID` — the Q Business application ID
+- `AMAZON_Q_FIX_ENABLED=true` - enables the integration
+- `AMAZON_Q_APPLICATION_ID` - the Q Business application ID
 
 The fix assistant (`lib/platform/amazon-q-fix.js`) sends a structured prompt with the finding details, severity, suggested fix steps, and block data. Amazon Q returns a concise remediation guide (max 120 words) with numbered steps and the specific Properties panel fields to change.
 

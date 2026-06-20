@@ -261,7 +261,7 @@ export default function AgentBuilderView({
         success(
           data.deployed
             ? `Agent deployed: ${data.agentId}`
-            : "Agent deploy simulated — configure API for Bedrock (see banner)"
+            : "Agent deploy simulated - configure API for Bedrock (see banner)"
         );
         if (!data.simulated) {
           try {

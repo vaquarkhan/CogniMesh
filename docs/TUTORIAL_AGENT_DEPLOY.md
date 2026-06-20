@@ -81,7 +81,7 @@ The API gateway exposes agent lifecycle endpoints:
 | `STREAMLIT_BASE_PORT` | `8501` | Starting port for allocation |
 | `STREAMLIT_HOST` | `0.0.0.0` | Bind address |
 | `STREAMLIT_BASE_URL` | `http://localhost:{port}` | Base URL (override for remote) |
-| `COGNIMESH_API_URL` | — | API gateway URL for session logging |
+| `COGNIMESH_API_URL` | - | API gateway URL for session logging |
 
 ## Troubleshooting
 

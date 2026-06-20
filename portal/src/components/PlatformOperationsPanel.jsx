@@ -214,7 +214,7 @@ export default function PlatformOperationsPanel({
       {tab === "dashboard" && dashboard && (
         <div className="platform-ops-body">
           <p className="properties-hint">
-            Refreshed {dashboard.refreshedAt || "—"} · {dashboard.summary?.pipelines ?? 0} pipelines ·{" "}
+            Refreshed {dashboard.refreshedAt || "-"} · {dashboard.summary?.pipelines ?? 0} pipelines ·{" "}
             {dashboard.summary?.running ?? 0} running
           </p>
           <ul className="platform-ops-list">
@@ -288,7 +288,7 @@ export default function PlatformOperationsPanel({
           <ul className="platform-ops-list">
             {health.products.map((p) => (
               <li key={`${p.domain}/${p.name}`}>
-                <strong>{p.name}</strong> — score {p.health.score} ({p.health.grade})
+                <strong>{p.name}</strong> - score {p.health.score} ({p.health.grade})
               </li>
             ))}
           </ul>
@@ -302,7 +302,7 @@ export default function PlatformOperationsPanel({
         <ul className="platform-ops-list">
           {costs.products.map((p) => (
             <li key={p.name}>
-              <strong>{p.name}</strong> — ${p.cost.estimatedTotal}/mo
+              <strong>{p.name}</strong> - ${p.cost.estimatedTotal}/mo
               <span className="properties-hint"> Glue ${p.cost.breakdown.glue}</span>
             </li>
           ))}
@@ -380,7 +380,7 @@ export default function PlatformOperationsPanel({
           <ul className="platform-ops-list">
             {billing.organizations.map((o) => (
               <li key={o.orgId}>
-                <strong>{o.orgId}</strong> — ${o.totalUsd} · {o.eventCount} events · {o.productCount} products
+                <strong>{o.orgId}</strong> - ${o.totalUsd} · {o.eventCount} events · {o.productCount} products
               </li>
             ))}
           </ul>
@@ -392,7 +392,7 @@ export default function PlatformOperationsPanel({
         <ul className="platform-ops-list">
           {targets.map((t) => (
             <li key={t.id}>
-              <strong>{t.label}</strong> — {t.runtime} · {t.status}
+              <strong>{t.label}</strong> - {t.runtime} · {t.status}
             </li>
           ))}
         </ul>
@@ -469,7 +469,7 @@ export default function PlatformOperationsPanel({
 
       {tab === "spec" && openSpec && (
         <div className="platform-ops-body">
-          <p><strong>{openSpec.spec}</strong> — {openSpec.status}</p>
+          <p><strong>{openSpec.spec}</strong> - {openSpec.status}</p>
           <p className="properties-hint">Agent: {openSpec.agentSpec}</p>
           {specSiteUrl && (
             <a href={specSiteUrl} target="_blank" rel="noreferrer">Open specification site ↗</a>

@@ -44,7 +44,7 @@ export default function DeployConfirmModal({
           >
             {AWS_REGIONS.map((r) => (
               <option key={r.id} value={r.id}>
-                {r.id} — {r.label}
+                {r.id} - {r.label}
               </option>
             ))}
           </select>
@@ -56,7 +56,7 @@ export default function DeployConfirmModal({
               <strong>AWS Step Functions:</strong>{" "}
               {awsDeployCheck.enabled
                 ? awsDeployCheck.roleConfigured
-                  ? `enabled — state machine in ${region}`
+                  ? `enabled - state machine in ${region}`
                   : "misconfigured on API server"
                 : "local compile only (AWS deploy off)"}
             </p>
@@ -97,7 +97,7 @@ export default function DeployConfirmModal({
               <ul className="impact-consumer-list">
                 {impact.affectedConsumers.slice(0, 4).map((c) => (
                   <li key={c.consumerId}>
-                    {c.consumerId} ({c.risk}) — {c.reason}
+                    {c.consumerId} ({c.risk}) - {c.reason}
                   </li>
                 ))}
               </ul>
@@ -107,7 +107,7 @@ export default function DeployConfirmModal({
 
         {critical > 0 && (
           <p className="modal-warning">
-            {critical} AWS finding(s) flagged. These are advisory — you can deploy now and address them before production.
+            {critical} AWS finding(s) flagged. These are advisory - you can deploy now and address them before production.
           </p>
         )}
 

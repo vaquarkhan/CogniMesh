@@ -1,5 +1,5 @@
 /**
- * Canvas block type enums — keep aligned with schemas/data-contract-v1.schema.json
+ * Canvas block type enums - keep aligned with schemas/data-contract-v1.schema.json
  * and portal workflow block defaults.
  */
 

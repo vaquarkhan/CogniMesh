@@ -1,5 +1,5 @@
 /**
- * Client-side fix playbooks (no API) — mirrors lib/aws-design-review/fix-assistant.
+ * Client-side fix playbooks (no API) - mirrors lib/aws-design-review/fix-assistant.
  */
 
 const PLAYBOOK = {
@@ -8,7 +8,7 @@ const PLAYBOOK = {
     steps: [
       "Paste your Secrets Manager ARN in the field below, or switch to Create new database.",
       "Never put passwords in the canvas.",
-      "Click Apply fix — we update the block for you.",
+      "Click Apply fix - we update the block for you.",
     ],
     suggestPatch: (node) =>
       node?.data?.rdsProvisioningMode === "existing"
@@ -19,7 +19,7 @@ const PLAYBOOK = {
     fields: ["secretArn", "rdsProvisioningMode"],
     steps: [
       "For existing RDS: paste Secrets Manager ARN below.",
-      "Or click Apply fix to switch to Create new (Terraform) — no ARN needed.",
+      "Or click Apply fix to switch to Create new (Terraform) - no ARN needed.",
     ],
     suggestPatch: (node) =>
       node?.data?.rdsProvisioningMode === "provision"
@@ -33,7 +33,7 @@ const PLAYBOOK = {
   },
   "sec.s3_encryption": {
     fields: ["encryption"],
-    steps: ["Enable AES256 encryption on the sink block.", "Click Apply fix — no YAML editing."],
+    steps: ["Enable AES256 encryption on the sink block.", "Click Apply fix - no YAML editing."],
     suggestPatch: () => ({ encryption: "AES256" }),
   },
   "sec.glue_catalog": {
@@ -99,7 +99,7 @@ function resolvePlaybook(findingId) {
   if (findingId.startsWith("validation.")) {
     return {
       fields: [],
-      steps: ["Use the fields below or Go to block.", "Complete guided setup in Properties — no YAML."],
+      steps: ["Use the fields below or Go to block.", "Complete guided setup in Properties - no YAML."],
     };
   }
   if (findingId.startsWith("deploy.")) {
@@ -124,7 +124,7 @@ function nodeForFinding(finding, nodes) {
   return null;
 }
 
-/** Build a fix plan locally — works offline and without Bedrock. */
+/** Build a fix plan locally - works offline and without Bedrock. */
 export function buildClientFixPlan(finding, nodes, pipelineMeta = {}) {
   if (!finding?.id) return null;
   const playbook = resolvePlaybook(finding.id);
@@ -132,7 +132,7 @@ export function buildClientFixPlan(finding, nodes, pipelineMeta = {}) {
   const steps = playbook?.steps || [
     finding.fix || finding.message || "Update the affected block in Properties.",
     "Click Apply fix if available, or use the fields below.",
-    "Re-run Preview when finished — no YAML editing required.",
+    "Re-run Preview when finished - no YAML editing required.",
   ];
   const fields = playbook?.fields || [];
   const rawPatch = playbook?.suggestPatch ? playbook.suggestPatch(node, pipelineMeta) : null;
@@ -186,7 +186,7 @@ export function mergeWizardFindings({ awsFindings = [], deployErrors = [], block
       severity: "critical",
       title: "Deploy blocked",
       message: text,
-      fix: "Use Apply fix in this wizard — we update the canvas for you.",
+      fix: "Use Apply fix in this wizard - we update the canvas for you.",
       nodeIds: [],
     });
   }

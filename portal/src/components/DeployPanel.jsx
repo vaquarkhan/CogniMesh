@@ -28,7 +28,7 @@ function DeployErrorHero({ title, errors, onOpenFixWizard }) {
             Fix in guided wizard
           </button>
           <p className="properties-hint deploy-error-hint">
-            We update blocks on the canvas for you — no YAML editing.
+            We update blocks on the canvas for you - no YAML editing.
           </p>
         </>
       )}
@@ -92,7 +92,7 @@ export default function DeployPanel({
           errors={
             hasError
               ? errorList
-              : ["Preview did not pass all checks — use the fix wizard to resolve issues on the canvas."]
+              : ["Preview did not pass all checks - use the fix wizard to resolve issues on the canvas."]
           }
           onOpenFixWizard={onOpenFixWizard}
         />

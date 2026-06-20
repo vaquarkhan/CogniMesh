@@ -53,7 +53,7 @@ flowchart LR
 ```
 
 **Why this architecture:**
-Step Functions orchestrates parallel ETL branches like a DAG. The Choice block implements conditional routing — good rows go to gold, quarantine rows go to archive. This is the recommended starting pattern for multi-source pipelines.
+Step Functions orchestrates parallel ETL branches like a DAG. The Choice block implements conditional routing - good rows go to gold, quarantine rows go to archive. This is the recommended starting pattern for multi-source pipelines.
 
 **What gets deployed to AWS:**
 - Step Functions state machine with Parallel + Choice states
@@ -113,7 +113,7 @@ flowchart LR
 ```
 
 **Why this architecture:**
-Cognitive pipelines use AI models (Claude, Titan, Nova) to transform unstructured media into structured Parquet. The compensation handler ensures idempotency — if the agent fails mid-batch, it resumes without reprocessing.
+Cognitive pipelines use AI models (Claude, Titan, Nova) to transform unstructured media into structured Parquet. The compensation handler ensures idempotency - if the agent fails mid-batch, it resumes without reprocessing.
 
 **What gets deployed to AWS:**
 - EKS task for agentic runtime (or Lambda for small workloads)
@@ -139,7 +139,7 @@ flowchart LR
 ```
 
 **Why this architecture:**
-The simplest production-ready pipeline. Files land in S3, Glue ETL processes them on a cron schedule, and writes ACID-committed Iceberg tables. No streaming, no CDC, no agent — just clean batch ETL.
+The simplest production-ready pipeline. Files land in S3, Glue ETL processes them on a cron schedule, and writes ACID-committed Iceberg tables. No streaming, no CDC, no agent - just clean batch ETL.
 
 ---
 
@@ -193,9 +193,9 @@ Classic OLTP-to-warehouse sync. MySQL CDC captures changes, Glue transforms and 
 **What the UI builds:**
 - Full medallion pipeline (Bronze → Silver → Gold) within a single domain's AWS account
 - Three distinct roles mapped to mesh accounts:
-  - **Producer** — ingests and transforms data
-  - **Steward** — runs the PVDM integrity gate
-  - **Publisher** — registers the Iceberg product in the catalog with Lake Formation grants
+  - **Producer** - ingests and transforms data
+  - **Steward** - runs the PVDM integrity gate
+  - **Publisher** - registers the Iceberg product in the catalog with Lake Formation grants
 - Each block is tagged with its mesh role for governance tracing
 
 ```mermaid
@@ -312,7 +312,7 @@ flowchart LR
 ```
 
 **Why this architecture:**
-Kappa treats everything as a stream — no separate batch layer. Historical reprocessing = replay the Kinesis stream with a new versioned job. Simpler operations than Lambda architecture at the cost of replay complexity.
+Kappa treats everything as a stream - no separate batch layer. Historical reprocessing = replay the Kinesis stream with a new versioned job. Simpler operations than Lambda architecture at the cost of replay complexity.
 
 ---
 
@@ -421,7 +421,7 @@ flowchart LR
 ```
 
 **Why this architecture:**
-ELT pattern — load raw data into Redshift first (fast COPY from S3), then transform using Redshift's compute engine (SQL stored procedures or dbt). Good for teams with existing Redshift investment.
+ELT pattern - load raw data into Redshift first (fast COPY from S3), then transform using Redshift's compute engine (SQL stored procedures or dbt). Good for teams with existing Redshift investment.
 
 ---
 
@@ -540,11 +540,11 @@ flowchart LR
 
 When you click **Use pattern**, the UI:
 
-1. **Instantiates** the pattern — creates fresh node IDs and normalizes provisioning modes
+1. **Instantiates** the pattern - creates fresh node IDs and normalizes provisioning modes
 2. **Loads** the nodes and edges onto the React Flow canvas
 3. **Sets** pipeline metadata (name, domain, version, schedule)
-4. **Defaults** all resources to "Create new" — so you can deploy immediately without providing ARNs
-5. **Runs** AWS Design Review automatically — advisory findings shown but never block deploy
+4. **Defaults** all resources to "Create new" - so you can deploy immediately without providing ARNs
+5. **Runs** AWS Design Review automatically - advisory findings shown but never block deploy
 
 You can customize any block after loading:
 - Click a block → edit in the Properties panel
@@ -561,10 +561,10 @@ Each transform block can use different compute engines:
 
 | Engine | Description | Managed |
 |--------|-------------|---------|
-| **AWS Glue** | Default — Spark ETL/ELT jobs | ✅ |
+| **AWS Glue** | Default - Spark ETL/ELT jobs | ✅ |
 | **AWS Lambda** | Domain-writer for PVDM workloads | ✅ |
 | **EMR Serverless** | Large-scale Spark (bring your app) | ✅ |
-| **Databricks** | External — trigger via Lambda proxy | ❌ |
+| **Databricks** | External - trigger via Lambda proxy | ❌ |
 
 Set `computeEngine` on a transform block in Properties to override the default (Glue).
 
@@ -615,7 +615,7 @@ When you click **Use template**, the Agent Builder:
 - **Runtime** block (Strands framework, session isolation enabled)
 - **Foundation Model** (Claude Sonnet, temperature 0.2 for deterministic responses)
 - **Knowledge Base** (FAQ retrieval with hybrid search)
-- **Gateway** (dual auth — API key + Cognito)
+- **Gateway** (dual auth - API key + Cognito)
 - **Tool: Lambda** (Order Lookup function)
 - **PII Guardrail** (anonymizes EMAIL, PHONE, SSN)
 - **Content Guardrail** (denies legal advice, medical diagnosis topics)
@@ -671,7 +671,7 @@ flowchart TD
 - **Runtime** (Strands framework)
 - **Foundation Model** (Claude, temperature 0 for exact SQL generation)
 - **Gateway** (Lambda + MCP protocols)
-- **Tool: MCP** (CogniMesh marketplace — list_products, query_lineage)
+- **Tool: MCP** (CogniMesh marketplace - list_products, query_lineage)
 - **Tool: Lambda** (Athena query execution)
 - **SQL Guardrail** (denies DROP TABLE, DELETE FROM, TRUNCATE)
 - **Identity** (Lake Formation tag-based access scope)
@@ -779,7 +779,7 @@ flowchart TD
 - **Supervisor Runtime** (orchestrates sub-agents)
 - **Foundation Model** (Claude for routing decisions)
 - **Gateway** (routes requests to appropriate specialist)
-- **Tool: Lambda** (sub-agent invocation — support, billing, technical)
+- **Tool: Lambda** (sub-agent invocation - support, billing, technical)
 - **Memory** (session context passed between agents)
 
 ```mermaid
@@ -805,7 +805,7 @@ flowchart TD
 **What the UI builds:**
 - **Runtime** (Strands framework)
 - **Foundation Model** (Claude for governance decisions)
-- **Tool: MCP** (CogniMesh marketplace — list products, approve requests, grant access)
+- **Tool: MCP** (CogniMesh marketplace - list products, approve requests, grant access)
 - **Tool: Lambda** (Lake Formation grant operations)
 - **Guardrail** (cannot auto-approve without human review)
 - **Identity** (steward role scope)
@@ -860,10 +860,10 @@ flowchart TD
 
 **What the UI builds:**
 - **Runtime** (Strands framework, minimal config)
-- **Foundation Model** (Claude — you pick the variant)
-- **Gateway** (API endpoint — you wire tools)
-- **Content Guardrail** (basic safety — you customize)
-- **Observability** (traces — you add tools and KB)
+- **Foundation Model** (Claude - you pick the variant)
+- **Gateway** (API endpoint - you wire tools)
+- **Content Guardrail** (basic safety - you customize)
+- **Observability** (traces - you add tools and KB)
 
 ```mermaid
 flowchart TD
@@ -873,7 +873,7 @@ flowchart TD
   RT --> Obs[Observability]
 ```
 
-**Use case:** Starting point for building a custom agent. Provides the skeleton (runtime + model + gateway) — you add tools, knowledge bases, and domain-specific guardrails.
+**Use case:** Starting point for building a custom agent. Provides the skeleton (runtime + model + gateway) - you add tools, knowledge bases, and domain-specific guardrails.
 
 ---
 
@@ -883,7 +883,7 @@ flowchart TD
 **Difficulty:** Starter
 
 **What the UI builds:**
-- Empty canvas — drag blocks from the Agent palette
+- Empty canvas - drag blocks from the Agent palette
 
 ```mermaid
 flowchart TD

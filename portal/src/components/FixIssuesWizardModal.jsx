@@ -66,7 +66,7 @@ function FieldEditor({ field, node, onApplyField }) {
   if (field === "rdsProvisioningMode") {
     return (
       <p className="properties-hint fix-wizard-hint">
-        Or switch the RDS block to <strong>Create new</strong> in Properties — no ARN required.
+        Or switch the RDS block to <strong>Create new</strong> in Properties - no ARN required.
       </p>
     );
   }
@@ -175,7 +175,7 @@ export default function FixIssuesWizardModal({
           <div>
             <h2 id="fix-wizard-title">{title}</h2>
             <p className="properties-hint">
-              We fix issues on your canvas automatically — click Apply fix below.
+              We fix issues on your canvas automatically - click Apply fix below.
             </p>
           </div>
           <button type="button" className="btn-ghost fix-wizard-close" onClick={onClose} aria-label="Close">
@@ -213,7 +213,7 @@ export default function FixIssuesWizardModal({
             {selected && (
               <div className="fix-wizard-detail">
                 <p className={`fix-wizard-sev sev-${selected.severity}`}>
-                  {SEV_LABEL[selected.severity] || selected.severity} — {selected.title}
+                  {SEV_LABEL[selected.severity] || selected.severity} - {selected.title}
                 </p>
                 <p className="fix-wizard-msg">{selected.message}</p>
 
@@ -230,7 +230,7 @@ export default function FixIssuesWizardModal({
 
                 {planLoading && <p className="properties-hint">Loading fix guide…</p>}
                 {planError && (
-                  <p className="properties-hint">Fix guide unavailable — use Apply fix below.</p>
+                  <p className="properties-hint">Fix guide unavailable - use Apply fix below.</p>
                 )}
 
                 {plan?.aiExplanation && (

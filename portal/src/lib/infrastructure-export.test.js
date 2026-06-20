@@ -181,7 +181,7 @@ describe("generateDrawioArchitecture - dynamic canvas rendering", () => {
     expect(xml).toContain("Glue Data Catalog");
   });
 
-  it("only shows sinks — does not crash without sources or transforms", () => {
+  it("only shows sinks - does not crash without sources or transforms", () => {
     const { xml, serviceCount } = generateDrawioArchitecture({
       topology: {},
       nodes: [

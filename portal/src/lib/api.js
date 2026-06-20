@@ -14,7 +14,7 @@ async function resolveToken(passedToken) {
     const session = await fetchAuthSession();
     const idToken = session.tokens?.idToken?.toString();
     if (idToken) return idToken;
-  } catch { /* no active session — fall back to passed token */ }
+  } catch { /* no active session - fall back to passed token */ }
   return passedToken;
 }
 
@@ -38,7 +38,7 @@ function apiJsonErrorMessage(res, context) {
     return `${context}: request blocked (403). If using CloudFront, ensure CORS_ORIGIN_SUFFIXES includes .cloudfront.net or add the portal URL to portal_callback_urls and re-apply Terraform.`;
   }
   if (res.ok) {
-    return `${context}: received HTML instead of JSON — check CloudFront routes /api/* to the API origin (not the SPA bucket).`;
+    return `${context}: received HTML instead of JSON - check CloudFront routes /api/* to the API origin (not the SPA bucket).`;
   }
   return `${context}: API unavailable (HTTP ${res.status}). Run npm run dev:api locally or check the ECS/ALB service.`;
 }
@@ -192,7 +192,7 @@ export async function runAwsDesignReview({ nodes, edges, pipelineMeta, token }) 
   if (!data) {
     return {
       status: "error",
-      errors: ["API unavailable — start the gateway with npm run dev:api"],
+      errors: ["API unavailable - start the gateway with npm run dev:api"],
       fixHint: "Run npm run dev:minimal from the repo root, then click Re-scan.",
     };
   }
