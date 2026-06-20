@@ -566,10 +566,9 @@ export default function App() {
       toastError(blockValidation.errors[0] || "Fix blocks before deploy");
       return;
     }
-    if (awsReview?.overall?.deployBlocked) {
-      setFixWizardOpen(true);
-      toastError(`${awsReview.overall.criticalCount} critical issue(s) — use the fix wizard`);
-      return;
+    if (awsReview?.overall?.criticalCount > 0) {
+      // Advisory only — never block deploy. Surface findings, then proceed.
+      toastError(`${awsReview.overall.criticalCount} finding(s) flagged — review in AWS Review. Deploying anyway.`);
     }
     setDeployImpact(null);
     setDeployImpactLoading(true);

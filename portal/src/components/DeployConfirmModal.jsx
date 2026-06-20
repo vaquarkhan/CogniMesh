@@ -15,7 +15,6 @@ export default function DeployConfirmModal({
 }) {
   if (!open) return null;
 
-  const blocked = awsReview?.overall?.deployBlocked || impact?.deployBlocked;
   const critical = awsReview?.overall?.criticalCount || 0;
   const awsMisconfigured = awsDeployCheck?.enabled && !awsDeployCheck?.roleConfigured;
   const region = awsRegion || "us-east-1";
@@ -106,9 +105,9 @@ export default function DeployConfirmModal({
           </div>
         )}
 
-        {blocked && (
-          <p className="modal-warning modal-error">
-            Deploy is blocked until critical AWS issues or strict-schema impact review is resolved.
+        {critical > 0 && (
+          <p className="modal-warning">
+            {critical} AWS finding(s) flagged. These are advisory — you can deploy now and address them before production.
           </p>
         )}
 
@@ -130,8 +129,8 @@ export default function DeployConfirmModal({
           <button type="button" className="btn-secondary" onClick={onCancel}>
             Cancel
           </button>
-          <button type="button" className="deploy-btn" onClick={onConfirm} disabled={blocked || impactLoading}>
-            {blocked ? "Fix issues first" : `Yes, deploy to ${region}`}
+          <button type="button" className="deploy-btn" onClick={onConfirm} disabled={impactLoading}>
+            {`Yes, deploy to ${region}`}
           </button>
         </div>
       </div>
