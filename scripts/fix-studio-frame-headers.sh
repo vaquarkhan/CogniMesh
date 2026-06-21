@@ -3,7 +3,7 @@
 # Run after deploying the studio CDK stack in any region.
 #
 # Usage: ./fix-studio-frame-headers.sh <studio-distribution-id> <portal-origin>
-# Example: ./fix-studio-frame-headers.sh E18A8ML6T96319 https://d23xbo3h1l9hqg.cloudfront.net
+# Example: ./fix-studio-frame-headers.sh E1234EXAMPLE https://your-portal.cloudfront.net
 
 set -e
 

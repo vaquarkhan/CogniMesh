@@ -2,7 +2,7 @@ import { useState } from "react";
 
 const STUDIO_URL =
   import.meta.env.VITE_AGENTCORE_STUDIO_URL ||
-  "https://ddgd4ogmftvvi.cloudfront.net";
+  "";
 
 export default function AgentCoreStudioView() {
   const [blocked, setBlocked] = useState(false);
