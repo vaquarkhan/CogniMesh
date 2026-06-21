@@ -767,15 +767,6 @@ export default function App() {
             >
               Agent Builder
             </button>
-            <a
-              className="dashboard-link"
-              href="/api/v1/public/dashboard"
-              target="_blank"
-              rel="noreferrer"
-              title="Central view of all deployed pipelines & agents"
-            >
-              📊 Dashboard
-            </a>
             <button
               type="button"
               className={designerMode === "agentcore" ? "active" : ""}

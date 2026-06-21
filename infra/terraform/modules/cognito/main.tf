@@ -46,6 +46,7 @@ variable "tags" {
 resource "random_password" "admin_initial" {
   length           = 20
   special          = true
+  min_special      = 1
   override_special = "!@#$%&*-_=+"
 }
 
