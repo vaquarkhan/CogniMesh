@@ -1,15 +1,17 @@
+# ─── Required: set these two ───
 variable "aws_region" {
   type        = string
   default     = "us-east-1"
-  description = "AWS region to deploy into. User sets this to any region."
+  description = "AWS region. Set to any region you want."
 }
 
 variable "name_prefix" {
   type        = string
   default     = "cognimesh"
-  description = "Prefix for all resource names. Keep short (used in S3, ECS, Lambda names)."
+  description = "Prefix for all resources. Keep short."
 }
 
+# ─── Optional: override if you want custom names ───
 variable "environment" {
   type    = string
   default = "prod"
@@ -20,46 +22,19 @@ variable "vpc_cidr" {
   default = "10.0.0.0/16"
 }
 
-variable "checkpoint_bucket_name" {
-  type        = string
-  default     = "cognimesh-checkpoints"
-  description = "S3 bucket for PVDM checkpoints. Must be globally unique — add account ID suffix."
-}
-
-variable "proof_bucket_name" {
-  type    = string
-  default = "cognimesh-proofs"
-}
-
-variable "lakehouse_bucket_name" {
-  type    = string
-  default = "cognimesh-lakehouse"
-}
-
-variable "bronze_bucket_name" {
-  type    = string
-  default = "cognimesh-bronze"
-}
-
-variable "silver_bucket_name" {
-  type    = string
-  default = "cognimesh-silver"
-}
-
-variable "gold_bucket_name" {
-  type    = string
-  default = "cognimesh-gold"
-}
-
-variable "portal_bucket_name" {
-  type    = string
-  default = "cognimesh-portal"
-}
+# Bucket names default to "" — main.tf auto-generates from prefix+account_id
+variable "checkpoint_bucket_name" { type = string; default = "" }
+variable "proof_bucket_name" { type = string; default = "" }
+variable "lakehouse_bucket_name" { type = string; default = "" }
+variable "bronze_bucket_name" { type = string; default = "" }
+variable "silver_bucket_name" { type = string; default = "" }
+variable "gold_bucket_name" { type = string; default = "" }
+variable "portal_bucket_name" { type = string; default = "" }
 
 variable "api_container_image" {
   type        = string
   default     = ""
-  description = "ECR image URI for the API. Leave empty on first deploy — the ECR module creates the repo."
+  description = "ECR URI. Leave empty on first deploy — set after ECR push."
 }
 
 variable "api_desired_count" {
@@ -70,7 +45,7 @@ variable "api_desired_count" {
 variable "default_admin_email" {
   type        = string
   default     = "admin@example.com"
-  description = "Email for the initial Cognito admin user."
+  description = "Cognito admin user email."
 }
 
 variable "glue_database_name" {
