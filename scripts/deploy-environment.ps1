@@ -129,6 +129,20 @@ if (-not $SkipPortal) {
 
 Write-Host ""
 Write-Host "=== Deploy complete! ===" -ForegroundColor Cyan
+
+# Set Cognito permanent password
+Write-Host ""
+Write-Host "Setting Cognito admin password..." -ForegroundColor Yellow
+$poolId = (aws cognito-idp list-user-pools --max-results 10 --region $Region --query "UserPools[?Name=='$Prefix-user-pool'].Id | [0]" --output text 2>$null)
+if ($poolId -and $poolId -ne "None") {
+    $adminUser = (aws cognito-idp list-users --user-pool-id $poolId --region $Region --query "Users[0].Username" --output text 2>$null)
+    if ($adminUser -and $adminUser -ne "None") {
+        aws cognito-idp admin-set-user-password --user-pool-id $poolId --username $adminUser --password "CogniMesh2026!" --permanent --region $Region 2>$null
+        Write-Host "Cognito password set for $adminUser (password: CogniMesh2026!)" -ForegroundColor Green
+    }
+}
+
+Write-Host ""
 Write-Host "  Next: wait ~2min for ECS, then open the portal CloudFront URL."
 if (-not $StudioUrl) {
     Write-Host "  Studio: not configured. Run deploy-studio.sh or pass -StudioUrl."

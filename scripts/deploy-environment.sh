@@ -134,6 +134,29 @@ else
   echo "⊘ Skipping portal (--skip-portal)"
 fi
 
+# ─── STEP 4: Set Cognito permanent password ───
+echo ""
+echo "▶ Step 4: Set Cognito admin password..."
+POOL_ID=$(aws cognito-idp list-user-pools --max-results 10 --region "$REGION" \
+  --query "UserPools[?Name=='${PREFIX}-user-pool'].Id | [0]" --output text 2>/dev/null || echo "")
+if [ -n "$POOL_ID" ] && [ "$POOL_ID" != "None" ]; then
+  ADMIN_EMAIL=$(aws cognito-idp list-users --user-pool-id "$POOL_ID" --region "$REGION" \
+    --query "Users[0].Username" --output text 2>/dev/null || echo "")
+  if [ -n "$ADMIN_EMAIL" ] && [ "$ADMIN_EMAIL" != "None" ]; then
+    aws cognito-idp admin-set-user-password \
+      --user-pool-id "$POOL_ID" \
+      --username "$ADMIN_EMAIL" \
+      --password "CogniMesh2026!" \
+      --permanent \
+      --region "$REGION" 2>/dev/null || true
+    echo "✓ Cognito password set for $ADMIN_EMAIL (password: CogniMesh2026!)"
+  else
+    echo "⊘ No Cognito user found — set password manually after first login"
+  fi
+else
+  echo "⊘ No Cognito pool found matching ${PREFIX}-user-pool"
+fi
+
 echo ""
 echo "╔══════════════════════════════════════════════════════════╗"
 echo "║  Deploy complete!                                        "

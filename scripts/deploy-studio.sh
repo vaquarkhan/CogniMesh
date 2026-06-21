@@ -50,23 +50,9 @@ cd "$WORK_DIR/repo/Agentic-ai-self-service"
 # Fix cdk.json for Windows/cross-platform (python3 -> python)
 sed -i.bak 's/python3 app.py/python app.py/' infra/cdk.json 2>/dev/null || true
 
-# Patch the CDK stack for region-portability:
-# 1. Make CLOUDFRONT-scoped WAF conditional on us-east-1 (it fails in other regions)
-# 2. Add portal_origin context support for CSP frame-ancestors
-echo "Patching CDK for region portability..."
-if grep -q "WebACL" infra/stacks/platform_stack.py 2>/dev/null; then
-  # Add region check around WAF creation
-  sed -i.bak 's/web_acl = wafv2.CfnWebACL/if self.region == "us-east-1":\n            web_acl = wafv2.CfnWebACL/' \
-    infra/stacks/platform_stack.py 2>/dev/null || true
-fi
-
-# Patch ResponseHeadersPolicy to support portal_origin for frame-ancestors
-if grep -q "frame-ancestors" infra/stacks/platform_stack.py 2>/dev/null; then
-  sed -i.bak "s/frame-ancestors 'none'/frame-ancestors 'self' ${PORTAL_ORIGIN//\//\\/}/" \
-    infra/stacks/platform_stack.py 2>/dev/null || true
-  # Remove X-Frame-Options (can't allow cross-origin framing with XFO)
-  sed -i.bak '/frame_options/d' infra/stacks/platform_stack.py 2>/dev/null || true
-fi
+# Apply region-portability patches (WAF conditional, portal_origin, frame headers)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+python "$SCRIPT_DIR/studio-region-patch.py" "."
 
 # Install infra deps
 pip install -r infra/requirements.txt
