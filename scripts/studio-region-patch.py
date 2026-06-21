@@ -22,21 +22,14 @@ def patch_platform_stack(filepath):
         return
 
     # 1. Add portal_origin to __init__ signature
-    # Find: def __init__(self, scope, id, *, ...):
-    init_pattern = r'(def __init__\(self,\s*scope[^)]*)\)\s*:'
-    match = re.search(init_pattern, content)
-    if match:
-        # Add portal_origin param if not present
-        if "portal_origin" not in match.group(0):
-            old_sig = match.group(0)
-            new_sig = old_sig.replace("):", ', portal_origin: str = ""):')
-            content = content.replace(old_sig, new_sig)
-            # Add self._portal_origin after super().__init__ or first self. assignment
-            super_pattern = r'(super\(\).__init__\([^)]*\))'
-            super_match = re.search(super_pattern, content)
-            if super_match:
-                insert_after = super_match.end()
-                content = content[:insert_after] + '\n        self._portal_origin = (portal_origin or "").strip()' + content[insert_after:]
+    if 'portal_origin: str' not in content:
+        content = content.replace("**kwargs,\n", 'portal_origin: str = "",\n        **kwargs,\n', 1)
+        super_match = re.search(r'super\(\).__init__\([^)]*\)', content)
+        if super_match:
+            insert_after = super_match.end()
+            content = (content[:insert_after]
+                       + '\n        self._portal_origin = (portal_origin or "").strip()'
+                       + content[insert_after:])
 
     # 2. Make WAF conditional on us-east-1
     # Find: self.web_acl = self._create_waf_web_acl()
@@ -70,15 +63,12 @@ def patch_platform_stack(filepath):
         )
 
     # 5. Make X-Frame-Options conditional (remove when portal_origin set)
-    # Look for frame_options or FrameOptions references and wrap
-    xfo_pattern = r'(frame_options\s*=.*)'
-    for m in re.finditer(xfo_pattern, content):
-        line = m.group(0)
-        if "None" not in line and "portal_origin" not in line:
-            indent = " " * (m.start() - content.rfind("\n", 0, m.start()) - 1)
-            new_line = f'frame_options=(None if hasattr(self, "_portal_origin") and self._portal_origin else cloudfront.ResponseHeadersFrameOptions(frame_option=cloudfront.HeadersFrameOption.DENY, override=True)),'
-            content = content.replace(line, new_line)
-            break
+    xfo_pattern = r'frame_options\s*=\s*cloudfront\.ResponseHeadersFrameOptions\(.*?\)\s*,'
+    if re.search(xfo_pattern, content, flags=re.DOTALL) and "_portal_origin else cloudfront" not in content:
+        new_xfo = ('frame_options=(None if (hasattr(self, "_portal_origin") and self._portal_origin) '
+                   'else cloudfront.ResponseHeadersFrameOptions('
+                   'frame_option=cloudfront.HeadersFrameOption.DENY, override=True)),')
+        content = re.sub(xfo_pattern, new_xfo, content, count=1, flags=re.DOTALL)
 
     with open(filepath, "w") as f:
         f.write(content)
@@ -95,14 +85,25 @@ def patch_app_py(filepath, portal_origin=""):
         return
 
     # Find where PlatformStack is instantiated and add portal_origin
-    stack_pattern = r'(PlatformStack\([^)]*)\)'
-    match = re.search(stack_pattern, content, re.DOTALL)
-    if match:
-        old = match.group(0)
-        # Add portal_origin param
-        insert = old.rstrip(")")
-        insert += ',\n    portal_origin=app.node.try_get_context("portal_origin") or "")'
-        content = content.replace(old, insert)
+    idx = content.find("PlatformStack(")
+    if idx != -1:
+        start = content.index("(", idx)
+        depth = 0
+        end = -1
+        for i in range(start, len(content)):
+            if content[i] == "(":
+                depth += 1
+            elif content[i] == ")":
+                depth -= 1
+                if depth == 0:
+                    end = i
+                    break
+        if end != -1:
+            before = content[:end]
+            sep = "" if before.rstrip().endswith(",") else ","
+            content = (before + sep
+                       + '\n    portal_origin=app.node.try_get_context("portal_origin") or "",\n'
+                       + content[end:])
 
     with open(filepath, "w") as f:
         f.write(content)
