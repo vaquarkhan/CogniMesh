@@ -24,7 +24,7 @@ describe("cors-origins", () => {
 
   it("matches cloudfront host via suffix", () => {
     const { isAllowedOrigin } = require("../lib/cors-origins");
-    assert.equal(isAllowedOrigin("https://d1c0li10zda1yj.cloudfront.net"), true);
+    assert.equal(isAllowedOrigin("https://d1example2test3.cloudfront.net"), true);
     assert.equal(isAllowedOrigin("https://evil.example.com"), false);
   });
 });
