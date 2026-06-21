@@ -1,0 +1,18 @@
+# CogniMesh — Deploy to ANY region
+#
+# Copy this file, set your region + prefix, then:
+#   terraform init
+#   terraform apply -var-file=my-region.tfvars
+#
+# Bucket names are auto-generated from name_prefix + your account ID.
+# Only these 2 values are required:
+
+aws_region  = "us-west-2"    # Change to any AWS region
+name_prefix = "cognimesh"    # Change if running multiple envs in same account
+
+# Optional overrides:
+# default_admin_email = "you@company.com"
+# api_desired_count   = 1
+# enable_eks          = false
+# enable_security_logging = false
+# enable_lake_formation_governance = false

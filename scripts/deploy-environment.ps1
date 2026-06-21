@@ -36,7 +36,7 @@
 param(
     [string]$Region = "us-east-1",
     [string]$Prefix = "cognimesh",
-    [string]$EnvDir = "deploy",
+    [string]$EnvDir = "prod",
     [switch]$SkipTerraform,
     [switch]$SkipApi,
     [switch]$SkipPortal,

@@ -26,7 +26,7 @@ set -e
 #   --studio-url URL         AgentCore Studio URL for embedding (optional)
 
 REGION="${REGION:-us-west-2}"
-ENV_DIR="${ENV_DIR:-deploy}"
+ENV_DIR="${ENV_DIR:-prod}"
 PREFIX="${PREFIX:-cognimesh}"
 SKIP_TF=false
 SKIP_API=false
