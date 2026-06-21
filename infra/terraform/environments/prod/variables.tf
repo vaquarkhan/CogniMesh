@@ -94,7 +94,7 @@ variable "enable_step_functions" {
 
 variable "enable_lake_formation_governance" {
   type    = bool
-  default = true
+  default = false
 }
 
 variable "enable_cognito" {
@@ -153,7 +153,7 @@ variable "api_desired_count" {
 
 variable "cognito_mfa_configuration" {
   type        = string
-  default     = "ON"
+  default     = "OPTIONAL"
   description = "Cognito MFA: ON (required), OPTIONAL, or OFF."
 }
 
@@ -164,7 +164,7 @@ variable "enable_kms_for_sensitive_buckets" {
 
 variable "enable_security_logging" {
   type    = bool
-  default = true
+  default = false
 }
 
 variable "enable_cloudtrail" {
