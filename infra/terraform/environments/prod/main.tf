@@ -3,6 +3,14 @@ locals {
   tags = {
     Domain = "platform"
   }
+  # Auto-compute bucket names when not explicitly set
+  checkpoint_bucket = var.checkpoint_bucket_name != "" ? var.checkpoint_bucket_name : "${var.name_prefix}-checkpoints-${local.account_id}"
+  proof_bucket      = var.proof_bucket_name != "" ? var.proof_bucket_name : "${var.name_prefix}-proofs-${local.account_id}"
+  lakehouse_bucket  = var.lakehouse_bucket_name != "" ? var.lakehouse_bucket_name : "${var.name_prefix}-lakehouse-${local.account_id}"
+  bronze_bucket     = var.bronze_bucket_name != "" ? var.bronze_bucket_name : "${var.name_prefix}-bronze-${local.account_id}"
+  silver_bucket     = var.silver_bucket_name != "" ? var.silver_bucket_name : "${var.name_prefix}-silver-${local.account_id}"
+  gold_bucket       = var.gold_bucket_name != "" ? var.gold_bucket_name : "${var.name_prefix}-gold-${local.account_id}"
+  portal_bucket     = var.portal_bucket_name != "" ? var.portal_bucket_name : "${var.name_prefix}-portal-${local.account_id}"
   # CORS_ORIGINS: exact browser origins (no trailing slash). Merges portal_callback_urls +
   # portal_cloudfront_callback_url so pre-1.0.1 API images work without CORS_ORIGIN_SUFFIXES.
   api_cors_origins = distinct([
@@ -50,12 +58,12 @@ module "storage" {
   source = "../../modules/storage"
 
   name_prefix                      = var.name_prefix
-  checkpoint_bucket_name           = var.checkpoint_bucket_name
-  proof_bucket_name                = var.proof_bucket_name
-  lakehouse_bucket_name            = var.lakehouse_bucket_name
-  bronze_bucket_name               = var.bronze_bucket_name
-  silver_bucket_name               = var.silver_bucket_name
-  gold_bucket_name                 = var.gold_bucket_name
+  checkpoint_bucket_name           = local.checkpoint_bucket
+  proof_bucket_name                = local.proof_bucket
+  lakehouse_bucket_name            = local.lakehouse_bucket
+  bronze_bucket_name               = local.bronze_bucket
+  silver_bucket_name               = local.silver_bucket
+  gold_bucket_name                 = local.gold_bucket
   checkpoint_retention_days        = 30
   proof_retention_days             = 90
   enable_kms_for_sensitive_buckets = var.enable_kms_for_sensitive_buckets
@@ -178,8 +186,8 @@ module "domain_writer_lambda" {
     VRP_TRANSPARENCY_LOG   = "/tmp/data/vrp-transparency-log.jsonl"
     ICEBERG_SNAPSHOT_STATE = "/tmp/data/iceberg-snapshots.json"
     PLATFORM_DATA_DIR      = "/tmp/data"
-    PROOF_BUCKET           = var.proof_bucket_name
-    CHECKPOINT_BUCKET      = var.checkpoint_bucket_name
+    PROOF_BUCKET           = local.proof_bucket
+    CHECKPOINT_BUCKET      = local.checkpoint_bucket
   }
 }
 
@@ -199,7 +207,7 @@ module "platform_ops" {
 
   name_prefix           = var.name_prefix
   lakehouse_bucket_arn  = module.storage.lakehouse_bucket_arn
-  lakehouse_bucket_name = var.lakehouse_bucket_name
+  lakehouse_bucket_name = local.lakehouse_bucket
   glue_database_name    = var.glue_database_name
   tags                  = local.tags
 }
@@ -233,7 +241,7 @@ module "portal_cdn" {
   }
 
   name_prefix        = var.name_prefix
-  portal_bucket_name = var.portal_bucket_name
+  portal_bucket_name = local.portal_bucket
   enable_waf         = var.enable_waf
   waf_rate_limit     = var.waf_rate_limit
   api_origin_domain  = try(module.api_service[0].api_alb_dns, "")

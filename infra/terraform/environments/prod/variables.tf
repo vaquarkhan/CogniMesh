@@ -20,6 +20,7 @@ variable "vpc_cidr" {
 
 variable "default_admin_email" {
   type        = string
+  default     = "admin@example.com"
   description = "Admin-created default Cognito user (self-registration disabled)"
 }
 
@@ -45,27 +46,34 @@ variable "portal_cloudfront_logout_url" {
 }
 
 variable "checkpoint_bucket_name" {
-  type = string
+  type        = string
+  default     = ""
+  description = "Leave empty to auto-generate: {name_prefix}-checkpoints"
 }
 
 variable "proof_bucket_name" {
-  type = string
+  type    = string
+  default = ""
 }
 
 variable "lakehouse_bucket_name" {
-  type = string
+  type    = string
+  default = ""
 }
 
 variable "bronze_bucket_name" {
-  type = string
+  type    = string
+  default = ""
 }
 
 variable "silver_bucket_name" {
-  type = string
+  type    = string
+  default = ""
 }
 
 variable "gold_bucket_name" {
-  type = string
+  type    = string
+  default = ""
 }
 
 variable "glue_database_name" {
@@ -75,7 +83,8 @@ variable "glue_database_name" {
 
 variable "consumer_principal_arn" {
   type        = string
-  description = "IAM principal for Lake Formation consumer SELECT"
+  default     = ""
+  description = "IAM principal for Lake Formation consumer SELECT. Leave empty if LF disabled."
 }
 
 variable "enable_step_functions" {
@@ -99,7 +108,8 @@ variable "enable_integrity_gate_lambda" {
 }
 
 variable "portal_bucket_name" {
-  type = string
+  type    = string
+  default = ""
 }
 
 variable "enable_eks" {
