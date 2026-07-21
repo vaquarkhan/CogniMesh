@@ -21,11 +21,25 @@ services:
     ports:
       - "4000:4000"
     environment:
+      # Local pull-and-run demo only. Use Cognito + NODE_ENV=production for real deploys.
+      NODE_ENV: development
       AUTH_DISABLED: "true"
       PORT: "4000"
       CATALOG_URL: http://catalog:8080
       CATALOG_FALLBACK: embedded
       CORS_ORIGINS: http://localhost:3000
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:4000/health').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 18
+      start_period: 15s
     depends_on:
       catalog:
         condition: service_healthy
@@ -36,4 +50,4 @@ services:
       - "3000:80"
     depends_on:
       api:
-        condition: service_started
+        condition: service_healthy

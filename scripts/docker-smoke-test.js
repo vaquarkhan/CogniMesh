@@ -6,6 +6,8 @@
  * Usage: node scripts/docker-smoke-test.js
  */
 
+const { spawnSync } = require("child_process");
+
 const CATALOG = process.env.CATALOG_URL || "http://localhost:8080/api/v1/products";
 const API = process.env.API_URL || "http://localhost:4000/health";
 const PORTAL = process.env.PORTAL_URL || "http://localhost:3000/";
@@ -32,7 +34,23 @@ async function probe(name, url, validate) {
     await new Promise((r) => setTimeout(r, INTERVAL_MS));
   }
 
+  dumpComposeLogs(name);
   throw new Error(`Smoke test failed - ${lastErr}`);
+}
+
+function dumpComposeLogs(failedName) {
+  try {
+    console.error("\n--- docker compose ps ---");
+    spawnSync("docker", ["compose", "ps"], { stdio: "inherit" });
+    console.error(`\n--- docker compose logs (${failedName}) ---`);
+    const args = ["compose", "logs", "--no-color", "--tail", "80"];
+    if (failedName === "api" || failedName === "catalog" || failedName === "portal") {
+      args.push(failedName);
+    }
+    spawnSync("docker", args, { stdio: "inherit" });
+  } catch {
+    /* best-effort diagnostics */
+  }
 }
 
 async function main() {

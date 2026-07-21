@@ -27,11 +27,25 @@ services:
     ports:
       - "4000:4000"
     environment:
+      # Local compose is an insecure demo stack: auth guard requires non-production NODE_ENV.
+      NODE_ENV: development
       AUTH_DISABLED: "true"
       PORT: "4000"
       CATALOG_URL: http://catalog:8080
       CATALOG_FALLBACK: embedded
       CORS_ORIGINS: http://localhost:3000
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:4000/health').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 18
+      start_period: 15s
     depends_on:
       catalog:
         condition: service_healthy
@@ -39,18 +53,16 @@ services:
   portal:
     image: ghcr.io/vaquarkhan/cognimesh-portal:1.0.0
     build:
-      context: ./portal
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: docker/portal.Dockerfile
     ports:
-      - "3000:3000"
-    environment:
-      VITE_API_URL: http://localhost:4000
+      - "3000:80"
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3000/"]
+      test: ["CMD", "curl", "-fsS", "http://localhost:80/"]
       interval: 10s
       timeout: 5s
       retries: 12
-      start_period: 30s
+      start_period: 20s
     depends_on:
       api:
-        condition: service_started
+        condition: service_healthy
