@@ -3,7 +3,7 @@
 const { runPvdmWorkload } = require("./services/pvdm-runtime");
 const { runIntegrityGate } = require("./lib/integrity-gate");
 
-exports.handler = async (event) => {
+exports.handler = async (event, context) => {
   if (event.contract && !event.source_rows) {
     const gate = runIntegrityGate(event.contract);
     if (!gate.passed) {
