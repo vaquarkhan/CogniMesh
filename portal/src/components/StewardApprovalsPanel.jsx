@@ -98,7 +98,7 @@ export default function StewardApprovalsPanel({ token, refreshKey, onCatalogRefr
                   const { ok, data } = await approveAccessRequest({ token, requestId: r.id });
                   setMsg(
                     ok
-                      ? `Approved ${r.productName} - LF ${data.record?.lakeFormationGrant?.permission || "SELECT"}: ${data.record?.lakeFormationGrant?.note || "granted"}`
+                      ? `Approved ${r.productName} - CogniMesh access only (${data.record?.lakeFormationGrant?.note || "LF grant not implemented"})`
                       : data.error
                   );
                 }}

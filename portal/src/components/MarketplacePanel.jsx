@@ -72,7 +72,7 @@ export default function MarketplacePanel({ token, refreshKey }) {
                 <p className={`access-status access-${detail.access.status}`}>
                   Access: <strong>{detail.access.status}</strong>
                   {detail.access.status === "approved" && detail.access.lakeFormationGrant && (
-                    <span> · Lake Formation {detail.access.lakeFormationGrant.permission} ({detail.access.lakeFormationGrant.note})</span>
+                    <span> · Access {detail.access.lakeFormationGrant.permission} ({detail.access.lakeFormationGrant.note})</span>
                   )}
                 </p>
               )}

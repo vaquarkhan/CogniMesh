@@ -99,7 +99,7 @@ export default function PropertiesPanel({
         </FormField>
         <FormField
           label="Lake Formation governance"
-          tip="Enable LF grants for mesh consumers (recommended when domain is not default)."
+          tip="Marks gold tables for Lake Formation in design review / export. Marketplace approve does not call GrantPermissions yet."
         >
           <label className="agent-feature-check pipeline-lf-toggle">
             <input
