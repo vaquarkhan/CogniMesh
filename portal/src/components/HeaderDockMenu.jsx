@@ -9,9 +9,27 @@ const DOCK_LABELS = {
   deploy: "Deploy results",
 };
 
+const ITEMS = [
+  { id: "ops", label: "Operations", hint: "Live runs, versions, health" },
+  { id: "approvals", label: "Approvals", hint: "Steward deploy gates" },
+  { id: "history", label: "Run History", hint: "Past pipeline executions" },
+  { id: "lineage", label: "Lineage", hint: "Catalog & graph" },
+  { id: "marketplace", label: "Marketplace", hint: "Published data products" },
+  { id: "deploy", label: "Deploy results", hint: "Last deploy output" },
+];
+
 export default function HeaderDockMenu({ activeDock, onSelect, onCloseAll }) {
   const [open, setOpen] = useState(false);
+  const [hintSeen, setHintSeen] = useState(true);
   const rootRef = useRef(null);
+
+  useEffect(() => {
+    try {
+      setHintSeen(globalThis.localStorage?.getItem("cognimesh_tools_hint_seen") === "1");
+    } catch {
+      setHintSeen(true);
+    }
+  }, []);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -22,30 +40,43 @@ export default function HeaderDockMenu({ activeDock, onSelect, onCloseAll }) {
     return () => document.removeEventListener("mousedown", onDoc);
   }, [open]);
 
-  const items = [
-    { id: "ops", label: "Operations" },
-    { id: "approvals", label: "Approvals" },
-    { id: "history", label: "Run History" },
-    { id: "lineage", label: "Lineage" },
-    { id: "marketplace", label: "Marketplace" },
-    { id: "deploy", label: "Deploy results" },
-  ];
+  const markHintSeen = () => {
+    if (hintSeen) return;
+    setHintSeen(true);
+    try {
+      globalThis.localStorage?.setItem("cognimesh_tools_hint_seen", "1");
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const activeLabel = activeDock ? DOCK_LABELS[activeDock] || activeDock : null;
 
   return (
     <div className="header-menu" ref={rootRef}>
       <button
         type="button"
-        className={`btn-secondary header-menu-trigger${activeDock ? " is-active" : ""}`}
+        className={`btn-secondary header-menu-trigger${activeDock ? " is-active" : ""}${!hintSeen ? " needs-hint" : ""}`}
         aria-expanded={open}
         aria-haspopup="menu"
-        onClick={() => setOpen((v) => !v)}
+        aria-label={activeLabel ? `Panels menu, ${activeLabel} open` : "Open panels: Operations, Approvals, History, Lineage, Marketplace"}
+        data-testid="header-tools-menu"
+        title="Operations, Approvals, Run History, Lineage, Marketplace"
+        onClick={() => {
+          markHintSeen();
+          setOpen((v) => !v);
+        }}
       >
-        Tools
-        {activeDock ? ` · ${DOCK_LABELS[activeDock] || activeDock}` : ""}
+        <span className="header-menu-trigger-label">
+          Panels
+          {activeLabel ? <span className="header-menu-active-chip">{activeLabel}</span> : null}
+        </span>
+        {!activeDock && !hintSeen ? <span className="header-menu-pulse" aria-hidden="true" /> : null}
       </button>
       {open && (
-        <div className="header-menu-dropdown" role="menu">
-          {items.map((item) => (
+        <div className="header-menu-dropdown" role="menu" data-testid="header-tools-dropdown">
+          <p className="header-menu-caption">Workspace panels</p>
+          {ITEMS.map((item) => (
             <button
               key={item.id}
               type="button"
@@ -57,11 +88,20 @@ export default function HeaderDockMenu({ activeDock, onSelect, onCloseAll }) {
                 setOpen(false);
               }}
             >
-              {item.label}
+              <span className="header-menu-item-label">{item.label}</span>
+              <span className="header-menu-item-hint">{item.hint}</span>
             </button>
           ))}
           {activeDock && (
-            <button type="button" role="menuitem" className="header-menu-close-all" onClick={() => { onCloseAll(); setOpen(false); }}>
+            <button
+              type="button"
+              role="menuitem"
+              className="header-menu-close-all"
+              onClick={() => {
+                onCloseAll();
+                setOpen(false);
+              }}
+            >
               Close all panels
             </button>
           )}

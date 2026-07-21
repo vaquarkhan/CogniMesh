@@ -109,14 +109,16 @@ async function testDeployApprovalApi() {
   if (!Array.isArray(body.pending)) throw new Error("deploy-approvals missing pending array");
 }
 
-/** Dock panels live under the header Tools menu (not top-level buttons). */
+/** Dock panels live under the header Panels menu (not top-level buttons). */
 async function openDockFromToolsMenu(page, label) {
-  const toolsBtn = page.locator("button.header-menu-trigger");
-  if ((await toolsBtn.count()) === 0) throw new Error("Tools menu button not found");
-  await toolsBtn.click();
-  const item = page.locator('.header-menu-dropdown button[role="menuitemradio"]', { hasText: label });
-  if ((await item.count()) === 0) throw new Error(`${label} menu item not found in Tools`);
-  await item.click();
+  const toolsBtn = page.locator('[data-testid="header-tools-menu"], button.header-menu-trigger');
+  if ((await toolsBtn.count()) === 0) throw new Error("Panels menu button not found");
+  await toolsBtn.first().click();
+  const item = page.locator('[data-testid="header-tools-dropdown"] button[role="menuitemradio"], .header-menu-dropdown button[role="menuitemradio"]', {
+    hasText: label,
+  });
+  if ((await item.count()) === 0) throw new Error(`${label} menu item not found in Panels`);
+  await item.first().click();
   await sleep(400);
 }
 
@@ -367,10 +369,10 @@ async function testAgentBuilderEndToEnd(page) {
   }
 
   await page.locator('button:has-text("Deploy to AWS")').click();
-  const deployBanner = page.locator(".agent-deploy-banner").filter({ hasText: /simulated|Deployed|deploy/i });
+  const deployBanner = page.locator('[data-testid="agent-status-strip"], .agent-deploy-banner').filter({ hasText: /simulated|Deployed|deploy|Manifest/i });
   await deployBanner.first().waitFor({ state: "visible", timeout: 15000 });
   const bannerText = await deployBanner.first().textContent();
-  if (!/simulated|Deployed|Agent|deploy/i.test(bannerText || "")) {
+  if (!/simulated|Deployed|Agent|deploy|Manifest/i.test(bannerText || "")) {
     throw new Error(`Unexpected agent deploy banner: ${bannerText}`);
   }
 

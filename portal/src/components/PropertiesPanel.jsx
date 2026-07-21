@@ -8,7 +8,13 @@ import { applyProcessingTemplate } from "../lib/processing-templates";
 import DataPreviewButton from "./DataPreviewButton";
 import BusinessRulesEditor from "./BusinessRulesEditor";
 import { RdsResourceSetup, SinkResourceSetup, S3SourceResourceSetup } from "./ResourceSetupWizard";
-import { hasResourceSetupWizard, isRdsSource, isS3LikeSink, isS3Source } from "../lib/resource-provisioning";
+import {
+  hasResourceSetupWizard,
+  isRdsSource,
+  isS3LikeSink,
+  isS3Source,
+  resourceSetupSummary,
+} from "../lib/resource-provisioning";
 
 const AWS_SERVICE_KEYS = Object.keys(AWS_SERVICES);
 
@@ -186,15 +192,26 @@ export default function PropertiesPanel({
           </p>
         </div>
       )}
-      {hasResourceSetupWizard(d) && (
-        <div className="properties-resource-banner" data-testid="resource-setup-banner">
-          <strong>Resource setup</strong>
-          <p>
-            Default is <em>Create new</em> (Terraform provisions infrastructure). Choose <em>Use existing</em> only
-            when you already have the database or bucket in AWS.
-          </p>
-        </div>
-      )}
+      {hasResourceSetupWizard(d) && (() => {
+        const setup = resourceSetupSummary(d);
+        if (!setup) return null;
+        return (
+          <div
+            className={`properties-resource-banner${setup.complete ? " is-complete" : " is-pending"}`}
+            data-testid="resource-setup-banner"
+            data-setup-complete={setup.complete ? "true" : "false"}
+          >
+            <strong>
+              {setup.complete ? "Setup ready" : "Resource setup"} · {setup.title}
+            </strong>
+            <p>{setup.hint}</p>
+            <p className="properties-resource-progress" data-testid="resource-setup-progress-text">
+              Checklist {setup.done}/{setup.total}
+              {setup.mode === "provision" ? " · Create new (default)" : " · Use existing"}
+            </p>
+          </div>
+        );
+      })()}
       <p className="field-tip block-tip">{tipFor(bt, "_default")}</p>
 
       <FormField label="Display label">
