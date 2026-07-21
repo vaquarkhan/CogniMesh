@@ -31,7 +31,8 @@ describe("PropertiesPanel", () => {
     );
     expect(screen.getByTestId("resource-setup-banner")).toBeInTheDocument();
     expect(screen.getByTestId("rds-resource-setup")).toBeInTheDocument();
-    expect(screen.getByText(/Create new database/i)).toBeInTheDocument();
+    expect(screen.getByTestId("resource-setup-banner")).toHaveTextContent(/Create new database/i);
+    expect(screen.getByTestId("resource-setup-banner")).toHaveAttribute("data-setup-complete", "true");
   });
 
   it("renders RDS source fields without throwing", () => {

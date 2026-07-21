@@ -5,7 +5,7 @@ const fs = require("fs");
 const path = require("path");
 const yaml = require("js-yaml");
 const { resolveVrpFields } = require("../../lib/vrp/fields");
-const { writeChunkRecords, readChunkRecords } = require("../../lib/vrp/chunk-store");
+const { writeChunkRecords, readChunkRecords, deleteChunkArtifact } = require("../../lib/vrp/chunk-store");
 const { commitIcebergSnapshot } = require("../../lib/aws/glue-iceberg");
 const { persistProof } = require("../../lib/vrp/proof-store");
 const { appendTransparencyEntry } = require("../../lib/vrp/transparency-log");
@@ -57,17 +57,33 @@ function applySparkRules(records, options = {}) {
   return { records: filtered, audit };
 }
 
-/** IceGuard-style chunked write with checkpoint tracking */
+/** IceGuard-style chunked write with checkpoint tracking + timeout-aware abort */
 class IceGuardWriter {
   constructor(options = {}) {
     this.checkpointInterval = options.checkpointInterval || 5000;
     this.rollbackThresholdMs = options.rollbackThresholdMs || 30000;
+    this.getRemainingMs =
+      typeof options.getRemainingMs === "function"
+        ? options.getRemainingMs
+        : () => Number.POSITIVE_INFINITY;
     this.isolationId = options.isolationId || `ig-${crypto.randomUUID()}`;
     this.checkpoints = [];
     this.committedChunks = [];
   }
 
+  assertTimeBudget() {
+    const remaining = this.getRemainingMs();
+    if (remaining < this.rollbackThresholdMs) {
+      const err = new Error(
+        `IceGuardRollback: remaining time ${remaining}ms below threshold ${this.rollbackThresholdMs}ms`
+      );
+      err.code = "ICEGUARD_TIMEOUT";
+      throw err;
+    }
+  }
+
   async writeChunk(chunkId, records, stagingUri, isolationId) {
+    this.assertTimeBudget();
     const persisted = await writeChunkRecords(chunkId, records, stagingUri, { isolationId });
     const checkpoint = {
       chunkId,
@@ -90,8 +106,19 @@ class IceGuardWriter {
 
   rollback() {
     const rolled = this.checkpoints.filter((c) => !this.committedChunks.includes(c.chunkId));
+    const deletedPaths = [];
+    for (const c of rolled) {
+      if (deleteChunkArtifact(c.localPath)) deletedPaths.push(c.localPath);
+    }
     this.checkpoints = this.checkpoints.filter((c) => this.committedChunks.includes(c.chunkId));
-    return { rolledBack: rolled.length, checkpoints: rolled };
+    return { rolledBack: rolled.length, checkpoints: rolled, deletedPaths };
+  }
+
+  /** Record offset for SFN resume: first uncommitted chunk start index. */
+  nextResumeOffset(chunkSize, fallbackOffset = 0) {
+    if (!this.committedChunks.length) return fallbackOffset;
+    const nextChunkId = Math.max(...this.committedChunks) + 1;
+    return nextChunkId * chunkSize;
   }
 
   commitChunk(chunkId) {
@@ -176,7 +203,9 @@ async function runPvdmWorkload(workload) {
   const runId = workload_id || `wl-${crypto.randomUUID()}`;
   const iceguard = new IceGuardWriter({
     checkpointInterval: pvdmSpec.checkpointInterval || 5000,
+    rollbackThresholdMs: pvdmSpec.rollbackThresholdMs || 30000,
     isolationId: runId,
+    getRemainingMs: workload.getRemainingMs,
   });
 
   try {
@@ -370,10 +399,11 @@ async function runPvdmWorkload(workload) {
       };
     }
     const rollback = iceguard.rollback();
+    const nextOffset = iceguard.nextResumeOffset(chunkSize, resume_offset);
     return {
       outcome: "rolled_back",
-      workload_id,
-      resume_offset: resume_offset,
+      workload_id: runId,
+      resume_offset: nextOffset,
       vrp_verdict: "UNVERIFIED",
       message: err.message,
       rollback,

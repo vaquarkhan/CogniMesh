@@ -88,6 +88,18 @@
 
 ---
 
+### Getting started (UI tutorial)
+
+<p align="center">
+  <a href="docs/assets/cognimesh-tutorial-demo.mp4">
+    <img src="docs/assets/cognimesh-tutorial-demo.gif" alt="CogniMesh UI tutorial: Panels menu, Operations, setup-ready Properties, AWS Fix this, Preview YAML" width="960" />
+  </a>
+  <br />
+  <em>Panels → Operations → load pattern → setup-ready cue → Fix this → Preview</em>
+  <br />
+  <a href="docs/tutorials/getting-started-ui.md">Written walkthrough</a>
+</p>
+
 ### Platform features (how it works)
 
 <p align="center">
@@ -117,7 +129,7 @@
   <br />
   <em>Templates &amp; blocks → load agent → guardrail review → preview → export → deploy</em>
   <br />
-  <code>npm run docs:demo</code> to regenerate all three · portal build + Playwright · optional ffmpeg for MP4/GIF
+  <code>npm run docs:demo</code> to regenerate demos · <code>DEMO_ONLY=tutorial</code> for the UI tutorial only · portal build + Playwright · optional ffmpeg for MP4/GIF
 </p>
 
 <p align="center">

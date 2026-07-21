@@ -84,7 +84,7 @@ function deriveTipVariant(nodes, blockValidation) {
 
 export default function App() {
   const { token, userEmail, logout, authDisabled } = useAuth();
-  const { toasts, success, error: toastError } = useToast();
+  const { toasts, success, error: toastError, info: toastInfo } = useToast();
   const reactFlowWrapper = useRef(null);
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
@@ -646,17 +646,16 @@ export default function App() {
         setDeployError(null);
         setCatalogRefresh((k) => k + 1);
         setActiveDock("deploy");
-        success(deploySuccessToast(data));
-        if (data?.aws && !data.aws.deployed) {
+        if (data?.aws?.deployed) {
+          success("Pipeline deployed to AWS Step Functions");
+        } else if (data?.aws && data.aws.deployed === false) {
           const msg =
             data.aws.error ||
             data.aws.reason ||
             "Pipeline compiled locally - Step Functions was not pushed to AWS.";
-          toastError(
-            data.aws.hint
-              ? `${msg} (${data.aws.hint})`
-              : msg
-          );
+          toastInfo(data.aws.hint ? `${msg} (${data.aws.hint})` : msg);
+        } else {
+          success(deploySuccessToast(data));
         }
       } else {
         const errs = formatApiErrors(data);

@@ -11,7 +11,7 @@ export function useToast() {
     }, 5000);
   };
 
-  return { toasts, push, success: (m) => push(m, "success"), error: (m) => push(m, "error") };
+  return { toasts, push, success: (m) => push(m, "success"), error: (m) => push(m, "error"), info: (m) => push(m, "info") };
 }
 
 export default function ToastStack({ toasts }) {

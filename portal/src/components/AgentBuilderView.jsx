@@ -373,95 +373,107 @@ export default function AgentBuilderView({
         />
 
         <div className="canvas-column">
-          {agentDeployCheck && !agentDeployCheck.enabled && (
-            <div className="agent-deploy-banner agent-deploy-simulated">
-              <strong>Bedrock deploy not configured on API</strong>
-              <p className="properties-hint">
-                {agentDeployCheck.message}
-                {agentDeployCheck.hint ? ` (${agentDeployCheck.hint})` : ""}
-              </p>
-            </div>
-          )}
-          {deployMessage && (
-            <div className={`agent-deploy-banner agent-deploy-${deployMessage.status}`}>
-              <strong>
-                {deployMessage.status === "deployed"
-                  ? "Deployed to Bedrock"
-                  : deployMessage.status === "simulated"
-                    ? "Local simulation (not on AWS)"
-                    : deployMessage.status === "partial"
-                      ? "Agent created on Bedrock (alias step failed)"
-                    : deployMessage.status === "exported"
-                      ? "Manifest exported"
-                      : "Deploy failed"}
-              </strong>
-              <span>
-                {deployMessage.agentName}
-                {deployMessage.agentId ? ` · ${deployMessage.agentId}` : ""}
-              </span>
-              {deployMessage.consoleUrl && (
-                <a
-                  href={deployMessage.consoleUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="aws-console-link"
-                >
-                  Open in Bedrock Agents Console ↗
-                </a>
-              )}
-              {deployMessage.chatUrl && (
-                <a
-                  href={deployMessage.chatUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="aws-console-link agent-chat-link"
-                >
-                  💬 Open Agent Chat UI ↗
-                </a>
-              )}
-              <p className="properties-hint">{deployMessage.message}</p>
-              {deployMessage.target === "agentcore-runtime" && deployMessage.project && (
-                <div className="agentcore-project">
-                  <p className="properties-hint">Framework: <code>{deployMessage.framework}</code> · Model: <code>{deployMessage.model}</code></p>
-                  <div className="agentcore-actions">
-                    <button
-                      type="button"
-                      className="deploy-btn"
-                      onClick={() => {
-                        downloadZip(`${deployMessage.agentName || "agentcore-agent"}-agentcore`, deployMessage.project);
-                        success("AgentCore project downloaded (.zip)");
-                      }}
+          {(deployMessage || (agentDeployCheck && !agentDeployCheck.enabled)) && (
+            <div
+              className={`agent-deploy-banner agent-deploy-${deployMessage?.status || "simulated"}`}
+              data-testid="agent-status-strip"
+            >
+              {deployMessage ? (
+                <>
+                  <strong>
+                    {deployMessage.status === "deployed"
+                      ? "Deployed to Bedrock"
+                      : deployMessage.status === "simulated"
+                        ? "Local simulation (not on AWS)"
+                        : deployMessage.status === "partial"
+                          ? "Agent created on Bedrock (alias step failed)"
+                          : deployMessage.status === "exported"
+                            ? "Manifest exported"
+                            : "Deploy failed"}
+                  </strong>
+                  <span>
+                    {deployMessage.agentName}
+                    {deployMessage.agentId ? ` · ${deployMessage.agentId}` : ""}
+                  </span>
+                  {deployMessage.consoleUrl && (
+                    <a
+                      href={deployMessage.consoleUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="aws-console-link"
                     >
-                      ⬇ Download project (.zip)
-                    </button>
-                    {deployMessage.agentRuntimeArn ? (
-                      <a className="aws-console-link" href={deployMessage.consoleUrl || "#"} target="_blank" rel="noreferrer">Open AgentCore Runtime ↗</a>
-                    ) : (
-                      <span className="agentcore-deploy-hint">To deploy directly: unzip → run <code>./deploy.sh</code> (builds ARM64 image, pushes to ECR, calls CreateAgentRuntime). Requires Docker + an AgentCore runtime role.</span>
-                    )}
-                  </div>
-                  <div className="agentcore-file-tabs">
-                    {deployMessage.projectFiles.map((f) => (
-                      <details key={f} className="agentcore-file">
-                        <summary>{f}</summary>
-                        <pre className="agentcore-file-body">{deployMessage.project[f]}</pre>
-                      </details>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {deployMessage.status === "simulated" && deployMessage.plan?.steps?.length > 0 && (
-                <ol className="aws-fix-steps">
-                  {deployMessage.plan.steps.map((step, i) => (
-                    <li key={i}>{step}</li>
-                  ))}
-                </ol>
-              )}
-              {deployMessage.status === "simulated" && agentDeployCheck?.hint && (
-                <p className="properties-hint">
-                  To deploy for real: set <code>AWS_BEDROCK_AGENT_ROLE_ARN</code> on the API server, restart API, then
-                  click Deploy again. The agent chat UI will launch automatically.
-                </p>
+                      Open in Bedrock Agents Console ↗
+                    </a>
+                  )}
+                  {deployMessage.chatUrl && (
+                    <a
+                      href={deployMessage.chatUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="aws-console-link agent-chat-link"
+                    >
+                      💬 Open Agent Chat UI ↗
+                    </a>
+                  )}
+                  <p className="properties-hint">{deployMessage.message}</p>
+                  {agentDeployCheck && !agentDeployCheck.enabled && (
+                    <p className="properties-hint agent-status-readiness">
+                      Live Bedrock deploy is not configured on the API
+                      {agentDeployCheck.hint ? ` (${agentDeployCheck.hint})` : ""}.
+                    </p>
+                  )}
+                  {deployMessage.target === "agentcore-runtime" && deployMessage.project && (
+                    <div className="agentcore-project">
+                      <p className="properties-hint">Framework: <code>{deployMessage.framework}</code> · Model: <code>{deployMessage.model}</code></p>
+                      <div className="agentcore-actions">
+                        <button
+                          type="button"
+                          className="deploy-btn"
+                          onClick={() => {
+                            downloadZip(`${deployMessage.agentName || "agentcore-agent"}-agentcore`, deployMessage.project);
+                            success("AgentCore project downloaded (.zip)");
+                          }}
+                        >
+                          ⬇ Download project (.zip)
+                        </button>
+                        {deployMessage.agentRuntimeArn ? (
+                          <a className="aws-console-link" href={deployMessage.consoleUrl || "#"} target="_blank" rel="noreferrer">Open AgentCore Runtime ↗</a>
+                        ) : (
+                          <span className="agentcore-deploy-hint">To deploy directly: unzip → run <code>./deploy.sh</code> (builds ARM64 image, pushes to ECR, calls CreateAgentRuntime). Requires Docker + an AgentCore runtime role.</span>
+                        )}
+                      </div>
+                      <div className="agentcore-file-tabs">
+                        {deployMessage.projectFiles.map((f) => (
+                          <details key={f} className="agentcore-file">
+                            <summary>{f}</summary>
+                            <pre className="agentcore-file-body">{deployMessage.project[f]}</pre>
+                          </details>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {deployMessage.status === "simulated" && deployMessage.plan?.steps?.length > 0 && (
+                    <ol className="aws-fix-steps">
+                      {deployMessage.plan.steps.map((step, i) => (
+                        <li key={i}>{step}</li>
+                      ))}
+                    </ol>
+                  )}
+                  {deployMessage.status === "simulated" && agentDeployCheck?.hint && (
+                    <p className="properties-hint">
+                      To deploy for real: set <code>AWS_BEDROCK_AGENT_ROLE_ARN</code> on the API server, restart API, then
+                      click Deploy again. The agent chat UI will launch automatically.
+                    </p>
+                  )}
+                </>
+              ) : (
+                <>
+                  <strong>Bedrock deploy not configured on API</strong>
+                  <p className="properties-hint">
+                    {agentDeployCheck.message}
+                    {agentDeployCheck.hint ? ` (${agentDeployCheck.hint})` : ""}
+                  </p>
+                </>
               )}
             </div>
           )}

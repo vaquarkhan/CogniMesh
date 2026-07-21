@@ -8,6 +8,7 @@
  *   docs/assets/cognimesh-features-demo.{webm,mp4,gif}
  *   docs/assets/cognimesh-pipeline-demo.{webm,mp4,gif}
  *   docs/assets/cognimesh-agent-demo.{webm,mp4,gif}
+ *   docs/assets/cognimesh-tutorial-demo.{webm,mp4,gif}
  */
 
 const { chromium } = require("playwright");
@@ -260,26 +261,41 @@ async function ensureAwsReviewReady(page) {
   }
 }
 
+async function openDockFromPanelsMenu(page, label) {
+  const tools = page.locator('[data-testid="header-tools-menu"], button.header-menu-trigger');
+  await tools.first().click({ force: true });
+  await sleep(250);
+  const item = page
+    .locator('[data-testid="header-tools-dropdown"] button[role="menuitemradio"], .header-menu-dropdown button[role="menuitemradio"]')
+    .filter({ hasText: label });
+  await item.first().click({ force: true });
+  await sleep(550);
+}
+
 async function closeSidePanels(page) {
-  for (const label of ["Marketplace", "Operations", "Run History", "Lineage", "Approvals"]) {
-    const panel =
-      label === "Marketplace"
-        ? page.locator(".marketplace-panel")
-        : label === "Operations"
-          ? page.locator(".platform-ops-panel")
-          : label === "Run History"
-            ? page.locator(".execution-history-panel")
-            : label === "Lineage"
-              ? page.locator(".lineage-catalog-panel")
-              : page.locator(".steward-approvals-panel");
-    if (await panel.isVisible().catch(() => false)) {
-      await clickHeaderButton(page, label);
-      await sleep(250);
-    }
+  const tools = page.locator('[data-testid="header-tools-menu"], button.header-menu-trigger');
+  if ((await tools.count()) === 0) return;
+  const anyPanel = page.locator(
+    ".marketplace-panel, .platform-ops-panel, .execution-history-panel, .lineage-catalog-panel, .steward-panel, .steward-approvals-panel, .deploy-panel.dock"
+  );
+  if (!(await anyPanel.first().isVisible().catch(() => false))) return;
+  await tools.first().click({ force: true });
+  await sleep(200);
+  const closeAll = page.locator(".header-menu-close-all");
+  if ((await closeAll.count()) > 0) {
+    await closeAll.first().click({ force: true });
+    await sleep(350);
+  } else {
+    await tools.first().click({ force: true });
   }
 }
 
 async function clickHeaderButton(page, label) {
+  const dockLabels = new Set(["Marketplace", "Operations", "Run History", "Lineage", "Approvals", "Deploy results"]);
+  if (dockLabels.has(label)) {
+    await openDockFromPanelsMenu(page, label);
+    return;
+  }
   const btn = page.locator(".header-actions button").filter({ hasText: label });
   await btn.first().click({ force: true });
   await sleep(550);
@@ -738,8 +754,48 @@ async function deployAgent(page) {
   await sleep(900);
 
   await page.locator('button:has-text("Deploy to AWS")').click({ force: true });
-  await page.locator(".agent-deploy-banner").waitFor({ state: "visible", timeout: 15000 });
+  await page.locator('[data-testid="agent-status-strip"], .agent-deploy-banner').first().waitFor({ state: "visible", timeout: 15000 });
   await sleep(1200);
+}
+
+async function runTutorialDemoFlow(page) {
+  await page.goto(PORTAL_URL, { waitUntil: "networkidle" });
+  await sleep(700);
+  await dismissWelcome(page);
+  await ensurePipelineMode(page);
+
+  // 1. Panels menu discoverability
+  await page.locator('[data-testid="header-tools-menu"]').click({ force: true });
+  await page.locator('[data-testid="header-tools-dropdown"]').waitFor({ state: "visible", timeout: 8000 });
+  await sleep(900);
+  await page.locator('[data-testid="header-tools-dropdown"] button[role="menuitemradio"]').filter({ hasText: "Operations" }).click({ force: true });
+  await page.locator(".platform-ops-panel").waitFor({ state: "visible", timeout: 10000 });
+  await sleep(1000);
+  await closeSidePanels(page);
+
+  // 2. Load pattern + Properties setup-ready cue
+  await loadMultiSourcePattern(page);
+  await ensureAwsReviewReady(page);
+  await collapseAwsHud(page);
+  const rds = page.locator(".react-flow__node").filter({ hasText: "RDS Orders" });
+  await rds.first().click({ force: true });
+  await page.locator('[data-testid="resource-setup-banner"]').waitFor({ state: "visible", timeout: 10000 });
+  await sleep(1200);
+
+  // 3. Fix guide from AWS review (existing DB path)
+  await page.locator('[data-testid="rds-resource-setup"] button:has-text("Use my existing database")').click({ force: true });
+  await waitForAwsReview(page);
+  await page.locator('[data-testid="props-aws-findings"]').waitFor({ state: "visible", timeout: 15000 }).catch(() => {});
+  const fixBtn = page.locator('[data-testid^="props-aws-fix-setup.rds_secret"]');
+  if ((await fixBtn.count()) > 0) {
+    await fixBtn.first().click({ force: true });
+    await sleep(1400);
+  }
+
+  // 4. Preview YAML
+  await page.locator('.header-actions button:has-text("Preview YAML")').click({ force: true });
+  await page.locator(".deploy-panel").waitFor({ state: "visible", timeout: 15000 });
+  await sleep(1400);
 }
 
 async function runAgentDemoFlow(page) {
@@ -839,6 +895,7 @@ async function main() {
 
     const only = process.env.DEMO_ONLY;
     const demos = [
+      ["cognimesh-tutorial-demo", runTutorialDemoFlow],
       ["cognimesh-features-demo", runFeaturesDemoFlow],
       ["cognimesh-pipeline-demo", runPipelineDemoFlow],
       ["cognimesh-agent-demo", runAgentDemoFlow],

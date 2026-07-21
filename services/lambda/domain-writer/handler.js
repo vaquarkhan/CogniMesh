@@ -3,7 +3,7 @@
 const { runPvdmWorkload } = require("./services/pvdm-runtime");
 const { runIntegrityGate } = require("./lib/integrity-gate");
 
-exports.handler = async (event) => {
+exports.handler = async (event, context) => {
   if (event.contract && !event.source_rows) {
     const gate = runIntegrityGate(event.contract);
     if (!gate.passed) {
@@ -32,5 +32,9 @@ exports.handler = async (event) => {
     source_rows: event.source_rows || [],
     workload_id: event.workload_id || `wl-${Date.now()}`,
     resume_offset: event.resume_offset || 0,
+    getRemainingMs:
+      typeof context?.getRemainingTimeInMillis === "function"
+        ? () => context.getRemainingTimeInMillis()
+        : undefined,
   });
 };

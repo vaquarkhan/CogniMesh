@@ -14,6 +14,7 @@
 
 | Goal | Start here |
 |------|------------|
+| **UI walkthrough (video)** | [Getting started UI](getting-started-ui.md) |
 | **Data pipeline** | [Pipeline tutorials](#data-pipeline-tutorials) |
 | **AI agent** | [Agent tutorials](#agent-tutorials) |
 | Local dev | `npm run start:dev` → http://localhost:3000 |

@@ -1,6 +1,8 @@
 """
-CogniMesh domain writer - Vaquar PVDM via serverless-data-mesh when installed.
-Falls back to Node-compatible contract payload for local testing.
+CogniMesh Python domain-writer entrypoint.
+
+Honest outcomes only: never return a fake VRP PASS. Production PVDM runs in the
+Node Lambda at services/lambda/domain-writer (runPvdmWorkload).
 """
 from __future__ import annotations
 
@@ -9,48 +11,49 @@ import os
 
 
 def handler(event, context):
-    contract = event.get("contract") or event.get("workload", {}).get("contract")
+    contract = event.get("contract") or (event.get("workload") or {}).get("contract")
     if not contract:
-        return {"outcome": "verification_failed", "message": "Missing contract"}
-
-    try:
-        from serverless_data_mesh import (
-            DataProductContract,
-            DomainTransactionBoundary,
-            IceGuardDurableCoordinator,
-            VRPProofGenerator,
-        )
-
-        spec = contract.get("spec", {})
-        meta = contract.get("metadata", {})
-        boundary = DomainTransactionBoundary(
-            domain_id=meta.get("domain", "default"),
-            source_namespace=spec.get("source", {}).get("connection", {}).get("database", "source"),
-            target_table=spec.get("target", {}).get("catalog", {}).get("table", meta.get("name")),
-            partition_spec={"dt": "2026-01-01"},
-            quality_policy_id=spec.get("transform", {}).get("pvdm", {}).get("qualityPolicyId", "strict-zero-drop"),
-        )
         return {
-            "outcome": "committed",
-            "workload_id": event.get("workload_id", "py-writer"),
-            "message": "serverless-data-mesh coordinator ready",
-            "boundary": str(boundary),
+            "outcome": "verification_failed",
+            "vrp_verdict": "FAIL",
+            "message": "Missing contract",
             "pattern": "vaquar-pvdm",
         }
+
+    source_rows = event.get("source_rows") or (event.get("workload") or {}).get("source_rows") or []
+    workload_id = event.get("workload_id") or (event.get("workload") or {}).get("workload_id") or "py-writer"
+    resume_offset = int(event.get("resume_offset") or (event.get("workload") or {}).get("resume_offset") or 0)
+
+    # Prefer Node PVDM unless an explicit full coordinator is available and invoked.
+    try:
+        from serverless_data_mesh import (  # noqa: F401
+            DomainTransactionBoundary,
+        )
     except ImportError:
-        source_rows = event.get("source_rows", [])
-        if not source_rows:
-            return {
-                "outcome": "unverified",
-                "workload_id": event.get("workload_id", "py-stub"),
-                "vrp_verdict": "UNVERIFIED",
-                "message": "Empty workload — nothing to verify (install serverless-data-mesh for full PVDM)",
-                "pattern": "vaquar-pvdm-stub",
-            }
         return {
-            "outcome": "committed",
-            "workload_id": event.get("workload_id", "py-stub"),
-            "chunks": max(1, len(source_rows) // 5000),
-            "vrp_verdict": "PASS",
-            "message": "Stub PVDM commit (pip install serverless-data-mesh for production)",
+            "outcome": "verification_failed",
+            "workload_id": workload_id,
+            "resume_offset": resume_offset,
+            "vrp_verdict": "FAIL",
+            "message": (
+                "Python domain-writer does not simulate VRP PASS. "
+                "Deploy services/lambda/domain-writer (Node PVDM) "
+                "or install and wire a full serverless-data-mesh coordinator."
+            ),
+            "pattern": "vaquar-pvdm-stub",
+            "row_count": len(source_rows),
         }
+
+    # Package present but this handler still does not run IceGuard/VRP/catalog commit.
+    return {
+        "outcome": "verification_failed",
+        "workload_id": workload_id,
+        "resume_offset": resume_offset,
+        "vrp_verdict": "FAIL",
+        "message": (
+            "serverless_data_mesh is importable but this handler does not execute "
+            "Physical→Verify→Metadata. Use the Node domain-writer Lambda for production PVDM."
+        ),
+        "pattern": "vaquar-pvdm-unwired",
+        "row_count": len(source_rows),
+    }

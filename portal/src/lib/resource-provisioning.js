@@ -148,6 +148,43 @@ export function sinkWizardSteps(data) {
   return steps;
 }
 
+/** Summary for Properties banner: provision vs existing + whether required steps are done. */
+export function resourceSetupSummary(data) {
+  if (!hasResourceSetupWizard(data)) return null;
+
+  let mode = PROVISION;
+  let steps = [];
+  let title = "Resource setup";
+
+  if (isRdsSource(data)) {
+    mode = resolveRdsMode(data);
+    steps = rdsWizardSteps(data);
+    title = mode === PROVISION ? "Create new database" : "Use existing database";
+  } else if (isS3LikeSink(data)) {
+    mode = resolveSinkMode(data);
+    steps = sinkWizardSteps(data);
+    title = mode === PROVISION ? "Create new S3 bucket" : "Use existing bucket";
+  } else if (isS3Source(data)) {
+    mode = resolveS3SourceMode(data);
+    steps = s3SourceWizardSteps(data);
+    title = mode === PROVISION ? "Create new landing bucket" : "Use existing landing bucket";
+  }
+
+  const required = steps.filter((s) => !s.optional);
+  const done = required.filter((s) => s.complete).length;
+  const complete = required.length > 0 && done === required.length;
+  const hint =
+    mode === PROVISION
+      ? complete
+        ? "Setup complete - Terraform will provision this resource on deploy. No Secrets Manager ARN needed."
+        : "Finish the checklist below. Create new is the default path (Terraform on deploy)."
+      : complete
+        ? "Existing resource details look complete. Re-run AWS Design Review to clear setup findings."
+        : "Paste ARNs and paths for your existing AWS resource. Prefer Create new if you do not have them yet.";
+
+  return { mode, title, complete, done, total: required.length, hint };
+}
+
 export function s3SourceWizardSteps(data) {
   const mode = resolveS3SourceMode(data);
   return [

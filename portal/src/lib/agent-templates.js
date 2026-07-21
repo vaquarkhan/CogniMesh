@@ -250,7 +250,7 @@ export const AGENT_TEMPLATES = [
   {
     id: "cognimesh-steward",
     name: "CogniMesh Data Steward",
-    subtitle: "MCP · marketplace · LF grants",
+    subtitle: "MCP · marketplace · access triage",
     category: "CogniMesh",
     difficulty: "Intermediate",
     badge: "CogniMesh",
@@ -279,7 +279,7 @@ export const AGENT_TEMPLATES = [
     ],
     customizeTips: [
       "MCP tools connect to CogniMesh agent-mcp service.",
-      "Human loop required before LF grant simulation.",
+      "Human loop required before access approval (LF GrantPermissions not wired yet).",
       "Guardrail blocks auto-approval of sensitive domains.",
     ],
   },
