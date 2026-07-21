@@ -6,7 +6,8 @@
 
 ## System Planes
 
-> **Full AWS E2E diagram (draw.io):** [PIPELINE_E2E_DIAGRAM.md](PIPELINE_E2E_DIAGRAM.md) · [`diagrams/cognimesh-pipeline-e2e.drawio`](diagrams/cognimesh-pipeline-e2e.drawio)
+> **Full AWS E2E diagram (draw.io):** [PIPELINE_E2E_DIAGRAM.md](PIPELINE_E2E_DIAGRAM.md) · [`diagrams/cognimesh-pipeline-e2e.drawio`](diagrams/cognimesh-pipeline-e2e.drawio)  
+> **Illustrated E2E + AWS PVDM flow:** [E2E_ARCHITECTURE.md](E2E_ARCHITECTURE.md)
 
 ```mermaid
 flowchart TB

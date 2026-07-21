@@ -7,7 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added — `ui-enhancement-2026-06-20` branch
+### Added - `pvdm-architecture-review-2026-07-21` branch
+
+- **E2E architecture docs**: [docs/E2E_ARCHITECTURE.md](docs/E2E_ARCHITECTURE.md) with platform + AWS PVDM illustrated images
+- **AWS PVDM runbook**: [docs/examples/aws-pvdm-runbook.md](docs/examples/aws-pvdm-runbook.md) + `npm run test:pvdm-mock`
+- **Durable resume**: Step Functions advances `resume_offset` after IceGuard rollback
+- **IceGuard timeout**: aborts when Lambda remaining time is below threshold; deletes uncommitted staging files
+- **Honest Python domain-writer**: never returns a fake VRP PASS stub
+- **Coverage**: `npm run test:coverage` (c8 over `lib/vrp` + `pvdm-runtime` + `pvdm-sfn`)
+
+### Added - `ui-enhancement-2026-06-20` branch
 
 - **AgentCore Runtime (Strands) deploy target**: New deploy dropdown in Agent Builder — generates a downloadable Python project (agent.py, Dockerfile, deploy.sh) using Strands + BedrockAgentCoreApp. Optionally calls CreateAgentRuntime when env configured.
 - **Native Dashboard tab**: In-app dashboard with KPI cards, SVG donut chart (pipeline run status), bar chart (agents by status), and full pipeline/agent tables. Auto-refreshes every 15s from `/api/v1/public/status`.

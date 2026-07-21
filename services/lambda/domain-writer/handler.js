@@ -32,5 +32,9 @@ exports.handler = async (event) => {
     source_rows: event.source_rows || [],
     workload_id: event.workload_id || `wl-${Date.now()}`,
     resume_offset: event.resume_offset || 0,
+    getRemainingMs:
+      typeof context?.getRemainingTimeInMillis === "function"
+        ? () => context.getRemainingTimeInMillis()
+        : undefined,
   });
 };
