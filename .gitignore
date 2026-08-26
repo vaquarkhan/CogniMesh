@@ -32,6 +32,7 @@ test-results/
 playwright-report/
 playwright/.cache/
 docs/assets/.demo-video-tmp/
+docs/assets/.preview/
 docs/assets/*.webm
 
 # Portal local overrides

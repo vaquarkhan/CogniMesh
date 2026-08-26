@@ -16,6 +16,7 @@
   <a href="POSITIONING.md">Positioning</a> ·
   <a href="../README.md">← CogniMesh</a> ·
   <a href="FAQ.md">FAQ</a> ·
+  <a href="#read-the-paper--reference-gate">Paper</a> ·
   <a href="#data-examples">Data examples</a> ·
   <a href="data-contract-spec.md">Data Contract</a> ·
   <a href="README-business-stewards.md">Business guide</a>
@@ -40,6 +41,29 @@ CogniMesh implements this pattern in its portal and PVDM runtime. See [POSITIONI
 > `commit_metadata ⟹ VRP = PASS`
 >
 > No Iceberg snapshot, Glue catalog update, or marketplace listing may proceed unless multiset verification passes for every committed chunk.
+
+---
+
+## Read the paper & reference gate
+
+**Proof-Gated Serverless Lakehouse Publication (PVDM)**  
+Physical → Verify → Durable → Metadata  
+Invariant: `commit_metadata ⟹ VRP = PASS`
+
+| | |
+|---|---|
+| **arXiv preprint** | [arXiv:2608.14643](https://arxiv.org/abs/2608.14643) — *Proof-Gated Publication: Verify-Before-Commit Content Integrity for Serverless Data-Mesh Lakehouses* |
+| **Reference gate + adversarial suite** | [github.com/vaquarkhan/Proof-gated-publication-PVDM](https://github.com/vaquarkhan/Proof-gated-publication-PVDM) (stdlib gate, 30/30 suite, Spark/Iceberg benchmarks) |
+| **This repo** | Production AWS mapping (IceGuard · veridata-recon · Durable SDK · Glue/Iceberg) |
+
+| | |
+|---|---|
+| **Method name** | Vaquar Pattern |
+| **Operational acronym** | PVDM (Physical · Verify · Durable · Metadata) |
+| **Inventor** | Vaquar Khan |
+| **Copyright** | © 2024–2026 Vaquar Khan — proprietary method (name + invariants) |
+| **Status** | Proprietary method · open reference implementation (Apache-2.0) |
+| **Cite** | [arXiv:2608.14643](https://arxiv.org/abs/2608.14643) · [docs/vaquar-pattern.md](vaquar-pattern.md) · [NOTICE](../NOTICE) |
 
 ---
 
@@ -711,7 +735,9 @@ The Vaquar Pattern is also embodied in the open-source **[AWS Serverless Data Me
 
 | Layer | Location |
 |-------|----------|
-| Pattern specification | This document |
+| **Paper** | [arXiv:2608.14643](https://arxiv.org/abs/2608.14643) |
+| **Reference gate** | [Proof-gated-publication-PVDM](https://github.com/vaquarkhan/Proof-gated-publication-PVDM) |
+| Pattern specification | This document · [NOTICE](../NOTICE) |
 | **veridata alignment** | [veridata-integration.md](veridata-integration.md) |
 | Example contracts | `contracts/examples/` |
 | Proof conformance samples | `fixtures/vrp-conformance/` |
@@ -725,11 +751,16 @@ The Vaquar Pattern is also embodied in the open-source **[AWS Serverless Data Me
 
 | | |
 |---|---|
-| **Pattern** | The Vaquar Pattern |
-| **Author** | [Vaquarkhan](https://github.com/vaquarkhan) |
+| **Method name** | Vaquar Pattern |
+| **Operational acronym** | PVDM (Physical · Verify · Durable · Metadata) |
+| **Paper** | [arXiv:2608.14643](https://arxiv.org/abs/2608.14643) — *Proof-Gated Publication: Verify-Before-Commit Content Integrity for Serverless Data-Mesh Lakehouses* |
+| **Inventor** | [Vaquar Khan](https://github.com/vaquarkhan) |
+| **Copyright** | © 2024–2026 Vaquar Khan — proprietary method (name + invariants) |
+| **Status** | Proprietary method · open reference implementation (Apache-2.0) |
+| **Reference gate** | [Proof-gated-publication-PVDM](https://github.com/vaquarkhan/Proof-gated-publication-PVDM) |
 | **Platform** | [CogniMesh](https://github.com/vaquarkhan/CogniMesh) |
 | **Invariant** | `commit_metadata ⟹ VRP = PASS` |
-| **Phases** | Physical → Verify → Durable → Metadata |
+| **Cite** | arXiv:2608.14643 · this document · [NOTICE](../NOTICE) |
 
 <p align="center">
   <sub>Domain teams own the pipeline design. The mesh proves correctness before publication.</sub>

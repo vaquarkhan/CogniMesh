@@ -26,6 +26,13 @@ Employee self-service on benefits, PTO, policies - must not give legal advice.
 
 ## How it works
 
+<p align="center">
+  <a href="../../assets/cognimesh-agent-demo.mp4">
+    <img src="../../assets/cognimesh-agent-demo-poster.png" alt="CogniMesh agent walkthrough: templates and blocks, guardrails, preview manifest, export, deploy" width="720" />
+  </a>
+  <br /><em>Templates &amp; blocks → load agent → guardrails → preview → export → deploy — click to play video</em>
+</p>
+
 1. User message → **AgentCore Runtime** (session-isolated)
 2. **Bedrock model** reasons over context
 3. **Knowledge Base** retrieval (if enabled) augments the prompt

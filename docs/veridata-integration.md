@@ -132,5 +132,6 @@ That forces NDJSON read-back for all chunks. It is used intentionally in one tes
 ## Related docs
 
 - [Vaquar Pattern](vaquar-pattern.md) - proof semantics and data examples
+- [NOTICE](../NOTICE) · [arXiv:2608.14643](https://arxiv.org/abs/2608.14643) · [reference gate](https://github.com/vaquarkhan/Proof-gated-publication-PVDM)
 - [FAQ - aggregate mode](FAQ.md#row-preserving-vs-aggregation---which-verification-applies)
 - [AWS Serverless Data Mesh Framework](https://github.com/vaquarkhan/aws-serverless-datamesh-framework)

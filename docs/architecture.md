@@ -49,7 +49,7 @@ flowchart TB
 
 `RDS/MySQL (CDC)` → `S3 Bronze` → `Glue Silver` → `Iceberg Gold`
 
-Proof-gated writes follow **[The Vaquar Pattern](vaquar-pattern.md)** (Physical → Verify → Durable → Metadata).
+Proof-gated writes follow **[The Vaquar Pattern](vaquar-pattern.md)** (Physical → Verify → Durable → Metadata). Invariant: `commit_metadata ⟹ VRP = PASS`. Paper: [arXiv:2608.14643](https://arxiv.org/abs/2608.14643). Reference gate: [Proof-gated-publication-PVDM](https://github.com/vaquarkhan/Proof-gated-publication-PVDM). Attribution: [NOTICE](../NOTICE).
 
 ### Cognitive Pipeline
 
@@ -151,7 +151,7 @@ The studio URL is configured via `VITE_AGENTCORE_STUDIO_URL` (baked at build tim
 | Document | Description |
 |----------|-------------|
 | [PIPELINE_E2E_DIAGRAM.md](PIPELINE_E2E_DIAGRAM.md) | **AWS E2E diagram** - structured + cognitive pipelines |
-| [vaquar-pattern.md](vaquar-pattern.md) | The Vaquar Pattern (PVDM) |
+| [vaquar-pattern.md](vaquar-pattern.md) | The Vaquar Pattern (PVDM) · [arXiv:2608.14643](https://arxiv.org/abs/2608.14643) |
 | [drag-drop-pipeline-flow.md](drag-drop-pipeline-flow.md) | Portal E2E |
 | [data-contract-spec.md](data-contract-spec.md) | DataContract spec |
 | [TUTORIAL_AGENT_DEPLOY.md](TUTORIAL_AGENT_DEPLOY.md) | Tutorial: Deploy agent with Streamlit chat |

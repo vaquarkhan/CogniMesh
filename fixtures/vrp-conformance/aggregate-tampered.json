@@ -2,6 +2,13 @@
   "proof_version": "3",
   "pipeline_run_id": "conformance-aggregate",
   "chunk_sequence": "0",
+  "nonce": "e23467b9-ac94-48f9-880b-441b661c0a75",
+  "target": "default.output",
+  "partition": "",
+  "key_epoch": "e1",
+  "conformance_profile": "T-uncertified",
+  "profile_t_certified": false,
+  "verdict": "PASS",
   "table": {
     "catalog_database": "default",
     "catalog_table": "output"
@@ -32,8 +39,12 @@
       "group",
       "id"
     ],
-    "source_hash": "992b3efbbcc70ac5348ca6748941fd22155d52056e1046559b3bb8914dbc77b1",
-    "sink_hash": "7bb9a68375cf914eb5d11fd942714272fac730ef501389f2c696ba411936abe3",
+    "source_hash": "48458642e1b11071555d0df190f4ead3e01b19a07c8cfd226072b3207b78e99e",
+    "sink_hash": "cefcb399ac07a7d87d755189846a4eb363c3339bfa7c9e93c4b7ce50ba17976f",
+    "identity_source_hash": "48458642e1b11071555d0df190f4ead3e01b19a07c8cfd226072b3207b78e99e",
+    "identity_sink_hash": "cefcb399ac07a7d87d755189846a4eb363c3339bfa7c9e93c4b7ce50ba17976f",
+    "construction": "mset-add-hmac-sha256",
+    "key_epoch": "e1",
     "sink_materialization": "read_back",
     "mode": "aggregate"
   },
@@ -77,23 +88,23 @@
     "statement": "output is the deterministic result of transform T over signed inputs I",
     "transform_content_hash": "fc115cefb40bfd807712109eae852a560ef37ab8f79d510b58f069823a1f29bf",
     "input_proof_ids": [],
-    "output_logical_hash": "7bb9a68375cf914eb5d11fd942714272fac730ef501389f2c696ba411936abe3",
+    "output_logical_hash": "cefcb399ac07a7d87d755189846a4eb363c3339bfa7c9e93c4b7ce50ba17976f",
     "pipeline_run_id": "conformance-aggregate"
   },
   "sink_artifacts": {
     "manifest_digest": null,
     "logical_content": {
-      "logical_content_hash": "7bb9a68375cf914eb5d11fd942714272fac730ef501389f2c696ba411936abe3",
+      "logical_content_hash": "cefcb399ac07a7d87d755189846a4eb363c3339bfa7c9e93c4b7ce50ba17976f",
       "row_count": "2",
       "compaction_safe": true
     },
     "file_digests": []
   },
   "failure_localization": null,
-  "not_before": "2026-06-18T00:58:35.115Z",
-  "not_after": "2026-06-19T00:58:35.115Z",
+  "not_before": "2026-08-26T18:25:37.570Z",
+  "not_after": "2026-08-27T18:25:37.570Z",
   "ttl_sec": 86400,
-  "signed_at": "2026-06-18T00:58:35.115Z",
-  "proof_id": "639c995fc2f0288d5cf8122b29923350fd524e39c204cf35ed64dee6c6e840f8",
+  "signed_at": "2026-08-26T18:25:37.570Z",
+  "proof_id": "a404066a5fc646eb2ff1bb267d8b18b0d96d090846ba4e1c4da2ad6e7c9f1a45",
   "signing": null
 }

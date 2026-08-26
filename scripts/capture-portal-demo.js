@@ -133,7 +133,7 @@ function convertWithFfmpeg(webmPath, demoBase) {
 
   execSync(
     [
-      `ffmpeg -y -i "${webmPath}"`,
+      `ffmpeg -y -ss 1.2 -i "${webmPath}"`,
       "-vf",
       '"fps=8,scale=720:-1:flags=lanczos,split[s0][s1];[s0]palettegen=max_colors=128[p];[s1][p]paletteuse=dither=bayer"',
       "-an",
@@ -143,7 +143,7 @@ function convertWithFfmpeg(webmPath, demoBase) {
   );
 
   execSync(
-    `ffmpeg -y -i "${webmPath}" -frames:v 1 -update 1 "${posterPath}"`,
+    `ffmpeg -y -ss 2 -i "${webmPath}" -frames:v 1 -update 1 "${posterPath}"`,
     { stdio: "inherit" }
   );
 

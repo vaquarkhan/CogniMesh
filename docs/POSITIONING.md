@@ -73,7 +73,24 @@ CogniMesh, [veridata](https://github.com/vaquarkhan/veridata), and the [AWS Serv
 | **veridata** | Rust VRP engine and spec (`0.1.x`); multiset recon + conformance suite |
 | **Datamesh framework** | Python serverless runtime consuming veridata |
 
-**The Vaquar Pattern** is [Vaquarkhan](https://github.com/vaquarkhan)'s reference architecture, documented in [vaquar-pattern.md](vaquar-pattern.md).
+**The Vaquar Pattern** is [Vaquar Khan](https://github.com/vaquarkhan)'s method (operational acronym **PVDM**), specified in [vaquar-pattern.md](vaquar-pattern.md).
+
+### Read the paper & reference gate
+
+| | |
+|---|---|
+| **arXiv preprint** | [arXiv:2608.14643](https://arxiv.org/abs/2608.14643) — *Proof-Gated Publication: Verify-Before-Commit Content Integrity for Serverless Data-Mesh Lakehouses* |
+| **Reference gate + adversarial suite** | [github.com/vaquarkhan/Proof-gated-publication-PVDM](https://github.com/vaquarkhan/Proof-gated-publication-PVDM) (stdlib gate, 30/30 suite, Spark/Iceberg benchmarks) |
+| **This repo** | Production AWS mapping (IceGuard · veridata-recon · Durable SDK · Glue/Iceberg) |
+
+| | |
+|---|---|
+| **Method name** | Vaquar Pattern |
+| **Operational acronym** | PVDM (Physical · Verify · Durable · Metadata) |
+| **Inventor** | Vaquar Khan |
+| **Copyright** | © 2024–2026 Vaquar Khan — proprietary method (name + invariants) |
+| **Status** | Proprietary method · open reference implementation (Apache-2.0) |
+| **Cite** | [arXiv:2608.14643](https://arxiv.org/abs/2608.14643) · [docs/vaquar-pattern.md](vaquar-pattern.md) · [NOTICE](../NOTICE) |
 
 Technical integration plan: [veridata integration](veridata-integration.md).
 
@@ -116,7 +133,8 @@ Prioritized engineering detail for C1 and V1/V2: [veridata-integration.md](verid
 
 ## Related docs
 
-- [Vaquar Pattern](vaquar-pattern.md) - architecture, data examples, VRP features
+- [Vaquar Pattern](vaquar-pattern.md) - architecture, data examples, VRP features, [paper](https://arxiv.org/abs/2608.14643)
+- [NOTICE](../NOTICE) - PVDM method attribution
 - [FAQ](FAQ.md)
 - [veridata integration](veridata-integration.md)
 - [Business steward guide](README-business-stewards.md)

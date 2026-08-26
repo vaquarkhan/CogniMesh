@@ -53,4 +53,6 @@ Agent descriptions must be at least 40 characters for Bedrock.
 | Real AWS deploy | [CONTRIBUTING.md](../CONTRIBUTING.md) → Terraform outputs |
 | Developer customization | [docs/developer/README.md](developer/README.md) |
 
+Watch how it works: [Getting started UI (video)](tutorials/getting-started-ui.md) · [Platform tour](assets/cognimesh-features-demo.mp4)
+
 Screenshots: `docs/images/dev/` and `docs/assets/cognimesh-portal-demo.gif`.

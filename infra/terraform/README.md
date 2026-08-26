@@ -2,7 +2,8 @@
 
 Vaquar Pattern-aligned IaC for CogniMesh. Module layout mirrors [aws-serverless-datamesh-framework](https://github.com/vaquarkhan/aws-serverless-datamesh-framework) conventions.
 
-**Pattern spec:** [docs/vaquar-pattern.md](../../docs/vaquar-pattern.md) (The Vaquar Pattern by Vaquarkhan)
+**Pattern spec:** [docs/vaquar-pattern.md](../../docs/vaquar-pattern.md) (The Vaquar Pattern / PVDM by Vaquar Khan)  
+**Paper:** [arXiv:2608.14643](https://arxiv.org/abs/2608.14643) · **Reference gate:** [Proof-gated-publication-PVDM](https://github.com/vaquarkhan/Proof-gated-publication-PVDM) · **NOTICE:** [NOTICE](../../NOTICE)
 
 ## Module map
 
