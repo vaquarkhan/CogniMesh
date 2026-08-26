@@ -1,35 +1,32 @@
 # Getting started (UI walkthrough)
 
-Short portal tutorial for first-time designers: **Panels**, **resource setup**, and **AWS Design Review Fix this**.
+Short portal tutorial: **caption, then live demo**, feature by feature — AI Builder, canvas + PVDM gate, AWS review, preview, deploy, operations, Agent Builder.
 
 ## Watch
 
 <p align="center">
-  <a href="../assets/cognimesh-tutorial-demo.mp4">
-    <img src="../assets/cognimesh-tutorial-demo.gif" alt="CogniMesh UI tutorial: Panels menu, Operations, Multi-Source pattern, setup-ready banner, AWS Fix this, Preview YAML" width="900" />
+  <a href="../assets/cognimesh-howto-demo.mp4">
+    <img src="../assets/cognimesh-howto-demo-poster.png" alt="CogniMesh tutorial: caption then end-to-end demo of each feature" width="900" />
   </a>
+  <br /><em>How it works — each chapter starts with a caption, then the UI demo</em>
 </p>
 
-Regenerate: `DEMO_ONLY=tutorial npm run docs:demo` (or full `npm run docs:demo`).
+Regenerate: `DEMO_ONLY=howto npm run docs:demo` (or full `npm run docs:demo`).
 
 ## How it works
 
-The portal turns a spoken or library pattern into a proof-gated data product:
+The video walks each feature **end to end**: a title card, then the real portal.
 
-1. **Describe or load a pattern** — AI Builder or Architectures library.
-2. **Review the graph** — sources, transforms, integrity gate, sinks.
-3. **Fix AWS Design Review** — setup, encryption, and Lake Formation before deploy.
-4. **Preview YAML** — DataContract + Step Functions ASL.
-5. **Deploy** — integrity gate and PVDM/VRP proof must pass before catalog commit and marketplace listing.
+1. **AI Builder** — describe the pipeline in English and preview the plan.
+2. **Architectures** — load Multi-Source onto the canvas.
+3. **Canvas + PVDM gate** — sources → transform → integrity gate → sinks; gold waits on VRP proof.
+4. **AWS Design Review** — security/architecture scores and the inferred AWS map.
+5. **Preview YAML** — DataContract + Step Functions ASL.
+6. **Deploy** — integrity gate and PVDM proof, then catalog / marketplace.
+7. **Operations** — runs, lineage, marketplace.
+8. **Agent Builder** — template, guardrails, preview, deploy.
 
-<p align="center">
-  <a href="../assets/cognimesh-features-demo.mp4">
-    <img src="../assets/cognimesh-features-demo-poster.png" alt="How CogniMesh works: AI Builder, Architectures, AWS review, Operations, Lineage, Marketplace, Agent Builder" width="900" />
-  </a>
-  <br /><em>Platform tour — click to play how the designer, review, ops, and marketplace fit together</em>
-</p>
-
-Full pipeline and agent recordings: [pipeline demo](../assets/cognimesh-pipeline-demo.mp4) · [agent demo](../assets/cognimesh-agent-demo.mp4)
+Shorter clips: [UI panels](../assets/cognimesh-tutorial-demo.mp4) · [pipeline](../assets/cognimesh-pipeline-demo.mp4) · [agent](../assets/cognimesh-agent-demo.mp4) · [platform tour](../assets/cognimesh-features-demo.mp4)
 
 ## What you will see
 
