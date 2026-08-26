@@ -558,7 +558,26 @@ flowchart LR
 
 ## Vaquar Pattern
 
-CogniMesh implements **[The Vaquar Pattern](docs/vaquar-pattern.md)** (author: **Vaquarkhan**). When the Vaquar path is enabled, catalog commit follows **`commit_metadata ⟹ VRP = PASS`**. Verification runs in CogniMesh JS today ([POSITIONING](docs/POSITIONING.md)).
+CogniMesh implements **[The Vaquar Pattern](docs/vaquar-pattern.md)** (inventor: **Vaquar Khan**). When the Vaquar path is enabled, catalog commit follows **`commit_metadata ⟹ VRP = PASS`**. Verification runs in CogniMesh JS today ([POSITIONING](docs/POSITIONING.md)).
+
+**Proof-Gated Serverless Lakehouse Publication (PVDM)** — Physical → Verify → Durable → Metadata.
+
+### Read the paper & reference gate
+
+| | |
+|---|---|
+| **arXiv preprint** | [arXiv:2608.14643](https://arxiv.org/abs/2608.14643) — *Proof-Gated Publication: Verify-Before-Commit Content Integrity for Serverless Data-Mesh Lakehouses* |
+| **Reference gate + adversarial suite** | [github.com/vaquarkhan/Proof-gated-publication-PVDM](https://github.com/vaquarkhan/Proof-gated-publication-PVDM) (stdlib gate, 30/30 suite, Spark/Iceberg benchmarks) |
+| **This repo** | Production AWS mapping (IceGuard · veridata-recon · Durable SDK · Glue/Iceberg) |
+
+| | |
+|---|---|
+| **Method name** | Vaquar Pattern |
+| **Operational acronym** | PVDM (Physical · Verify · Durable · Metadata) |
+| **Inventor** | Vaquar Khan |
+| **Copyright** | © 2024–2026 Vaquar Khan — proprietary method (name + invariants) |
+| **Status** | Proprietary method · open reference implementation (Apache-2.0) |
+| **Cite** | [arXiv:2608.14643](https://arxiv.org/abs/2608.14643) · [docs/vaquar-pattern.md](docs/vaquar-pattern.md) · [NOTICE](NOTICE) |
 
 ```mermaid
 flowchart LR
@@ -755,7 +774,8 @@ CogniMesh/
 |----------|-------------|
 | **[CONTRIBUTING.md](CONTRIBUTING.md)** | How to contribute · local setup · tests |
 | **[docs/POSITIONING.md](docs/POSITIONING.md)** | **Claims vs reality** · veridata relationship · what NOT to claim |
-| **[docs/vaquar-pattern.md](docs/vaquar-pattern.md)** | **The Vaquar Pattern** · PVDM · VRP · data examples |
+| **[docs/vaquar-pattern.md](docs/vaquar-pattern.md)** | **The Vaquar Pattern** · PVDM · VRP · paper ([arXiv:2608.14643](https://arxiv.org/abs/2608.14643)) · data examples |
+| **[NOTICE](NOTICE)** | PVDM method attribution · cite the paper and reference gate |
 | **[docs/developer/README.md](docs/developer/README.md)** | **Developer customization hub** - 21 UI screenshots · pipelines · agents · code |
 | **[docs/tutorials/README.md](docs/tutorials/README.md)** | Tutorial hub - one guide per architecture & agent |
 | [docs/AGENT_BUILDER.md](docs/AGENT_BUILDER.md) | Agent Builder · feature checkboxes · manifest export |
@@ -773,7 +793,7 @@ CogniMesh/
 
 ## License
 
-Proprietary - see [LICENSE](LICENSE). Pattern by [Vaquarkhan](https://github.com/vaquarkhan).
+Proprietary - see [LICENSE](LICENSE). PVDM method © 2024–2026 Vaquar Khan — see [NOTICE](NOTICE). Cite [arXiv:2608.14643](https://arxiv.org/abs/2608.14643).
 
 Security: [SECURITY.md](SECURITY.md) · Changelog: [CHANGELOG.md](CHANGELOG.md)
 

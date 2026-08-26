@@ -6,7 +6,7 @@ Answers to questions that come up repeatedly. Share this link in onboarding, PRs
 |----------|---------|
 | Evaluators & product owners | [POSITIONING](POSITIONING.md) |
 | Executives & stewards | [Business & governance](#business--governance) |
-| Proof & trust | [VRP, proof, and verification](#vrp-proof-and-verification) |
+| Proof & trust | [VRP, proof, and verification](#vrp-proof-and-verification) · [PVDM paper](#where-is-the-pvdm-paper) |
 | Engineers | [Technical & development](#technical--development) |
 | AI / agents | [Agents & attestations](#agents--attestations) |
 | Ops & incidents | [Operations & troubleshooting](#operations--troubleshooting) |
@@ -61,6 +61,25 @@ No. CogniMesh proves **provenance, integrity, and declared invariants**. It does
 **Today:** CogniMesh runs verification in **JavaScript** (`lib/vrp/`). Proof v3 features (transform verification, aggregate mode, contract binding) are **not** in the [veridata](https://github.com/vaquarkhan/veridata) Rust crate yet. The AWS Serverless Data Mesh Framework (Python) inherits only what veridata provides.
 
 **Planned (C1):** CogniMesh delegates to veridata so one Rust implementation serves both projects. See [veridata integration](veridata-integration.md).
+
+### Where is the PVDM paper?
+
+**Proof-Gated Serverless Lakehouse Publication (PVDM)** — Physical → Verify → Durable → Metadata. Invariant: `commit_metadata ⟹ VRP = PASS`.
+
+| | |
+|---|---|
+| **arXiv preprint** | [arXiv:2608.14643](https://arxiv.org/abs/2608.14643) — *Proof-Gated Publication: Verify-Before-Commit Content Integrity for Serverless Data-Mesh Lakehouses* |
+| **Reference gate + adversarial suite** | [github.com/vaquarkhan/Proof-gated-publication-PVDM](https://github.com/vaquarkhan/Proof-gated-publication-PVDM) (stdlib gate, 30/30 suite, Spark/Iceberg benchmarks) |
+| **This repo** | Production AWS mapping (IceGuard · veridata-recon · Durable SDK · Glue/Iceberg) |
+
+| | |
+|---|---|
+| **Method name** | Vaquar Pattern |
+| **Operational acronym** | PVDM (Physical · Verify · Durable · Metadata) |
+| **Inventor** | Vaquar Khan |
+| **Copyright** | © 2024–2026 Vaquar Khan — proprietary method (name + invariants) |
+| **Status** | Proprietary method · open reference implementation (Apache-2.0) |
+| **Cite** | [arXiv:2608.14643](https://arxiv.org/abs/2608.14643) · [docs/vaquar-pattern.md](vaquar-pattern.md) · [NOTICE](../NOTICE) |
 
 ### What VRP features are included?
 

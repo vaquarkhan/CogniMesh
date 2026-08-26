@@ -82,5 +82,7 @@ On `rolled_back`, ASL copies `resume_offset` from the payload into the next invo
 ## Related
 
 - [E2E architecture](../E2E_ARCHITECTURE.md)
-- [Vaquar Pattern](../vaquar-pattern.md)
+- [Vaquar Pattern](../vaquar-pattern.md) · [NOTICE](../../NOTICE)
+- Paper: [arXiv:2608.14643](https://arxiv.org/abs/2608.14643)
+- Reference gate: [Proof-gated-publication-PVDM](https://github.com/vaquarkhan/Proof-gated-publication-PVDM)
 - Example contract: [`contracts/examples/structured-cdc-pipeline.yaml`](../../contracts/examples/structured-cdc-pipeline.yaml)

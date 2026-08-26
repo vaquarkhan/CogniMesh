@@ -9,6 +9,14 @@ const { writeChunkRecords, readChunkRecords, deleteChunkArtifact } = require("..
 const { commitIcebergSnapshot } = require("../../lib/aws/glue-iceberg");
 const { persistProof } = require("../../lib/vrp/proof-store");
 const { appendTransparencyEntry } = require("../../lib/vrp/transparency-log");
+const { proofGatedCommit, commitNonces } = require("../../lib/vrp/steward-gate");
+const {
+  loadWorkload,
+  recordChunkVerified,
+  recordWorkloadCommitted,
+  recordWorkloadFailed,
+  verifiedDrafts,
+} = require("../../lib/vrp/durable-log");
 const vrp = require("../../lib/vrp/generate");
 
 /** SparkRules-style chunk filter - enforces data quality before PVDM write */
@@ -165,8 +173,8 @@ async function commitMetadata(vrpResult, catalog, options = {}) {
 }
 
 /**
- * PVDM coordinator: SparkRules → IceGuard → VRP → Metadata
- * Outcomes match serverless-data-mesh domain writer
+ * PVDM coordinator (paper §4): Physical → Verify → Durable → Metadata last.
+ * Invariant: commit_metadata ⟹ VRP = PASS. A failing proof yields no consumer-visible snapshot.
  */
 async function runPvdmWorkload(workload) {
   const { source_rows = [], contract, workload_id, resume_offset = 0 } = workload;
@@ -178,6 +186,7 @@ async function runPvdmWorkload(workload) {
     table: spec.target?.catalog?.table || "output",
   };
   const contractMeta = contract?.metadata || {};
+  const expectedTarget = `${catalog.database}.${catalog.table}`;
 
   if (!source_rows.length) {
     return {
@@ -201,12 +210,32 @@ async function runPvdmWorkload(workload) {
 
   const { identityFields, contentFields } = fieldResolution;
   const runId = workload_id || `wl-${crypto.randomUUID()}`;
+
+  const prior = loadWorkload(runId);
+  if (prior?.outcome === "committed") {
+    return {
+      outcome: "committed",
+      workload_id: runId,
+      chunks: Object.keys(prior.chunks || {}).length,
+      snapshot_id: prior.snapshot_id,
+      vrp_verdict: "PASS",
+      message: "PVDM Durable replay: workload already COMMITTED — chunks not rewritten",
+      proof: prior.proof,
+    };
+  }
+
   const iceguard = new IceGuardWriter({
     checkpointInterval: pvdmSpec.checkpointInterval || 5000,
     rollbackThresholdMs: pvdmSpec.rollbackThresholdMs || 30000,
     isolationId: runId,
     getRemainingMs: workload.getRemainingMs,
   });
+
+  const failClosed = (payload) => {
+    const rollback = iceguard.rollback();
+    recordWorkloadFailed(runId, payload.outcome);
+    return { ...payload, workload_id: runId, rollback };
+  };
 
   try {
     let rows = [...source_rows];
@@ -222,7 +251,7 @@ async function runPvdmWorkload(workload) {
     if (!rows.length) {
       return {
         outcome: "unverified",
-        workload_id: workload_id || `wl-${crypto.randomUUID()}`,
+        workload_id: runId,
         chunks: 0,
         vrp_verdict: "UNVERIFIED",
         message: "PVDM skipped: all rows filtered — nothing to verify",
@@ -230,10 +259,18 @@ async function runPvdmWorkload(workload) {
     }
 
     const chunkDrafts = [];
+    const seen = new Set();
+    for (const stored of verifiedDrafts(runId)) {
+      chunkDrafts.push(stored);
+      iceguard.commitChunk(stored.chunkId);
+      seen.add(stored.chunkId);
+    }
 
     for (let i = resume_offset; i < rows.length; i += chunkSize) {
       const slice = rows.slice(i, i + chunkSize);
       const chunkId = Math.floor(i / chunkSize);
+      if (seen.has(chunkId)) continue;
+
       const staging = spec.target?.location || "s3://cognimesh-staging";
       const { parquetUri, localPath, writeSha256, footer_sha256, digest_type } = await iceguard.writeChunk(
         chunkId,
@@ -244,15 +281,14 @@ async function runPvdmWorkload(workload) {
 
       const readBack = await readChunkRecords(localPath);
       if (readBack.sha256 !== writeSha256 && readBack.footer_sha256 !== footer_sha256) {
-        return {
+        return failClosed({
           outcome: "verification_failed",
-          workload_id: runId,
           vrp_verdict: "FAIL",
           message: "sink read-back Parquet footer digest mismatch after write",
-        };
+        });
       }
 
-      const prelim = await generateVRP(slice, readBack.rows, {
+      const vrpResult = await generateVRP(slice, readBack.rows, {
         pvdmSpec,
         contract,
         identityFields,
@@ -260,6 +296,8 @@ async function runPvdmWorkload(workload) {
         pipelineRunId: runId,
         chunkId,
         catalog,
+        target: expectedTarget,
+        nonce: crypto.randomUUID(),
         parquetUri,
         sinkFileDigest: {
           sha256: readBack.sha256,
@@ -268,81 +306,69 @@ async function runPvdmWorkload(workload) {
           digest_type: readBack.digest_type || digest_type,
           row_count: readBack.rows.length,
         },
-        sign: false,
-      });
-
-      if (prelim.verdict !== "PASS") {
-        return {
-          outcome: "verification_failed",
-          workload_id: runId,
-          vrp_verdict: prelim.verdict,
-          message:
-            prelim.divergence?.message ||
-            prelim.error ||
-            "VRP FAIL: transform verification failed after read-back",
-          proof: prelim.proof,
-          localization: prelim.divergence || prelim.proof?.failure_localization,
-        };
-      }
-
-      chunkDrafts.push({ chunkId, parquetUri, localPath, readBack, slice, prelimProof: prelim.proof });
-    }
-
-    const catalogCommit = await commitIcebergSnapshot(catalog, chunkDrafts[chunkDrafts.length - 1]?.prelimProof || {});
-
-    const chunks = [];
-    let lastProof = null;
-    let proofPersisted = null;
-
-    for (const draft of chunkDrafts) {
-      const vrpResult = await generateVRP(draft.slice, draft.readBack.rows, {
-        pvdmSpec,
-        contract,
-        identityFields,
-        contentFields,
-        pipelineRunId: runId,
-        chunkId: draft.chunkId,
-        catalog,
-        parquetUri: draft.parquetUri,
-        manifestDigest: catalogCommit.manifestDigest,
-        sinkFileDigest: {
-          sha256: draft.readBack.sha256,
-          footer_sha256: draft.readBack.footer_sha256,
-          full_sha256: draft.readBack.full_sha256,
-          digest_type: draft.readBack.digest_type,
-          row_count: draft.readBack.rows.length,
-        },
-        icebergSnapshotId: catalogCommit.snapshotId,
+        icebergSnapshotId: null,
         sign: process.env.VRP_SIGN_ON_GENERATE !== "false",
       });
 
       if (vrpResult.verdict !== "PASS") {
-        return {
+        return failClosed({
           outcome: "verification_failed",
-          workload_id: runId,
           vrp_verdict: vrpResult.verdict,
           message:
             vrpResult.divergence?.message ||
             vrpResult.error ||
-            "VRP FAIL: transform verification blocked snapshot",
+            "VRP FAIL: transform verification failed after read-back",
           proof: vrpResult.proof,
           localization: vrpResult.divergence || vrpResult.proof?.failure_localization,
-        };
+        });
       }
 
-      iceguard.commitChunk(draft.chunkId);
-      lastProof = vrpResult.proof;
-      chunks.push({ chunkId: draft.chunkId, parquetUri: draft.parquetUri, proof: vrpResult.proof });
+      const draft = {
+        chunkId,
+        parquetUri,
+        localPath,
+        readBack,
+        proof: vrpResult.proof,
+      };
+      iceguard.commitChunk(chunkId);
+      recordChunkVerified(runId, chunkId, draft);
+      chunkDrafts.push(draft);
+    }
 
-      if (vrpResult.proof?.signing?.signature) {
+    if (!chunkDrafts.length) {
+      return {
+        outcome: "unverified",
+        workload_id: runId,
+        chunks: 0,
+        vrp_verdict: "UNVERIFIED",
+        message: "PVDM skipped: no chunks to commit",
+      };
+    }
+
+    let lastProof = null;
+    let proofPersisted = null;
+    const chunks = [];
+
+    for (const draft of chunkDrafts) {
+      proofGatedCommit({
+        proof: draft.proof,
+        localPath: draft.localPath,
+        expectedTarget,
+        requireSignature: process.env.VRP_SIGN_ON_GENERATE !== "false" && !process.env.VRP_SIGNING_MODE,
+      });
+
+      lastProof = draft.proof;
+      chunks.push({ chunkId: draft.chunkId, parquetUri: draft.parquetUri, proof: draft.proof });
+
+      if (draft.proof?.signing?.signature) {
         try {
-          await appendTransparencyEntry(vrpResult.proof);
+          await appendTransparencyEntry(draft.proof);
         } catch (err) {
           const transparencyErr = new Error(`VRP transparency log failed: ${err.message}`);
           transparencyErr.code = "TRANSPARENCY_FAILED";
           throw transparencyErr;
         }
-        proofPersisted = await persistProof(vrpResult.proof, {
+        proofPersisted = await persistProof(draft.proof, {
           domain: contractMeta.domain,
           name: contractMeta.name,
           proofBucket: process.env.PROOF_BUCKET,
@@ -359,40 +385,57 @@ async function runPvdmWorkload(workload) {
       }
     }
 
+    const catalogCommit = await commitIcebergSnapshot(catalog, lastProof);
     const meta = await commitMetadata({ verdict: "PASS", proof: lastProof }, catalog, {
       icebergSnapshotId: catalogCommit.snapshotId,
       manifestDigest: catalogCommit.manifestDigest,
       snapshotSource: catalogCommit.source,
     });
+    commitNonces(chunkDrafts.map((d) => d.proof?.nonce));
 
-    return {
+    lastProof.commit_receipt = {
+      iceberg_snapshot_id: meta.snapshot_id,
+      manifest_digest: catalogCommit.manifestDigest,
+      snapshot_source: catalogCommit.source,
+      committed_at: new Date().toISOString(),
+    };
+
+    const result = {
       outcome: "committed",
       workload_id: runId,
       chunks: chunks.length,
       snapshot_id: meta.snapshot_id,
       vrp_verdict: "PASS",
-      message: "PVDM committed: Physical → Verify → Metadata",
+      message: "PVDM committed: Physical → Verify → Durable → Metadata",
       proof: lastProof,
       proofS3Uri: proofPersisted?.proofS3Uri || proofPersisted?.proofLocalUri || null,
       proofPersisted: Boolean(proofPersisted?.persisted),
     };
+    recordWorkloadCommitted(runId, result);
+    return result;
   } catch (err) {
     if (
       err.code === "SIGNING_FAILED" ||
       err.code === "TRANSPARENCY_FAILED" ||
-      err.code === "PERSIST_FAILED"
+      err.code === "PERSIST_FAILED" ||
+      err.code === "TOCTOU_FAILED" ||
+      err.code === "STEWARD_KEY_MISSING"
     ) {
+      iceguard.rollback();
+      recordWorkloadFailed(runId, err.code === "SIGNING_FAILED" ? "signing_failed" : "publish_blocked");
       return {
         outcome: err.code === "SIGNING_FAILED" ? "signing_failed" : "publish_blocked",
-        workload_id,
+        workload_id: runId,
         vrp_verdict: "FAIL",
         message: err.message,
       };
     }
-    if (err.code === "VERIFICATION_FAILED") {
+    if (err.code === "VERIFICATION_FAILED" || err.code === "PROFILE_T_REFUSED") {
+      iceguard.rollback();
+      recordWorkloadFailed(runId, "verification_failed");
       return {
         outcome: "verification_failed",
-        workload_id,
+        workload_id: runId,
         vrp_verdict: "FAIL",
         message: err.message,
         proof: err.proof,

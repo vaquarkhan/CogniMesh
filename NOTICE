@@ -1,0 +1,30 @@
+Proof-Gated Serverless Lakehouse Publication (PVDM)
+Physical → Verify → Durable → Metadata
+Invariant: commit_metadata ⟹ VRP = PASS
+
+Method name          Vaquar Pattern
+Operational acronym  PVDM (Physical · Verify · Durable · Metadata)
+Inventor             Vaquar Khan
+Copyright            © 2024–2026 Vaquar Khan — proprietary method (name + invariants)
+Status               Proprietary method · open reference implementation (Apache-2.0)
+Cite                 arXiv:2608.14643 · docs/vaquar-pattern.md · NOTICE
+
+Read the paper & reference gate
+
+  arXiv preprint
+    arXiv:2608.14643 — Proof-Gated Publication: Verify-Before-Commit Content
+    Integrity for Serverless Data-Mesh Lakehouses
+    https://arxiv.org/abs/2608.14643
+
+  Reference gate + adversarial suite
+    github.com/vaquarkhan/Proof-gated-publication-PVDM
+    (stdlib gate, 30/30 suite, Spark/Iceberg benchmarks)
+    https://github.com/vaquarkhan/Proof-gated-publication-PVDM
+
+  This repo (CogniMesh)
+    Production AWS mapping (IceGuard · veridata-recon · Durable SDK · Glue/Iceberg)
+    https://github.com/vaquarkhan/CogniMesh
+
+The PVDM method name and invariants are proprietary to Vaquar Khan.
+The reference gate and validation suite are Apache-2.0.
+This CogniMesh software is licensed separately; see LICENSE.
