@@ -12,6 +12,25 @@ Short portal tutorial for first-time designers: **Panels**, **resource setup**, 
 
 Regenerate: `DEMO_ONLY=tutorial npm run docs:demo` (or full `npm run docs:demo`).
 
+## How it works
+
+The portal turns a spoken or library pattern into a proof-gated data product:
+
+1. **Describe or load a pattern** — AI Builder or Architectures library.
+2. **Review the graph** — sources, transforms, integrity gate, sinks.
+3. **Fix AWS Design Review** — setup, encryption, and Lake Formation before deploy.
+4. **Preview YAML** — DataContract + Step Functions ASL.
+5. **Deploy** — integrity gate and PVDM/VRP proof must pass before catalog commit and marketplace listing.
+
+<p align="center">
+  <a href="../assets/cognimesh-features-demo.mp4">
+    <img src="../assets/cognimesh-features-demo-poster.png" alt="How CogniMesh works: AI Builder, Architectures, AWS review, Operations, Lineage, Marketplace, Agent Builder" width="900" />
+  </a>
+  <br /><em>Platform tour — click to play how the designer, review, ops, and marketplace fit together</em>
+</p>
+
+Full pipeline and agent recordings: [pipeline demo](../assets/cognimesh-pipeline-demo.mp4) · [agent demo](../assets/cognimesh-agent-demo.mp4)
+
 ## What you will see
 
 1. **Panels** (header) - Operations, Approvals, Run History, Lineage, Marketplace, Deploy results.

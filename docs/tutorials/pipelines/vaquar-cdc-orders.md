@@ -28,6 +28,13 @@ Operational databases that need reliable CDC into the data mesh.
 
 ## How it works
 
+<p align="center">
+  <a href="../../assets/cognimesh-pipeline-demo.mp4">
+    <img src="../../assets/cognimesh-pipeline-demo-poster.png" alt="CogniMesh pipeline walkthrough: load a pattern, AWS Design Review, preview YAML, deploy, marketplace" width="720" />
+  </a>
+  <br /><em>Load a pattern → AWS review → preview YAML → deploy → marketplace — click to play video</em>
+</p>
+
 ```
 RDS CDC → Spark SQL (silver cleanse) → PVDM VRP proof → Iceberg gold
 ```

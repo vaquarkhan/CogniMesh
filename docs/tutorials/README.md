@@ -8,6 +8,13 @@
 
 <p align="center"><strong>Real-world guides</strong> - one tutorial per architecture pattern and per AgentCore template.</p>
 
+<p align="center">
+  <a href="../assets/cognimesh-features-demo.mp4">
+    <img src="../assets/cognimesh-features-demo-poster.png" alt="CogniMesh how it works: AI Builder, Architectures, AWS Design Review, Operations, Lineage, Marketplace, Agent Builder" width="720" />
+  </a>
+  <br /><em>How it works — click to play the platform tour</em>
+</p>
+
 ---
 
 ## Quick start
@@ -15,6 +22,7 @@
 | Goal | Start here |
 |------|------------|
 | **UI walkthrough (video)** | [Getting started UI](getting-started-ui.md) |
+| **How it works (video)** | [Platform tour](../assets/cognimesh-features-demo.mp4) · [Pipeline](../assets/cognimesh-pipeline-demo.mp4) · [Agent](../assets/cognimesh-agent-demo.mp4) |
 | **Data pipeline** | [Pipeline tutorials](#data-pipeline-tutorials) |
 | **AI agent** | [Agent tutorials](#agent-tutorials) |
 | Local dev | `npm run start:dev` → http://localhost:3000 |
@@ -194,7 +202,7 @@ flowchart LR
 | [portal-ai-pipeline-designer.png](../images/portal-ai-pipeline-designer.png) | AI pipeline designer |
 | [portal-agent-builder-full.png](../images/portal-agent-builder-full.png) | Agent Builder |
 
-`npm run docs:screenshots` · `npm run docs:tutorials`
+`npm run docs:screenshots` · `npm run docs:demo` · `npm run docs:tutorials`
 
 ## See also
 

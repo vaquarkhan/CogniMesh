@@ -2,7 +2,7 @@
 
 <p align="center">
   <img src="../../images/portal-agent-builder-canvas.png" alt="CogniMesh Data Steward - Agent Builder canvas" width="720" />
-  <br /><em>MCP · marketplace · LF grants</em>
+  <br /><em>MCP · marketplace · access triage</em>
 </p>
 
 [← All tutorials](../README.md) · [Agent Builder guide](../../AGENT_BUILDER.md)
@@ -25,6 +25,13 @@ Mesh steward agent for schema review, access request triage, and Lake Formation 
 Automate steward workflows in CogniMesh consumer mesh.
 
 ## How it works
+
+<p align="center">
+  <a href="../../assets/cognimesh-agent-demo.mp4">
+    <img src="../../assets/cognimesh-agent-demo-poster.png" alt="CogniMesh agent walkthrough: templates and blocks, guardrails, preview manifest, export, deploy" width="720" />
+  </a>
+  <br /><em>Templates &amp; blocks → load agent → guardrails → preview → export → deploy — click to play video</em>
+</p>
 
 1. User message → **AgentCore Runtime** (session-isolated)
 2. **Bedrock model** reasons over context
@@ -75,7 +82,7 @@ Edit guardrail IDs, tool names, KB IDs on canvas → **Preview manifest** → **
 ## Tips
 
 - MCP tools connect to CogniMesh agent-mcp service.
-- Human loop required before LF grant simulation.
+- Human loop required before access approval (LF GrantPermissions not wired yet).
 - Guardrail blocks auto-approval of sensitive domains.
 
 

@@ -53,6 +53,24 @@ function mdChips(items) {
   return `${items.map((s) => `\`${s}\``).join(" · ")}\n`;
 }
 
+function watchHowItWorks(kind) {
+  const isPipeline = kind === "pipeline";
+  const file = isPipeline ? "cognimesh-pipeline-demo" : "cognimesh-agent-demo";
+  const alt = isPipeline
+    ? "CogniMesh pipeline walkthrough: load a pattern, AWS Design Review, preview YAML, deploy, marketplace"
+    : "CogniMesh agent walkthrough: templates and blocks, guardrails, preview manifest, export, deploy";
+  const caption = isPipeline
+    ? "Load a pattern → AWS review → preview YAML → deploy → marketplace"
+    : "Templates &amp; blocks → load agent → guardrails → preview → export → deploy";
+  return `<p align="center">
+  <a href="../../assets/${file}.mp4">
+    <img src="../../assets/${file}-poster.png" alt="${alt}" width="720" />
+  </a>
+  <br /><em>${caption} — click to play video</em>
+</p>
+`;
+}
+
 function suggestPipelinePrompt(p) {
   const hints = {
     datamesh: "Multi-domain data mesh customer 360 with parallel domains",
@@ -133,6 +151,7 @@ ${p.whenToUse || "Use when this architecture matches your latency, governance, a
 
 ## How it works
 
+${watchHowItWorks("pipeline")}
 \`\`\`
 ${p.exampleFlow || p.architectureDiagram || "Source → Transform → Sink (see canvas)"}
 \`\`\`
@@ -241,6 +260,7 @@ ${t.whenToUse || "Production AgentCore agent with guardrails and tools pre-wired
 
 ## How it works
 
+${watchHowItWorks("agent")}
 1. User message → **AgentCore Runtime** (session-isolated)
 2. **Bedrock model** reasons over context
 3. **Knowledge Base** retrieval (if enabled) augments the prompt
@@ -321,12 +341,21 @@ function writeIndex(pipelines, agents) {
 
 <p align="center"><strong>Real-world guides</strong> - one tutorial per architecture pattern and per AgentCore template.</p>
 
+<p align="center">
+  <a href="../assets/cognimesh-features-demo.mp4">
+    <img src="../assets/cognimesh-features-demo-poster.png" alt="CogniMesh how it works: AI Builder, Architectures, AWS Design Review, Operations, Lineage, Marketplace, Agent Builder" width="720" />
+  </a>
+  <br /><em>How it works — click to play the platform tour</em>
+</p>
+
 ---
 
 ## Quick start
 
 | Goal | Start here |
 |------|------------|
+| **UI walkthrough (video)** | [Getting started UI](getting-started-ui.md) |
+| **How it works (video)** | [Platform tour](../assets/cognimesh-features-demo.mp4) · [Pipeline](../assets/cognimesh-pipeline-demo.mp4) · [Agent](../assets/cognimesh-agent-demo.mp4) |
 | **Data pipeline** | [Pipeline tutorials](#data-pipeline-tutorials) |
 | **AI agent** | [Agent tutorials](#agent-tutorials) |
 | Local dev | \`npm run start:dev\` → http://localhost:3000 |
@@ -382,7 +411,7 @@ flowchart LR
 | [portal-ai-pipeline-designer.png](../images/portal-ai-pipeline-designer.png) | AI pipeline designer |
 | [portal-agent-builder-full.png](../images/portal-agent-builder-full.png) | Agent Builder |
 
-\`npm run docs:screenshots\` · \`npm run docs:tutorials\`
+\`npm run docs:screenshots\` · \`npm run docs:demo\` · \`npm run docs:tutorials\`
 
 ## See also
 
@@ -417,5 +446,15 @@ describe("generate tutorial docs", () => {
     expect(fs.existsSync(path.join(TUTORIALS, "README.md"))).toBe(true);
     expect(fs.existsSync(path.join(PIPELINES_DIR, "arch-datamesh-multi-domain.md"))).toBe(true);
     expect(fs.existsSync(path.join(AGENTS_DIR, "customer-support.md"))).toBe(true);
+    const pipeline = fs.readFileSync(path.join(PIPELINES_DIR, "vaquar-cdc-orders.md"), "utf8");
+    expect(pipeline).toContain("## How it works");
+    expect(pipeline).toContain("cognimesh-pipeline-demo.mp4");
+    expect(pipeline).toContain("cognimesh-pipeline-demo-poster.png");
+    const agent = fs.readFileSync(path.join(AGENTS_DIR, "customer-support.md"), "utf8");
+    expect(agent).toContain("## How it works");
+    expect(agent).toContain("cognimesh-agent-demo.mp4");
+    const index = fs.readFileSync(path.join(TUTORIALS, "README.md"), "utf8");
+    expect(index).toContain("cognimesh-features-demo.mp4");
+    expect(index).toContain("How it works");
   });
 });
