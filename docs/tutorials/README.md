@@ -9,10 +9,13 @@
 <p align="center"><strong>Real-world guides</strong> - one tutorial per architecture pattern and per AgentCore template.</p>
 
 <p align="center">
-  <a href="../assets/cognimesh-features-demo.mp4">
-    <img src="../assets/cognimesh-features-demo-poster.png" alt="CogniMesh how it works: AI Builder, Architectures, AWS Design Review, Operations, Lineage, Marketplace, Agent Builder" width="720" />
+  <a href="../assets/cognimesh-howto-demo.mp4">
+    <img src="../assets/cognimesh-howto-demo-poster.png" alt="CogniMesh how it works: caption then demo for AI Builder, canvas, PVDM gate, AWS review, deploy, Agent Builder" width="720" />
   </a>
-  <br /><em>How it works — click to play the platform tour</em>
+  <br />
+  <a href="../assets/cognimesh-howto-demo.mp4"><strong>▶ Play how-it-works video</strong></a>
+  &nbsp;·&nbsp;
+  <em>Caption first, then each feature end to end</em>
 </p>
 
 ---
@@ -22,7 +25,7 @@
 | Goal | Start here |
 |------|------------|
 | **UI walkthrough (video)** | [Getting started UI](getting-started-ui.md) |
-| **How it works (video)** | [Platform tour](../assets/cognimesh-features-demo.mp4) · [Pipeline](../assets/cognimesh-pipeline-demo.mp4) · [Agent](../assets/cognimesh-agent-demo.mp4) |
+| **How it works (video)** | [Captioned tour](../assets/cognimesh-howto-demo.mp4) · [Pipeline](../assets/cognimesh-pipeline-demo.mp4) · [Agent](../assets/cognimesh-agent-demo.mp4) |
 | **Data pipeline** | [Pipeline tutorials](#data-pipeline-tutorials) |
 | **AI agent** | [Agent tutorials](#agent-tutorials) |
 | Local dev | `npm run start:dev` → http://localhost:3000 |

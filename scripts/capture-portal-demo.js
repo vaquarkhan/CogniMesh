@@ -4,7 +4,9 @@
 /**
  * Record portal UI walkthroughs for README / docs.
  * Usage: npm run docs:demo
+ *        DEMO_ONLY=howto npm run docs:demo   (captioned end-to-end tutorial)
  * Output:
+ *   docs/assets/cognimesh-howto-demo.{webm,mp4,gif}   caption → demo, each feature
  *   docs/assets/cognimesh-features-demo.{webm,mp4,gif}
  *   docs/assets/cognimesh-pipeline-demo.{webm,mp4,gif}
  *   docs/assets/cognimesh-agent-demo.{webm,mp4,gif}
@@ -51,6 +53,78 @@ const procs = [];
 
 function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
+}
+
+async function ensureCaptionUi(page) {
+  await page.evaluate(() => {
+    if (document.getElementById("cm-demo-caption-style")) return;
+    const style = document.createElement("style");
+    style.id = "cm-demo-caption-style";
+    style.textContent = `
+      #cm-demo-overlay { position: fixed; inset: 0; z-index: 2147483646; pointer-events: none; font-family: Inter, Segoe UI, system-ui, sans-serif; }
+      #cm-demo-overlay[data-mode="title"] { pointer-events: auto; background: rgba(8,12,18,0.82); display: flex; align-items: center; justify-content: center; }
+      #cm-demo-overlay[data-mode="bar"] { background: transparent; display: block; }
+      #cm-demo-overlay[data-mode="hidden"] { display: none; }
+      .cm-title-card { max-width: 820px; padding: 28px 36px; border: 1px solid #334155; background: #0f172a; color: #e7ecf3; }
+      .cm-kicker { color: #34d399; font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; margin: 0 0 10px; }
+      .cm-title { font-size: 32px; line-height: 1.2; margin: 0 0 10px; font-weight: 650; }
+      .cm-detail { color: #94a3b8; font-size: 16px; line-height: 1.45; margin: 0; }
+      .cm-lower-third { position: absolute; left: 24px; right: 24px; bottom: 22px; display: none; align-items: center; gap: 14px;
+        background: rgba(15,23,42,0.92); border: 1px solid #334155; padding: 10px 14px; }
+      #cm-demo-overlay[data-mode="bar"] .cm-lower-third { display: flex; }
+      #cm-demo-overlay[data-mode="title"] .cm-title-card { display: block; }
+      #cm-demo-overlay[data-mode="bar"] .cm-title-card { display: none; }
+      .cm-bar-kicker { color: #34d399; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap; }
+      .cm-bar-title { color: #e7ecf3; font-size: 15px; font-weight: 600; }
+      .cm-bar-detail { color: #94a3b8; font-size: 13px; }
+    `;
+    document.head.appendChild(style);
+    const overlay = document.createElement("div");
+    overlay.id = "cm-demo-overlay";
+    overlay.dataset.mode = "hidden";
+    overlay.innerHTML = `
+      <div class="cm-title-card">
+        <p class="cm-kicker"></p>
+        <h1 class="cm-title"></h1>
+        <p class="cm-detail"></p>
+      </div>
+      <div class="cm-lower-third">
+        <span class="cm-bar-kicker"></span>
+        <span class="cm-bar-title"></span>
+        <span class="cm-bar-detail"></span>
+      </div>`;
+    document.body.appendChild(overlay);
+  });
+}
+
+async function showChapter(page, kicker, title, detail, holdMs = 2600) {
+  await ensureCaptionUi(page);
+  const payload = { kicker, title, detail };
+  await page.evaluate(({ kicker, title, detail }) => {
+    const overlay = document.getElementById("cm-demo-overlay");
+    overlay.querySelector(".cm-kicker").textContent = kicker;
+    overlay.querySelector(".cm-title").textContent = title;
+    overlay.querySelector(".cm-detail").textContent = detail;
+    overlay.querySelector(".cm-bar-kicker").textContent = kicker;
+    overlay.querySelector(".cm-bar-title").textContent = title;
+    overlay.querySelector(".cm-bar-detail").textContent = detail;
+    overlay.dataset.mode = "title";
+  }, payload);
+  await sleep(holdMs);
+  await page.evaluate(() => {
+    const overlay = document.getElementById("cm-demo-overlay");
+    overlay.dataset.mode = "bar";
+  });
+  await sleep(350);
+}
+
+async function showEndCard(page, title, detail, holdMs = 2800) {
+  await showChapter(page, "End", title, detail, holdMs);
+  await page.evaluate(() => {
+    const overlay = document.getElementById("cm-demo-overlay");
+    overlay.dataset.mode = "title";
+  });
+  await sleep(400);
 }
 
 async function waitForUrl(url, ms = 90000) {
@@ -516,6 +590,80 @@ async function previewYaml(page) {
   await sleep(900);
 }
 
+async function demoAiBuilder(page) {
+  await clickTab(page, "AI Builder");
+  const input = page.locator(".ai-builder-input");
+  await input.waitFor({ state: "visible", timeout: 10000 });
+  await input.fill("Multi-source pipeline: RDS and S3 in parallel, merge, integrity gate, Iceberg gold");
+  await sleep(700);
+  await page.locator("button.ai-builder-submit").click({ force: true });
+  await page.locator(".design-plan-preview, .ai-builder").waitFor({ state: "visible", timeout: 12000 }).catch(() => {});
+  await sleep(1600);
+}
+
+async function clickIntegrityGate(page) {
+  const gate = page.locator(".react-flow__node").filter({ hasText: /Integrity Gate|PVDM|VRP/i });
+  if ((await gate.count()) > 0) {
+    await gate.first().click({ force: true });
+    await sleep(1100);
+  }
+}
+
+async function runHowtoDemoFlow(page) {
+  await page.goto(PORTAL_URL, { waitUntil: "networkidle" });
+  await sleep(800);
+  await dismissWelcome(page);
+  await page.waitForSelector(".designer-sidebar", { state: "visible", timeout: 30000 });
+  await ensurePipelineMode(page);
+
+  await showChapter(
+    page,
+    "CogniMesh tutorial",
+    "How it works",
+    "Each feature: caption first, then a live demo — pipeline, proof gate, deploy, then Agent Builder."
+  );
+
+  await showChapter(page, "1 · AI Builder", "Describe the pipeline in English", "Preview the plan before anything loads on the canvas.");
+  await demoAiBuilder(page);
+
+  await showChapter(page, "2 · Architectures", "Load a proven pattern", "Filter the library and drop Multi-Source onto the canvas.");
+  await browsePatternLibrary(page);
+  await loadMultiSourcePattern(page);
+
+  await showChapter(page, "3 · Canvas + PVDM gate", "Sources → transform → integrity gate → sinks", "Gold publish is blocked unless VRP proof passes.");
+  await clickIntegrityGate(page);
+
+  await showChapter(page, "4 · AWS Design Review", "Security and architecture before deploy", "Scores, findings, and the inferred AWS map — including the proof bucket.");
+  await ensureAwsReviewReady(page);
+  await showAwsReviewTabs(page, ["Security", "Architecture", "All"], 900);
+
+  await showChapter(page, "5 · Preview YAML", "DataContract and Step Functions ASL", "Review generated YAML before you commit to deploy.");
+  await previewYaml(page);
+  await page.keyboard.press("Escape").catch(() => {});
+  await sleep(400);
+
+  await showChapter(page, "6 · Deploy", "Integrity gate → PVDM proof → catalog", "Marketplace listing only after the proof-gated commit.");
+  await completeDeployAndMarketplace(page);
+
+  await showChapter(page, "7 · Operations", "Runs, lineage, marketplace", "Operate the published data product from the same portal.");
+  for (const label of ["Operations", "Run History", "Lineage"]) {
+    await clickHeaderButton(page, label);
+    await sleep(900);
+    await closeSidePanels(page);
+    await sleep(250);
+  }
+
+  await showChapter(page, "8 · Agent Builder", "Templates, guardrails, preview, deploy", "Bedrock AgentCore agents from the same designer.");
+  await ensureAgentMode(page);
+  await browseAgentLibrary(page);
+  await loadCustomerSupportAgent(page);
+  await reviewAndFixAgent(page);
+  await deployAgent(page);
+
+  await showEndCard(page, "That's the end-to-end tour", "Written steps: docs/tutorials/getting-started-ui.md");
+  await sleep(400);
+}
+
 async function runPipelineDemoFlow(page) {
   await page.goto(PORTAL_URL, { waitUntil: "networkidle" });
   await sleep(800);
@@ -523,24 +671,23 @@ async function runPipelineDemoFlow(page) {
   await page.waitForSelector(".designer-sidebar", { state: "visible", timeout: 30000 });
   await ensurePipelineMode(page);
 
-  // 1. Load Multi-Source workflow pattern
+  await showChapter(page, "Pipeline", "Create a pipeline end to end", "Load a pattern, review AWS, preview YAML, deploy, marketplace.");
   await loadMultiSourcePattern(page);
   await ensureAwsReviewReady(page);
 
-  // 2. AWS Design Review — Security, Architecture, All, Fix-first wizard
+  await showChapter(page, "AWS Design Review", "Fix findings before deploy", "Security, architecture, then the fix-first wizard.");
   await showAwsReviewTabs(page, ["Security", "Architecture", "All", "Fix first"], 1100);
   await expandAwsHud(page);
   await sleep(800);
 
-  // 3. Preview while canvas/header are stable, then fix findings before deploy
+  await showChapter(page, "Preview YAML", "Inspect the contract", "DataContract and Step Functions before deploy.");
   await previewYaml(page);
 
-  // 4. Fix all critical / high findings (Properties + wizard)
+  await showChapter(page, "Fix and deploy", "Integrity gate then catalog", "Apply review fixes, deploy, register the product.");
   await applyAllAwsFixes(page);
   await collapseAwsHud(page);
   await sleep(600);
 
-  // 5. Deploy → Marketplace product
   await completeDeployAndMarketplace(page);
   await sleep(500);
 }
@@ -651,7 +798,9 @@ async function runFeaturesDemoFlow(page) {
   await sleep(800);
   await dismissWelcome(page);
 
+  await showChapter(page, "Platform tour", "Designer, review, ops, agents", "Caption first, then each area of the portal.");
   await tourPipelineFeatures(page);
+  await showChapter(page, "Agent Builder", "Same portal, Bedrock agents", "Templates, blocks, and deploy actions.");
   await tourAgentFeatures(page);
   await sleep(500);
 }
@@ -764,7 +913,9 @@ async function runTutorialDemoFlow(page) {
   await dismissWelcome(page);
   await ensurePipelineMode(page);
 
-  // 1. Panels menu discoverability
+  await showChapter(page, "Getting started", "Panels, setup, Fix this, Preview", "First-time designer walkthrough.");
+
+  await showChapter(page, "Panels", "Operations and the rest of the docks", "Operations, Approvals, Run History, Lineage, Marketplace.");
   await page.locator('[data-testid="header-tools-menu"]').click({ force: true });
   await page.locator('[data-testid="header-tools-dropdown"]').waitFor({ state: "visible", timeout: 8000 });
   await sleep(900);
@@ -773,7 +924,7 @@ async function runTutorialDemoFlow(page) {
   await sleep(1000);
   await closeSidePanels(page);
 
-  // 2. Load pattern + Properties setup-ready cue
+  await showChapter(page, "Load a pattern", "Multi-Source on the canvas", "Properties show setup-ready when the checklist is complete.");
   await loadMultiSourcePattern(page);
   await ensureAwsReviewReady(page);
   await collapseAwsHud(page);
@@ -782,7 +933,7 @@ async function runTutorialDemoFlow(page) {
   await page.locator('[data-testid="resource-setup-banner"]').waitFor({ state: "visible", timeout: 10000 });
   await sleep(1200);
 
-  // 3. Fix guide from AWS review (existing DB path)
+  await showChapter(page, "AWS Fix this", "Existing database path", "Use existing DB, then open the review guide.");
   await page.locator('[data-testid="rds-resource-setup"] button:has-text("Use my existing database")').click({ force: true });
   await waitForAwsReview(page);
   await page.locator('[data-testid="props-aws-findings"]').waitFor({ state: "visible", timeout: 15000 }).catch(() => {});
@@ -792,7 +943,7 @@ async function runTutorialDemoFlow(page) {
     await sleep(1400);
   }
 
-  // 4. Preview YAML
+  await showChapter(page, "Preview YAML", "Contract before deploy", "Step Functions / DataContract preview.");
   await page.locator('.header-actions button:has-text("Preview YAML")').click({ force: true });
   await page.locator(".deploy-panel").waitFor({ state: "visible", timeout: 15000 });
   await sleep(1400);
@@ -804,16 +955,16 @@ async function runAgentDemoFlow(page) {
   await dismissWelcome(page);
   await ensureAgentMode(page);
 
-  // 1. Browse templates, blocks, categories
+  await showChapter(page, "Agent Builder", "Create an agent end to end", "Templates, guardrails, preview, export, deploy.");
   await browseAgentLibrary(page);
 
-  // 2. Load Customer Support template
+  await showChapter(page, "Load template", "Customer Support Agent", "Guardrails, KB, and runtime pre-wired.");
   await loadCustomerSupportAgent(page);
 
-  // 3. Review guardrails / blocks in Properties
+  await showChapter(page, "Guardrails", "Review blocks on the canvas", "PII, content, KB, runtime, and model.");
   await reviewAndFixAgent(page);
 
-  // 4. Preview → Export → Deploy
+  await showChapter(page, "Preview and deploy", "Manifest then AWS", "Preview, export YAML, deploy to AgentCore.");
   await deployAgent(page);
   await sleep(500);
 }
@@ -895,6 +1046,7 @@ async function main() {
 
     const only = process.env.DEMO_ONLY;
     const demos = [
+      ["cognimesh-howto-demo", runHowtoDemoFlow],
       ["cognimesh-tutorial-demo", runTutorialDemoFlow],
       ["cognimesh-features-demo", runFeaturesDemoFlow],
       ["cognimesh-pipeline-demo", runPipelineDemoFlow],

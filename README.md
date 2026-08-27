@@ -49,8 +49,14 @@
 
 > **Product scope:** See **[POSITIONING.md](docs/POSITIONING.md)** for capabilities, ecosystem fit, and roadmap. Proofs run in CogniMesh's VRP engine today ([veridata integration](docs/veridata-integration.md) on the roadmap).
 
+<p align="center">
+  <a href="docs/assets/cognimesh-howto-demo.mp4"><strong>Watch the how-it-works video</strong></a>
+  &nbsp;·&nbsp; caption first, then each feature end to end (~2 min)
+</p>
+
 | If you are… | Read this first |
 |-------------|-----------------|
+| **Watch how it works** | **[Play video](docs/assets/cognimesh-howto-demo.mp4)** — caption, then live demo of each feature |
 | **C-suite / executive (CEO, CFO, CDO, CISO)** | **[Business guide - C-suite summary](docs/README-business-stewards.md#for-c-suite--executive-leadership)** (2 min) |
 | **Business / product owner** | **[Business & steward guide](docs/README-business-stewards.md)** (plain language only) |
 | **Data steward / governance** | **[Business & steward guide](docs/README-business-stewards.md)** - approvals, proof, marketplace, audit |
@@ -87,6 +93,20 @@
 > **Technical documentation** - install commands, APIs, Terraform, and runtime details begin after the platform demos below.
 
 ---
+
+### How it works (captioned tutorial)
+
+<p align="center">
+  <a href="docs/assets/cognimesh-howto-demo.mp4">
+    <img src="docs/assets/cognimesh-howto-demo-poster.png" alt="CogniMesh how it works: caption then live demo of AI Builder, canvas, PVDM gate, AWS review, deploy, Agent Builder" width="960" />
+  </a>
+  <br />
+  <a href="docs/assets/cognimesh-howto-demo.mp4"><strong>▶ Play how-it-works video</strong></a>
+  &nbsp;·&nbsp;
+  <em>Each feature starts with a caption, then the end-to-end UI demo</em>
+  <br />
+  <a href="docs/tutorials/getting-started-ui.md">Written walkthrough</a>
+</p>
 
 ### Getting started (UI tutorial)
 
@@ -129,7 +149,7 @@
   <br />
   <em>Templates &amp; blocks → load agent → guardrail review → preview → export → deploy</em>
   <br />
-  <code>npm run docs:demo</code> to regenerate demos · <code>DEMO_ONLY=tutorial</code> for the UI tutorial only · portal build + Playwright · optional ffmpeg for MP4/GIF
+  <code>npm run docs:demo</code> to regenerate demos · <code>DEMO_ONLY=howto</code> for the captioned tutorial · portal build + Playwright · optional ffmpeg for MP4/GIF
 </p>
 
 <p align="center">
