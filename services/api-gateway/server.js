@@ -267,11 +267,49 @@ app.get("/api/v1/products/:id/access-status", requireAuth, (req, res) => {
   res.json({ access: record });
 });
 
-app.post("/api/v1/access-requests/:id/approve", requireAuth, (req, res) => {
-  const { approveRequest } = require("../../lib/access-requests");
+app.post("/api/v1/access-requests/:id/approve", requireAuth, async (req, res) => {
+  const { approveRequest, setLakeFormationGrant } = require("../../lib/access-requests");
+  const { grantConsumerSelect, catalogFromProduct } = require("../../lib/aws/lake-formation-grant");
   const result = approveRequest(req.params.id, req.auth?.sub);
   if (!result.success) return res.status(404).json(result);
-  auditRecord({ action: "access_approve", user_id: req.auth?.sub, request_id: req.params.id });
+
+  let grant = result.record.lakeFormationGrant;
+  try {
+    let product = null;
+    try {
+      const fetched = await getProduct(result.record.productId, req.auth || {});
+      product = fetched?.product || fetched;
+    } catch {
+      product = null;
+    }
+    const catalog = catalogFromProduct(product || { name: result.record.productName, domain: result.record.domain });
+    grant = await grantConsumerSelect({
+      principalArn: req.body?.principalArn || req.body?.principal,
+      database: req.body?.database || catalog.database,
+      table: req.body?.table || catalog.table,
+      catalogId: req.body?.catalogId,
+    });
+    setLakeFormationGrant(result.record.id, grant);
+    result.record.lakeFormationGrant = grant;
+  } catch (err) {
+    grant = {
+      granted: false,
+      implemented: true,
+      permission: "SELECT",
+      note: `Lake Formation grant error: ${err.message}`,
+      error: err.message,
+    };
+    setLakeFormationGrant(result.record.id, grant);
+    result.record.lakeFormationGrant = grant;
+  }
+
+  auditRecord({
+    action: "access_approve",
+    user_id: req.auth?.sub,
+    request_id: req.params.id,
+    lf_granted: Boolean(grant?.granted),
+    lf_simulated: Boolean(grant?.simulated),
+  });
   res.json(result);
 });
 

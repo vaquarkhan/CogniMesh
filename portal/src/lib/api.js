@@ -155,6 +155,45 @@ export async function getMarketplaceCatalog({ token } = {}) {
   return data;
 }
 
+export async function issueMarketplaceSubscriptionToken({ token, productId, proofId } = {}) {
+  const res = await apiFetch(`/api/v1/marketplace/products/${encodeURIComponent(productId)}/subscription-token`, {
+    method: "POST",
+    token,
+    body: JSON.stringify(proofId ? { proofId } : {}),
+  });
+  const data = await safeJson(res, "Subscription token");
+  if (!res.ok || !data || data.status === "error") {
+    throw new Error(formatApiFailure(data, "Could not issue subscription token"));
+  }
+  return data;
+}
+
+export async function diffMarketplaceSchemas({ token, productId, left, right } = {}) {
+  const res = await apiFetch(`/api/v1/marketplace/products/${encodeURIComponent(productId)}/schema-diff`, {
+    method: "POST",
+    token,
+    body: JSON.stringify({ left, right }),
+  });
+  const data = await safeJson(res, "Schema diff");
+  if (!res.ok || !data || data.status === "error") {
+    throw new Error(formatApiFailure(data, "Schema diff failed"));
+  }
+  return data;
+}
+
+export async function subscribeMarketplaceSla({ token, productId, slaMinutes, webhookUrl, channel } = {}) {
+  const res = await apiFetch("/api/v1/marketplace/sla", {
+    method: "POST",
+    token,
+    body: JSON.stringify({ productId, slaMinutes, webhookUrl, channel }),
+  });
+  const data = await safeJson(res, "SLA subscribe");
+  if (!res.ok || !data || data.status === "error") {
+    throw new Error(formatApiFailure(data, "SLA subscribe failed"));
+  }
+  return data;
+}
+
 export async function listLineageCatalog({ token, domain } = {}) {
   const qs = domain ? `?domain=${encodeURIComponent(domain)}` : "";
   const res = await apiFetch(`/api/v1/lineage/catalog${qs}`, { token });
@@ -359,10 +398,11 @@ export async function listPendingAccessRequests({ token }) {
   return data;
 }
 
-export async function approveAccessRequest({ token, requestId }) {
+export async function approveAccessRequest({ token, requestId, principalArn } = {}) {
   const res = await apiFetch(`/api/v1/access-requests/${encodeURIComponent(requestId)}/approve`, {
     method: "POST",
     token,
+    body: JSON.stringify(principalArn ? { principalArn } : {}),
   });
   const data = await safeJson(res, "Approve");
   return { ok: res.ok, data: data || {} };

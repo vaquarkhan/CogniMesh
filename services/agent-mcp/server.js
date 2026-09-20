@@ -39,6 +39,20 @@ const tools = [
       properties: { domain: { type: "string" } },
     },
   },
+  {
+    name: "cognimesh_get_subscription_token",
+    description:
+      "Mint a short-lived marketplace subscription token bound to product + snapshot pin + VRP PASS (requires approved access)",
+    inputSchema: {
+      type: "object",
+      properties: {
+        productId: { type: "string" },
+        apiBase: { type: "string", description: "CogniMesh API base, default http://localhost:4000" },
+        bearerToken: { type: "string", description: "Optional Cognito/API bearer" },
+      },
+      required: ["productId"],
+    },
+  },
 ];
 
 async function invokeBedrockAgent({
@@ -224,6 +238,27 @@ const server = http.createServer(async (req, res) => {
     const domain = new URL(req.url, `http://localhost:${PORT}`).searchParams.get("domain");
     const products = await listProducts(domain);
     return json(200, products);
+  }
+
+  if (req.url === "/mcp/subscription-token" && req.method === "POST") {
+    try {
+      const body = await readBody(req);
+      const productId = body.productId;
+      if (!productId) return json(400, { error: "productId required" });
+      const apiBase = (body.apiBase || process.env.COGNIMESH_API_URL || "http://localhost:4000").replace(/\/$/, "");
+      const headers = { "Content-Type": "application/json" };
+      if (body.bearerToken) headers.Authorization = `Bearer ${body.bearerToken}`;
+      const res = await fetch(`${apiBase}/api/v1/marketplace/products/${encodeURIComponent(productId)}/subscription-token`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ proofId: body.proofId }),
+        signal: AbortSignal.timeout(10000),
+      });
+      const data = await res.json().catch(() => ({}));
+      return json(res.status, data);
+    } catch (e) {
+      return json(502, { error: e.message });
+    }
   }
 
   res.writeHead(404);

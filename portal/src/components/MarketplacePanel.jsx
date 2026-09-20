@@ -6,6 +6,8 @@ import {
   getProductConsumerDetail,
   verifyVrpProofApi,
   diffVrpProofsApi,
+  issueMarketplaceSubscriptionToken,
+  diffMarketplaceSchemas,
 } from "../lib/api";
 
 function freshnessFromSla(product) {
@@ -47,6 +49,9 @@ export default function MarketplacePanel({ token, refreshKey }) {
   const [query, setQuery] = useState("");
   const [proofGatedOnly, setProofGatedOnly] = useState(false);
   const [total, setTotal] = useState(0);
+  const [schemaLeft, setSchemaLeft] = useState("");
+  const [schemaDiffResult, setSchemaDiffResult] = useState(null);
+  const [subscriptionToken, setSubscriptionToken] = useState(null);
 
   useEffect(() => {
     const handle = setTimeout(async () => {
@@ -85,6 +90,8 @@ export default function MarketplacePanel({ token, refreshKey }) {
     setDetailLoading(true);
     setVerifyResult(null);
     setDiffResult(null);
+    setSchemaDiffResult(null);
+    setSubscriptionToken(null);
     try {
       const d = await getProductConsumerDetail({ token, productId: product.id });
       setDetail(d);
@@ -119,6 +126,40 @@ export default function MarketplacePanel({ token, refreshKey }) {
       setDiffResult(data);
     } catch (err) {
       setDiffResult({ error: err.message });
+    } finally {
+      setProofBusy(false);
+    }
+  };
+
+  const runSchemaDiff = async () => {
+    setProofBusy(true);
+    setSchemaDiffResult(null);
+    try {
+      const left = JSON.parse(schemaLeft);
+      const data = await diffMarketplaceSchemas({
+        token,
+        productId: selectedProduct.id,
+        left,
+      });
+      setSchemaDiffResult(data.diff || data);
+    } catch (err) {
+      setSchemaDiffResult({ error: err.message });
+    } finally {
+      setProofBusy(false);
+    }
+  };
+
+  const runIssueToken = async () => {
+    setProofBusy(true);
+    setSubscriptionToken(null);
+    try {
+      const data = await issueMarketplaceSubscriptionToken({
+        token,
+        productId: selectedProduct.id,
+      });
+      setSubscriptionToken(data);
+    } catch (err) {
+      setSubscriptionToken({ error: err.message });
     } finally {
       setProofBusy(false);
     }
@@ -255,6 +296,43 @@ export default function MarketplacePanel({ token, refreshKey }) {
                     : diffResult.identical
                       ? "Proofs are identical on integrity fields"
                       : JSON.stringify(diffResult.changes, null, 2)}
+                </pre>
+              )}
+              <h4>Schema diff vs current product</h4>
+              <p className="properties-hint">Paste prior schema JSON array; compares to this product&apos;s manifest (breaking = removed columns).</p>
+              <textarea
+                className="proof-paste"
+                rows={3}
+                placeholder='[{"name":"order_id","type":"string"},{"name":"amount","type":"double"}]'
+                value={schemaLeft}
+                onChange={(e) => setSchemaLeft(e.target.value)}
+              />
+              <div className="product-badges">
+                <button type="button" className="btn-secondary" disabled={proofBusy || !schemaLeft.trim()} onClick={runSchemaDiff}>
+                  Diff schema
+                </button>
+                <button
+                  type="button"
+                  className="deploy-btn compact"
+                  disabled={proofBusy || detail?.access?.status !== "approved"}
+                  onClick={runIssueToken}
+                  title={detail?.access?.status === "approved" ? "Mint subscription token" : "Requires approved access + VRP PASS"}
+                >
+                  Issue subscription token
+                </button>
+              </div>
+              {schemaDiffResult && (
+                <pre className="sample-rows">
+                  {schemaDiffResult.error
+                    ? schemaDiffResult.error
+                    : `${schemaDiffResult.compatibility || "?"} · ${schemaDiffResult.summary}\n${JSON.stringify(schemaDiffResult.schema, null, 2)}`}
+                </pre>
+              )}
+              {subscriptionToken && (
+                <pre className="sample-rows">
+                  {subscriptionToken.error
+                    ? subscriptionToken.error
+                    : `Expires ${subscriptionToken.expiresAt}\n${subscriptionToken.token}`}
                 </pre>
               )}
             </>

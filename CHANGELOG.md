@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **OpenTelemetry**: health reports `otel` status; export/proof routes emit spans; [docs/OPENTELEMETRY.md](docs/OPENTELEMETRY.md)
 - **Actionable export/proof errors**: API returns `code` + `fixHint`; portal toasts surface them
 - **Marketplace API**: `/api/v1/marketplace/*` search, featured, domains, SLA; portal trust-ranked search; [docs/MARKETPLACE.md](docs/MARKETPLACE.md)
+- **Marketplace high-value**: signed subscription tokens, Lake Formation grant on approve (opt-in live / simulate), schema/contract diff, SLA breach webhooks (`?notify=true`)
 - Tutorial: [docs/tutorials/sdp-and-dbt.md](docs/tutorials/sdp-and-dbt.md)
 
 ### Added - `pvdm-architecture-review-2026-07-21` branch

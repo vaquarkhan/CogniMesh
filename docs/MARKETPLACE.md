@@ -3,7 +3,7 @@
 CogniMesh Marketplace is the **consumer discovery plane** for proof-gated data products. This doc covers the dedicated **Marketplace API** (`/api/v1/marketplace/*`) plus recommended high-value features.
 
 Tutorial (UI): [tutorials/proof-gated-marketplace.md](tutorials/proof-gated-marketplace.md)  
-Examples: [examples/proof-verify.md](examples/proof-verify.md)
+Examples: [examples/proof-verify.md](examples/proof-verify.md) · [examples/marketplace-api.md](examples/marketplace-api.md)
 
 ---
 
@@ -29,11 +29,13 @@ Deploy a Vaquar / medallion pattern first so products exist in the catalog.
 | `GET` | `/api/v1/marketplace` | API catalog (routes + honesty notes) |
 | `GET` | `/api/v1/marketplace/products` | Search / filter / sort |
 | `GET` | `/api/v1/marketplace/products/:id` | Product card + consumer actions |
+| `POST` | `/api/v1/marketplace/products/:id/subscription-token` | Mint signed subscription token (approved + VRP PASS) |
+| `POST` | `/api/v1/marketplace/products/:id/schema-diff` | Diff schemas / contracts (breaking = removed columns) |
 | `GET` | `/api/v1/marketplace/featured` | Top trust-ranked products |
 | `GET` | `/api/v1/marketplace/domains` | Domain facets |
 | `GET` | `/api/v1/marketplace/sla` | List SLA subscriptions |
-| `POST` | `/api/v1/marketplace/sla` | Subscribe to product freshness SLA |
-| `GET` | `/api/v1/marketplace/sla/check` | Check SLA vs last run |
+| `POST` | `/api/v1/marketplace/sla` | Subscribe to product freshness SLA (`webhookUrl` optional) |
+| `GET` | `/api/v1/marketplace/sla/check` | Check SLA vs last proof; `?notify=true` fires webhooks |
 
 ### Related product / proof APIs (already shipped)
 
@@ -42,7 +44,7 @@ Deploy a Vaquar / medallion pattern first so products exist in the catalog.
 | `GET` | `/api/v1/products` | Raw catalog list (proxy / embedded) |
 | `GET` | `/api/v1/products/:id/consumer-detail` | Schema, samples (fail-closed), trust, Athena link |
 | `POST` | `/api/v1/products/:id/access-requests` | Request access |
-| `POST` | `/api/v1/access-requests/:id/approve` | Steward approve |
+| `POST` | `/api/v1/access-requests/:id/approve` | Steward approve (+ Lake Formation grant) |
 | `POST` | `/api/v1/proofs/verify` | Offline VRP verify |
 | `POST` | `/api/v1/proofs/diff` | Diff two proofs |
 
@@ -58,52 +60,84 @@ Deploy a Vaquar / medallion pattern first so products exist in the catalog.
 | `sort` | `trust` \| `name` \| `domain` \| `fresh` | Default `trust` |
 | `limit` / `offset` | `20` / `0` | Pagination |
 
-### Example: subscribe SLA
+### Example: subscription token
+
+```bash
+# After steward approve + product has VRP PASS
+curl -s -X POST http://localhost:4000/api/v1/marketplace/products/<productId>/subscription-token \
+  -H "Content-Type: application/json" -d '{}'
+```
+
+Returns a short-lived HMAC token bound to `product_id` + Iceberg snapshot pin + `vrp_verdict: PASS` (not a Cognito JWT). Header hint: `X-CogniMesh-Subscription-Token`.
+
+### Example: schema diff
+
+```bash
+curl -s -X POST http://localhost:4000/api/v1/marketplace/products/<productId>/schema-diff \
+  -H "Content-Type: application/json" \
+  -d '{"left":[{"name":"order_id"},{"name":"amount"},{"name":"legacy"}],"right":[{"name":"order_id"},{"name":"amount"}]}'
+```
+
+Omit `right` to compare `left` against the product's current manifest schema. `breaking: true` when columns were removed.
+
+### Example: SLA subscribe + notify
 
 ```bash
 curl -s -X POST http://localhost:4000/api/v1/marketplace/sla \
   -H "Content-Type: application/json" \
-  -d '{"productId":"commerce-orders-gold-1.0.0","slaMinutes":1440,"penalty":"credit"}'
+  -d '{"productId":"commerce-orders-gold-1.0.0","slaMinutes":1440,"webhookUrl":"https://hooks.example/sla"}'
+
+curl -s "http://localhost:4000/api/v1/marketplace/sla/check?productId=commerce-orders-gold-1.0.0&notify=true"
 ```
+
+Without `webhookUrl`, breaches use `ALERT_WEBHOOK_URL` / Teams via `notifySlaBreach`.
+
+### Example: approve with Lake Formation
+
+```bash
+curl -s -X POST http://localhost:4000/api/v1/access-requests/<requestId>/approve \
+  -H "Content-Type: application/json" \
+  -d '{"principalArn":"arn:aws:iam::123456789012:role/DataConsumer"}'
+```
+
+| Env | Effect |
+|-----|--------|
+| `LAKE_FORMATION_GRANT_ENABLED=true` | Live `GrantPermissions` via `@aws-sdk/client-lakeformation` |
+| (unset) | **Simulated** grant (local demos stay green) |
+| `LAKE_FORMATION_CONSUMER_PRINCIPAL_ARN` | Default principal when body omits `principalArn` |
 
 ---
 
 ## Honesty boundary
 
-1. **VRP PASS** is required before samples are shown and before you should treat a listing as trustworthy.
-2. Steward **Approve** updates CogniMesh access state; **Lake Formation GrantPermissions is not auto-called yet**.
+1. **VRP PASS** is required before samples are shown and before subscription tokens mint.
+2. Steward **Approve** updates CogniMesh access and attempts LF grant (live only when enabled).
 3. SDP / dbt export success does **not** publish to the marketplace by itself.
 
 ---
 
-## High-value features (roadmap advice)
+## High-value features
 
-Prioritized for differentiation vs OpenMetadata / DataHub / Polaris / Unity / Atlan:
+### Shipped (this branch)
 
-### Ship next (highest ROI)
+| Feature | Status |
+|---------|--------|
+| Trust-ranked search + portal UI | **Shipped** |
+| Signed subscription tokens | **Shipped** — `POST …/subscription-token` |
+| Lake Formation grant on approve | **Shipped** — opt-in live / default simulate |
+| Contract / schema diff in marketplace | **Shipped** — API + portal |
+| Webhook / notify on SLA stale | **Shipped** — `webhookUrl` + `?notify=true` |
 
-| Feature | Why it wins | Effort |
-|---------|-------------|--------|
-| **1. Signed subscription tokens** | Consumers get a short-lived token bound to product + snapshot pin + VRP PASS; agents/MCP use it instead of raw IAM | M |
-| **2. Live LF grant on approve** | Close the “approve but still no Athena” gap - call Lake Formation `GrantPermissions` when steward approves | M |
-| **3. Contract / schema diff in marketplace** | Show what changed between versions (breaking columns) next to proof diff | S–M |
-| **4. Trust-ranked search in portal UI** | ~~Wire Marketplace panel to `/marketplace/products?sort=trust`~~ **Shipped** (search + proof-gated filter) | done |
-| **5. Webhook / notify on SLA stale** | Alert consumers when proof freshness breaches - pairs with existing SLA subscribe | S |
-
-### Strong differentiators (quarter)
+### Next differentiators
 
 | Feature | Why |
 |---------|-----|
-| **Proof-gated preview rows via gateway** | Samples only through `/gateway/serve` with verified proof (already partially there) |
+| **Proof-gated preview rows via gateway** | Samples only through `/gateway/serve` with verified proof (partially there) |
 | **Cross-org federated catalog** | Extend `federated-products` with real registry + access request federation |
 | **Consumer OpenAPI / MCP tools** | Auto-generate “how to query this product” for agents (Athena SQL + pin) |
-| **Billing / chargeback events** | Already have platform billing stubs - attach to marketplace subscribe + query |
-
-### Nice-to-have later
-
-- Semantic search (embeddings over description + schema)
-- Certification badges beyond Profile A/T/O (SOC2 tag, PII class)
-- Public (unauthenticated) read-only catalog of **metadata only** (never samples)
+| **Billing / chargeback events** | Attach platform billing stubs to marketplace subscribe + query |
+| Semantic search | Embeddings over description + schema |
+| Certification badges | Beyond Profile A/T/O (SOC2 tag, PII class) |
 
 ### Avoid overclaiming
 
@@ -113,9 +147,11 @@ Do **not** position marketplace as replacing Iceberg catalogs or quality tools a
 
 ## Code
 
-- Facade: `lib/marketplace/index.js`
-- Routes: `lib/marketplace/routes.js` (mounted from `services/api-gateway/server.js`)
-- Trust: `lib/vrp/product-trust.js` · SLA: `lib/vrp/proof-sla.js`
+- Facade: `lib/marketplace/index.js` · schema diff: `lib/marketplace/schema-diff.js`
+- Routes: `lib/marketplace/routes.js`
+- Subscription tokens: `lib/vrp/subscription-token.js`
+- LF grant: `lib/aws/lake-formation-grant.js`
+- SLA: `lib/platform/sla-marketplace.js` · notify: `lib/platform/notifications.js`
 - Tests: `lib/__tests__/marketplace.test.js`
 
 ← [Documentation map](README.md)
