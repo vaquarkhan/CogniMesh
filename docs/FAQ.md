@@ -73,6 +73,10 @@ Paper: [arXiv:2608.14643](https://arxiv.org/abs/2608.14643). Reference Python ga
 
 Paste proof JSON in **Marketplace → Verify proof**, or run `node scripts/verify-vrp-proof.js path/to/proof.json`. HTTP: `POST /api/v1/proofs/verify`. Diff two publications with **Diff proofs** or `POST /api/v1/proofs/diff`. Tutorial: [Proof-gated marketplace](tutorials/proof-gated-marketplace.md). Sample rows stay hidden until VRP PASS.
 
+### How do I search the marketplace via API?
+
+Use trust-ranked discovery: `GET /api/v1/marketplace/products?sort=trust&proofGated=true`. Also: featured, domains, SLA subscribe/check. Guide: [Marketplace API](MARKETPLACE.md) · curl: [examples/marketplace-api.md](examples/marketplace-api.md).
+
 ### What VRP features are included?
 
 See [VRP features](vaquar-pattern.md#vrp-features): transform verification (identity + aggregate), contract and environment binding, compaction-safe logical digests, conformance vectors, and fail-closed publish. Proofs use `proof_version: "3"`; v2 still verifies.

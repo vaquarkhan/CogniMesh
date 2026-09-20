@@ -57,7 +57,7 @@
 | If you are… | Read this first |
 |-------------|-----------------|
 | **Watch how it works** | **[Play video](docs/assets/cognimesh-howto-demo.mp4)** - caption, then live demo of each feature |
-| **Verify a marketplace proof** | **[Proof-gated marketplace tutorial](docs/tutorials/proof-gated-marketplace.md)** |
+| **Discover marketplace products** | **[Marketplace API](docs/MARKETPLACE.md)** · [proof tutorial](docs/tutorials/proof-gated-marketplace.md) |
 | **Export SDP or dbt** | **[Spark Declarative Pipelines + dbt](docs/tutorials/sdp-and-dbt.md)** |
 | **C-suite / executive (CEO, CFO, CDO, CISO)** | **[Business guide - C-suite summary](docs/README-business-stewards.md#for-c-suite--executive-leadership)** (2 min) |
 | **Business / product owner** | **[Business & steward guide](docs/README-business-stewards.md)** (plain language only) |

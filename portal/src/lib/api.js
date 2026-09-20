@@ -120,6 +120,41 @@ export async function listProducts({ token, domain } = {}) {
   return data;
 }
 
+/** Trust-ranked marketplace search (`/api/v1/marketplace/products`). */
+export async function searchMarketplaceProducts({
+  token,
+  q,
+  domain,
+  grade,
+  proofGated,
+  fresh,
+  sort = "trust",
+  limit = 50,
+} = {}) {
+  const params = new URLSearchParams();
+  if (q) params.set("q", q);
+  if (domain) params.set("domain", domain);
+  if (grade) params.set("grade", grade);
+  if (proofGated) params.set("proofGated", "true");
+  if (fresh) params.set("fresh", "true");
+  if (sort) params.set("sort", sort);
+  if (limit) params.set("limit", String(limit));
+  const qs = params.toString() ? `?${params}` : "";
+  const res = await apiFetch(`/api/v1/marketplace/products${qs}`, { token });
+  const data = await safeJson(res, "Marketplace search");
+  if (!res.ok || !data || data.status === "error") {
+    throw new Error(formatApiFailure(data, "Marketplace search failed"));
+  }
+  return data;
+}
+
+export async function getMarketplaceCatalog({ token } = {}) {
+  const res = await apiFetch("/api/v1/marketplace", { token });
+  const data = await safeJson(res, "Marketplace catalog");
+  if (!res.ok || !data) throw new Error("Marketplace catalog unavailable");
+  return data;
+}
+
 export async function listLineageCatalog({ token, domain } = {}) {
   const qs = domain ? `?domain=${encodeURIComponent(domain)}` : "";
   const res = await apiFetch(`/api/v1/lineage/catalog${qs}`, { token });

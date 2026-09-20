@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   listProducts,
+  searchMarketplaceProducts,
   requestProductAccess,
   getProductConsumerDetail,
   verifyVrpProofApi,
@@ -43,21 +44,41 @@ export default function MarketplacePanel({ token, refreshKey }) {
   const [verifyResult, setVerifyResult] = useState(null);
   const [diffResult, setDiffResult] = useState(null);
   const [proofBusy, setProofBusy] = useState(false);
+  const [query, setQuery] = useState("");
+  const [proofGatedOnly, setProofGatedOnly] = useState(false);
+  const [total, setTotal] = useState(0);
 
   useEffect(() => {
-    (async () => {
+    const handle = setTimeout(async () => {
       setLoading(true);
       setError(null);
       try {
-        const data = await listProducts({ token });
-        setProducts(Array.isArray(data) ? data : []);
+        const data = await searchMarketplaceProducts({
+          token,
+          q: query.trim() || undefined,
+          proofGated: proofGatedOnly,
+          sort: "trust",
+          limit: 50,
+        });
+        setProducts(data.products || []);
+        setTotal(data.total || 0);
       } catch (err) {
-        setError(err.message || "Marketplace unavailable - is the API running?");
+        try {
+          const fallback = await listProducts({ token });
+          const list = Array.isArray(fallback) ? fallback : fallback.products || [];
+          setProducts(list);
+          setTotal(list.length);
+        } catch {
+          setError(err.message || "Marketplace unavailable - is the API running?");
+          setProducts([]);
+          setTotal(0);
+        }
       } finally {
         setLoading(false);
       }
-    })();
-  }, [token, refreshKey]);
+    }, query ? 280 : 0);
+    return () => clearTimeout(handle);
+  }, [token, refreshKey, query, proofGatedOnly]);
 
   const openDetail = async (product) => {
     setSelectedProduct(product);
@@ -106,7 +127,24 @@ export default function MarketplacePanel({ token, refreshKey }) {
   return (
     <aside className="marketplace-panel">
       <h2>Marketplace</h2>
-      <p className="properties-hint">Discover data products · verify proofs · pin snapshots · request access</p>
+      <p className="properties-hint">Discover data products · trust-ranked search · verify proofs · request access</p>
+      <div className="marketplace-search-row">
+        <input
+          type="search"
+          className="pattern-search"
+          placeholder="Search products (name, domain, badge)…"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          aria-label="Search marketplace products"
+        />
+        <label className="properties-hint marketplace-filter">
+          <input type="checkbox" checked={proofGatedOnly} onChange={(e) => setProofGatedOnly(e.target.checked)} />
+          Proof-gated only
+        </label>
+      </div>
+      {!loading && !error && total > 0 && (
+        <p className="properties-hint">{total} product{total === 1 ? "" : "s"} · sorted by trust</p>
+      )}
       {loading && <p className="properties-hint">Loading products…</p>}
       {error && <p className="login-error" role="alert">{error}</p>}
       {accessMsg && <p className="properties-hint">{accessMsg}</p>}

@@ -4,6 +4,7 @@ Copy-paste recipes for local API and CLI. Auth is usually off in `npm run start:
 
 | Example | What it shows |
 |---------|----------------|
+| [marketplace-api.md](marketplace-api.md) | Trust-ranked search, featured, domains (`/api/v1/marketplace/*`) |
 | [proof-verify.md](proof-verify.md) | `POST /api/v1/proofs/verify` · `POST /api/v1/proofs/diff` · fail-closed samples · SLA |
 | [sdp-dbt-export.md](sdp-dbt-export.md) | Export Spark Declarative Pipelines or dbt project zips from a canvas graph |
 | [aws-pvdm-runbook.md](aws-pvdm-runbook.md) | Opt-in AWS PVDM (Glue / Step Functions / proof bucket) |

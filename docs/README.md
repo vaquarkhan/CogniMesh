@@ -55,9 +55,11 @@ Start here when you need the right doc fast. Prefer these paths over hunting the
 ### Examples & ops
 
 - [examples/README.md](examples/README.md) - curl / CLI recipes
+- [examples/marketplace-api.md](examples/marketplace-api.md) - trust-ranked product search API
 - [examples/proof-verify.md](examples/proof-verify.md) - verify + diff proofs
 - [examples/sdp-dbt-export.md](examples/sdp-dbt-export.md) - export SDP / dbt zips via API
 - [examples/aws-pvdm-runbook.md](examples/aws-pvdm-runbook.md) - live AWS PVDM
+- [MARKETPLACE.md](MARKETPLACE.md) - Marketplace API + high-value feature roadmap
 - [OPENTELEMETRY.md](OPENTELEMETRY.md) - opt-in OTLP / console tracing
 - [PLATFORM_OPS.md](PLATFORM_OPS.md) · [LINEAGE_CATALOG.md](LINEAGE_CATALOG.md) · [WELL_ARCHITECTED.md](WELL_ARCHITECTED.md)
 

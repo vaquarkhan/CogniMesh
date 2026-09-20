@@ -31,6 +31,7 @@ const { listRuns, stats: executionStats, recordRun } = require("../../lib/execut
 const metrics = require("../../lib/metrics");
 const { startSpan } = require("../../lib/tracing");
 const { mountPlatformRoutes, savePipelineVersion, isDeployApprovalRequired, queueDeployApproval, approveDeploy } = require("../../lib/platform");
+const { mountMarketplaceRoutes } = require("../../lib/marketplace/routes");
 
 const { isAllowedOrigin } = require("./lib/cors-origins");
 
@@ -65,6 +66,7 @@ app.use("/api/v1", rateLimit);
 app.use("/api/v1", csrfProtection);
 
 mountPlatformRoutes(app, { requireAuth });
+mountMarketplaceRoutes(app, { requireAuth });
 
 async function deepHealth() {
   const embedded = fallbackEnabled();
