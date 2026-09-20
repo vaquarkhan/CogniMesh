@@ -27,7 +27,7 @@ CogniMesh is a **visual control plane** for trustworthy data products on AWS:
 | **27 pipeline canvases** | 26 wired examples + blank canvas; 8 agent tutorials in Agent Builder |
 | **Integrity gate** | Design-time policy checks before deploy |
 | **KMS signing** | Production proofs via AWS KMS when configured |
-| **Gateway + attestations** | Proof-aware data serve and signed decision attestations on agent paths |
+| **Gateway + attestations** | Proof-aware data serve and signed decision attestations on agent paths (**CogniMesh extension**, not the PVDM paper protocol) |
 | **CI quality** | Automated tests on every push/PR ([CI workflow](https://github.com/vaquarkhan/CogniMesh/actions/workflows/ci.yml)) |
 | **Conformance vectors** | Published proof fixtures (`npm run verify:conformance`) |
 
@@ -80,8 +80,8 @@ CogniMesh, [veridata](https://github.com/vaquarkhan/veridata), and the [AWS Serv
 | | |
 |---|---|
 | **arXiv preprint** | [arXiv:2608.14643](https://arxiv.org/abs/2608.14643) — *Proof-Gated Publication: Verify-Before-Commit Content Integrity for Serverless Data-Mesh Lakehouses* |
-| **Reference gate + adversarial suite** | [github.com/vaquarkhan/Proof-gated-publication-PVDM](https://github.com/vaquarkhan/Proof-gated-publication-PVDM) (stdlib gate, 30/30 suite, Spark/Iceberg benchmarks) |
-| **This repo** | Production AWS mapping (IceGuard · veridata-recon · Durable SDK · Glue/Iceberg) |
+| **Reference gate + adversarial suite** | [github.com/vaquarkhan/Proof-gated-publication-PVDM](https://github.com/vaquarkhan/Proof-gated-publication-PVDM) (stdlib Python gate, 30/30 suite, Spark/Iceberg benchmarks) |
+| **This repo** | CogniMesh control plane + JS VRP gate (portal, contracts, marketplace). Not the Python IceGuard/veridata-recon package. |
 
 | | |
 |---|---|
@@ -120,6 +120,20 @@ Technical integration plan: [veridata integration](veridata-integration.md).
 | **Portal** | Deeper veridata status in Run History | Single pane for proof engine version and verify source |
 
 Prioritized engineering detail for C1 and V1/V2: [veridata-integration.md](veridata-integration.md).
+
+---
+
+## Where CogniMesh differs (catalogs, governance, lakehouses)
+
+| Product | What it does well | Gap vs CogniMesh |
+|---------|-------------------|------------------|
+| **Apache Polaris / Iceberg REST** | Multi-engine catalog, RBAC, credential vending | Catalog correctness ≠ content integrity. Polaris is a natural **Steward-side catalog host** for PVDM; it does not prove rows were not dropped or mutated. |
+| **AWS Glue + Lake Formation** | IAM, LF grants, Iceberg REST, catalog federation | Same gap: a successful Glue job is not a VRP. CogniMesh gates the Metadata commit. |
+| **OpenMetadata / DataHub** | Discovery, contracts UI, lineage, quality dashboards | Quality tests are observational. Marketplace **trust grade** here is bound to VRP PASS + snapshot pin + source snapshot. |
+| **Starburst Icehouse / Iceberg v3** | REST catalog, row lineage (`_row_id`), deletion vectors | Row lineage tracks *what changed*, not that intended rows equal written rows. |
+| **Bauplan (arXiv:2602.02335)** | Pipeline-level branches and atomic multi-table publish | Complements Iceberg atomicity; does not ship a keyed multiset proof at commit. |
+
+**Shipped differentiator in this branch:** marketplace **trust card** (grade + Profile A/T/O + source snapshot + consumer snapshot pin). Iceberg v3 row lineage remains complementary, not a substitute for VRP.
 
 ---
 

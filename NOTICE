@@ -8,6 +8,7 @@ Inventor             Vaquar Khan
 Copyright            © 2024–2026 Vaquar Khan — proprietary method (name + invariants)
 Status               Proprietary method · open reference implementation (Apache-2.0)
 Cite                 arXiv:2608.14643 · docs/vaquar-pattern.md · NOTICE
+Manuscript           CC BY 4.0
 
 Read the paper & reference gate
 
@@ -18,13 +19,20 @@ Read the paper & reference gate
 
   Reference gate + adversarial suite
     github.com/vaquarkhan/Proof-gated-publication-PVDM
-    (stdlib gate, 30/30 suite, Spark/Iceberg benchmarks)
+    (stdlib Python gate, 30/30 suite, Spark/Iceberg benchmarks)
     https://github.com/vaquarkhan/Proof-gated-publication-PVDM
 
   This repo (CogniMesh)
-    Production AWS mapping (IceGuard · veridata-recon · Durable SDK · Glue/Iceberg)
+    Visual control plane + JavaScript VRP gate
+    (portal, data contracts, marketplace, proof-gated Glue/Iceberg commit)
     https://github.com/vaquarkhan/CogniMesh
+
+  Python AWS mapping (separate package)
+    IceGuard · veridata-recon · Durable SDK · Glue REST
+    https://pypi.org/project/serverless-data-mesh/
 
 The PVDM method name and invariants are proprietary to Vaquar Khan.
 The reference gate and validation suite are Apache-2.0.
 This CogniMesh software is licensed separately; see LICENSE.
+Agent decision attestation in CogniMesh is a product extension, not the
+paper's shipped PVDM protocol.

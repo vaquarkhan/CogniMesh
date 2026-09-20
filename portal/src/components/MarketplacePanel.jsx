@@ -68,6 +68,29 @@ export default function MarketplacePanel({ token, refreshKey }) {
           {detail && (
             <>
               {detail.proofGated && <p className="proof-gated-banner">🛡 Vaquar PVDM proof-gated product</p>}
+              {detail.trust && (
+                <div className="product-trust-card">
+                  <div className="product-trust-header">
+                    <span>Trust grade <strong>{detail.trust.grade}</strong></span>
+                    <span className="product-trust-score">{detail.trust.score}/100</span>
+                  </div>
+                  <p className="properties-hint">
+                    {detail.conformanceProfile ? `Profile ${detail.conformanceProfile}` : "Conformance pending"}
+                    {detail.sourceSnapshotId ? " · source snapshot bound" : ""}
+                    {detail.snapshotPin?.snapshot_id ? ` · pin ${detail.snapshotPin.snapshot_id}` : ""}
+                  </p>
+                  {(detail.trust.badges || []).length > 0 && (
+                    <div className="product-badges">
+                      {detail.trust.badges.map((b) => (
+                        <span key={b} className="trust-badge">{b.replace(/_/g, " ")}</span>
+                      ))}
+                    </div>
+                  )}
+                  {detail.snapshotPin?.sql && (
+                    <pre className="sample-rows">{detail.snapshotPin.sql}</pre>
+                  )}
+                </div>
+              )}
               {detail.access && (
                 <p className={`access-status access-${detail.access.status}`}>
                   Access: <strong>{detail.access.status}</strong>
@@ -107,6 +130,7 @@ export default function MarketplacePanel({ token, refreshKey }) {
                 <div className="product-meta">{p.domain} · v{p.version}</div>
                 <div className="product-badges">
                   <span className={`product-status status-${p.status}`}>{p.status}</span>
+                  {p.trust?.grade && <span className="trust-badge">Trust {p.trust.grade}</span>}
                   <span className={`freshness-badge ${fresh.className}`}>{fresh.text}</span>
                 </div>
               </button>

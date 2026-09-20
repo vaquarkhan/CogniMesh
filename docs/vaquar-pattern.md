@@ -1,7 +1,6 @@
 <p align="center">
   <img src="https://img.shields.io/badge/The-Vaquar-Pattern-2563eb?style=for-the-badge" alt="Vaquar Pattern" />
   <img src="https://img.shields.io/badge/PVDM-Physical·Verify·Durable·Metadata-0d9488?style=for-the-badge" alt="PVDM" />
-  <img src="https://img.shields.io/badge/PVDM--A-Decision·Attestation-6366f1?style=for-the-badge" alt="PVDM-A" />
   <img src="https://img.shields.io/badge/Author-Vaquarkhan-7c3aed?style=for-the-badge" alt="Author" />
 </p>
 
@@ -53,8 +52,9 @@ Invariant: `commit_metadata ⟹ VRP = PASS`
 | | |
 |---|---|
 | **arXiv preprint** | [arXiv:2608.14643](https://arxiv.org/abs/2608.14643) — *Proof-Gated Publication: Verify-Before-Commit Content Integrity for Serverless Data-Mesh Lakehouses* |
-| **Reference gate + adversarial suite** | [github.com/vaquarkhan/Proof-gated-publication-PVDM](https://github.com/vaquarkhan/Proof-gated-publication-PVDM) (stdlib gate, 30/30 suite, Spark/Iceberg benchmarks) |
-| **This repo** | Production AWS mapping (IceGuard · veridata-recon · Durable SDK · Glue/Iceberg) |
+| **Reference gate + adversarial suite** | [github.com/vaquarkhan/Proof-gated-publication-PVDM](https://github.com/vaquarkhan/Proof-gated-publication-PVDM) (stdlib Python gate, 30/30 suite, Spark/Iceberg benchmarks) |
+| **This repo (CogniMesh)** | Visual control plane + JavaScript VRP gate (portal, contracts, marketplace, proof-gated Glue/Iceberg commit) |
+| **Python AWS mapping** | [serverless-data-mesh](https://pypi.org/project/serverless-data-mesh/) — IceGuard · veridata-recon · Durable SDK · Glue REST |
 
 | | |
 |---|---|
@@ -64,6 +64,31 @@ Invariant: `commit_metadata ⟹ VRP = PASS`
 | **Copyright** | © 2024–2026 Vaquar Khan — proprietary method (name + invariants) |
 | **Status** | Proprietary method · open reference implementation (Apache-2.0) |
 | **Cite** | [arXiv:2608.14643](https://arxiv.org/abs/2608.14643) · [docs/vaquar-pattern.md](vaquar-pattern.md) · [NOTICE](../NOTICE) |
+
+Manuscript: CC BY 4.0. Reference gate: Apache-2.0. CogniMesh software: see [LICENSE](../LICENSE).
+
+### Paper N1–N20 in CogniMesh
+
+The paper’s shipped protocol is **PVDM** (Physical → Verify → Durable → Metadata). Agent **decision attestation** in this repo is a **CogniMesh product extension**, not part of the paper’s reference gate.
+
+| Norm | Paper requirement | CogniMesh |
+|------|-------------------|-----------|
+| N1 / N3 | Keyed MSet-Add-Hash; identity + content projections | Implemented (`lib/vrp/multiset.js`) |
+| N4 | Re-hash published bytes at Metadata (TOCTOU) | Implemented (`proofGatedCommit`) |
+| N5 | Steward-signed proof; nonce burned after commit | Implemented (KMS or explicit steward key in prod) |
+| N8 | Profile T independent oracle; same impl is not certification | Implemented |
+| N9 | Profile O sequence field in identity | Implemented |
+| N10 | VRP FAIL rolls back; no snapshot | Implemented |
+| N11 | Consumers read only the gated snapshot | Implemented (`consumer-snapshot.js` + proof gateway) |
+| N14 | Appendix A typed canonicalization (NFC, decimals, timestamps, null sentinel) | Implemented (`lib/vrp/canonical.js`) |
+| N15 | Schema fingerprint + source snapshot binding | Implemented on every proof |
+| N16 | Profile T distinct attestors + artifacts | Implemented |
+| N2 / N12 / N17 | Three-account Producer / Steward / Publisher + KMS isolation | **Ops / IAM** — document in Terraform; not enforced by this Node process |
+| N18 | Profile T artifact attestations in the catalog | Partial — bound on the proof; catalog host stores tags |
+| N19 / N20 | Shared conformance vectors vs the Python reference | JS suite here; Python 30/30 lives in the reference gate repo |
+| PVDM-A / MCP | Paper: must **not** be presented as the shipped PVDM protocol | CogniMesh extension: [`decision-attestation.js`](../lib/vrp/decision-attestation.js) |
+
+Catalog host is **agnostic** (paper §2.1): default Glue Iceberg REST; set `PVDM_CATALOG_HOST=polaris` and `ICEBERG_REST_URI` for Apache Polaris / Iceberg REST.
 
 ---
 
@@ -477,11 +502,11 @@ node scripts/verify-vrp-proof.js path/to/proof.json --public-key producer-public
 
 ---
 
-## PVDM-A: carrying proof into agent decisions
+## Decision attestation (CogniMesh extension, not the paper protocol)
 
-PVDM proves the **data** is intact. It says nothing about what an **agent** then does with that data. The recurring failure mode in agentic systems is *verified inputs feeding an unverifiable decision*: an LLM reads a clean dataset, produces an action, and there is no way for a downstream consumer to confirm the decision was computed only from proven inputs, or that the decision record was not altered afterward.
+PVDM proves the **data** is intact. It says nothing about what an **agent** then does with that data. The paper’s reference implementation does **not** ship agent attestation as part of PVDM. CogniMesh adds it as a product layer so verified inputs cannot silently feed an unverifiable decision.
 
-**PVDM-A** (Decision Attestation) extends the proof chain one hop past the data layer. It is a distinct extension - not a fifth PVDM phase - but it shares the same custody model and fail-closed semantics.
+**Decision attestation** (sometimes labeled PVDM-A in older CogniMesh docs) extends the proof chain one hop past the data layer. It is **not a fifth PVDM phase** and is **not** the paper’s shipped gate.
 
 > **Decision invariant**
 >
@@ -578,7 +603,7 @@ Product features for proof-gated publish (`proof_version: "3"`; v2 proofs still 
 ### Proof & custody
 
 - Content-bound sink (read-back Parquet footer or NDJSON digest)
-- JCS canonicalization and decimal string coercion for numbers
+- Appendix A hashed-row canonicalization (NFC strings, declared-scale decimals, UTC µs timestamps, null sentinel; JCS for the proof envelope)
 - KMS signing in production; offline verifier and CLI
 - Fail-closed verdicts (`UNVERIFIED` / `FAIL`, not silent `PASS`)
 - Real Iceberg snapshot ids and snapshot pin SQL

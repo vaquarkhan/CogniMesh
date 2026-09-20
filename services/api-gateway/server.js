@@ -285,7 +285,8 @@ app.get("/api/v1/products/:id/consumer-detail", requireAuth, async (req, res) =>
   const { athenaConsoleUrl, parseSchemaFromManifest, sampleRowsFromSchema } = require("../../lib/athena-link");
   let product = null;
   try {
-    product = await getProduct(req.params.id, req.auth || {});
+    const fetched = await getProduct(req.params.id, req.auth || {});
+    product = fetched?.product || fetched;
   } catch {
     product = null;
   }
@@ -304,16 +305,37 @@ app.get("/api/v1/products/:id/consumer-detail", requireAuth, async (req, res) =>
   } catch {
     athenaUrl = null;
   }
+  const { productTrust } = require("../../lib/vrp/product-trust");
+  const { buildSnapshotPinSql } = require("../../lib/vrp/snapshot-pin");
+  const tags = product?.tags || {};
+  const icebergSnapshotId = tags.icebergSnapshotId || product?.trust?.icebergSnapshotId || null;
+  const trust =
+    product?.trust ||
+    productTrust({
+      proofGated: /pattern:\s*vaquar/.test(manifestYaml) || /qualityPolicyId/.test(manifestYaml),
+      vrpVerdict: tags.vrpVerdict || null,
+      conformanceProfile: tags.conformanceProfile || null,
+      icebergSnapshotId,
+      sourceSnapshotId: tags.sourceSnapshotId || null,
+    });
+  const snapshotPin = icebergSnapshotId
+    ? buildSnapshotPinSql({ database, table }, icebergSnapshotId)
+    : null;
   res.json({
     product: product || { id: req.params.id, name: req.params.id },
     schema,
     sampleRows,
     athenaUrl,
-    proofGated: /pattern:\s*vaquar/.test(manifestYaml) || /qualityPolicyId/.test(manifestYaml),
+    proofGated: Boolean(trust.proofGated),
+    trust,
+    snapshotPin,
+    sourceSnapshotId: trust.sourceSnapshotId,
+    conformanceProfile: trust.conformanceProfile,
     gateway: {
       serveEndpoint: "/api/v1/gateway/serve",
       mcpServeEndpoint: "/mcp/gateway/serve",
       requiresGatewayToken: true,
+      consumerSnapshotPolicy: "gated_catalog_only",
     },
     access,
   });

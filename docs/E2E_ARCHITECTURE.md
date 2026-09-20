@@ -1,6 +1,5 @@
 # CogniMesh End-to-End Architecture
 
-**Branch focus:** `pvdm-architecture-review-2026-07-21`  
 **Invariant:** `commit_metadata => VRP = PASS`
 
 This page is the living E2E map of CogniMesh + the Vaquar Pattern (PVDM): control plane → durable AWS execution → proof-gated catalog → marketplace.
