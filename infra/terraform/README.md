@@ -95,7 +95,7 @@ Terraform can set `CORS_ORIGIN_SUFFIXES=.cloudfront.net`, but **the running imag
 
 **Fastest unblock on 1.0.0** (no image rebuild): set `portal_cloudfront_callback_url` / `portal_logout_urls` as above and `terraform apply` (ECS picks up new `CORS_ORIGINS`).
 
-**Permanent fix** — use the CI-built image (pushed on every merge to `main`):
+**Permanent fix** - use the CI-built image (pushed on every merge to `main`):
 
 ```bash
 # GitHub Actions → Docker API (main) publishes:
@@ -104,7 +104,7 @@ Terraform can set `CORS_ORIGIN_SUFFIXES=.cloudfront.net`, but **the running imag
 ```
 
 ```hcl
-# terraform.tfvars — pin a sha for immutable prod
+# terraform.tfvars - pin a sha for immutable prod
 api_container_image = "ghcr.io/vaquarkhan/cognimesh-api:sha-COMMIT_SHA"
 ```
 

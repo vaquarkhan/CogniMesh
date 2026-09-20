@@ -296,6 +296,25 @@ Modern lakehouse replaces Hive/Parquet with Iceberg ACID tables. MERGE handles C
 
 ---
 
+### Spark Declarative Pipelines (SDP) Medallion
+**ID:** `spark-declarative-medallion`  
+**Difficulty:** Intermediate  
+**AWS Services:** EMR Serverless / Spark 4.1+, S3, Iceberg, Glue Catalog
+
+**What the UI builds:**
+- S3 landing → `spark_declarative` transform (bronze / silver / gold SQL) → Integrity Gate → Iceberg gold
+- Export: AWS Design Review → **Export Spark Declarative Pipelines** → `spark-pipelines run`
+
+```mermaid
+flowchart LR
+  S3[S3 Landing] --> SDP[SDP Bronze/Silver/Gold] --> Gate[VRP Gate] --> Iceberg[Iceberg Gold]
+```
+
+**Why this architecture:**
+Portable Spark 4.1+ declarative pipelines (`CREATE OR REFRESH MATERIALIZED VIEW` / `STREAMING TABLE`) without giving up CogniMesh proof-gated publish. SDP success is not a catalog proof - keep PVDM on. See [SDP and dbt](tutorials/sdp-and-dbt.md).
+
+---
+
 ## Kappa
 
 ### Stream-Only Architecture
@@ -422,6 +441,25 @@ flowchart LR
 
 **Why this architecture:**
 ELT pattern - load raw data into Redshift first (fast COPY from S3), then transform using Redshift's compute engine (SQL stored procedures or dbt). Good for teams with existing Redshift investment.
+
+---
+
+### dbt Silver → Gold (+ PVDM)
+**ID:** `dbt-silver-gold`  
+**Difficulty:** Intermediate  
+**AWS Services:** dbt, Spark / Athena / Redshift, S3, Iceberg, Glue Catalog
+
+**What the UI builds:**
+- RDS source → `dbt` transform (model SQL + profile/materialization) → Integrity Gate → Iceberg gold
+- Export: AWS Design Review → **Export dbt project** → `dbt run` / `dbt test`
+
+```mermaid
+flowchart LR
+  RDS[Orders RDS] --> DBT[dbt model] --> Gate[VRP Gate] --> Iceberg[Iceberg Gold]
+```
+
+**Why this architecture:**
+Analytics engineers stay in dbt for models and schema tests; CogniMesh still owns marketplace trust and VRP-gated Iceberg commit. A green `dbt test` is observational. See [SDP and dbt](tutorials/sdp-and-dbt.md).
 
 ---
 
@@ -941,16 +979,16 @@ flowchart TD
 ### AgentCore Runtime (Strands) Deploy Target
 
 In the Agent Builder, a new deploy target dropdown lets you choose:
-- **Bedrock Agents** (default) — creates a Bedrock Agent with alias
-- **AgentCore Runtime (Strands)** — generates a downloadable Python project
+- **Bedrock Agents** (default)  - creates a Bedrock Agent with alias
+- **AgentCore Runtime (Strands)**  - generates a downloadable Python project
 
 The AgentCore Runtime target generates a complete standalone project:
-- `agent.py` — Strands Agent + BedrockModel with your tools as @tool stubs
-- `requirements.txt` — Python deps (strands-agents, boto3, bedrock-agentcore)
-- `Dockerfile` — linux/arm64 container
-- `deploy.sh` — ECR build+push + create-agent-runtime CLI command
-- `.env.example` — configuration reference
-- `README.md` — usage instructions
+- `agent.py`  - Strands Agent + BedrockModel with your tools as @tool stubs
+- `requirements.txt`  - Python deps (strands-agents, boto3, bedrock-agentcore)
+- `Dockerfile`  - linux/arm64 container
+- `deploy.sh`  - ECR build+push + create-agent-runtime CLI command
+- `.env.example`  - configuration reference
+- `README.md`  - usage instructions
 
 Click **⬇ Download project (.zip)** to get the full project as a ZIP file.
 

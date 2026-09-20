@@ -51,23 +51,23 @@ Invariant: `commit_metadata ⟹ VRP = PASS`
 
 | | |
 |---|---|
-| **arXiv preprint** | [arXiv:2608.14643](https://arxiv.org/abs/2608.14643) — *Proof-Gated Publication: Verify-Before-Commit Content Integrity for Serverless Data-Mesh Lakehouses* |
+| **arXiv preprint** | [arXiv:2608.14643](https://arxiv.org/abs/2608.14643)  - *Proof-Gated Publication: Verify-Before-Commit Content Integrity for Serverless Data-Mesh Lakehouses* |
 | **Reference gate + adversarial suite** | [github.com/vaquarkhan/Proof-gated-publication-PVDM](https://github.com/vaquarkhan/Proof-gated-publication-PVDM) (stdlib Python gate, 30/30 suite, Spark/Iceberg benchmarks) |
 | **This repo (CogniMesh)** | Visual control plane + JavaScript VRP gate (portal, contracts, marketplace, proof-gated Glue/Iceberg commit) |
-| **Python AWS mapping** | [serverless-data-mesh](https://pypi.org/project/serverless-data-mesh/) — IceGuard · veridata-recon · Durable SDK · Glue REST |
+| **Python AWS mapping** | [serverless-data-mesh](https://pypi.org/project/serverless-data-mesh/)  - IceGuard · veridata-recon · Durable SDK · Glue REST |
 
 | | |
 |---|---|
 | **Method name** | Vaquar Pattern |
 | **Operational acronym** | PVDM (Physical · Verify · Durable · Metadata) |
 | **Inventor** | Vaquar Khan |
-| **Copyright** | © 2024–2026 Vaquar Khan — proprietary method (name + invariants) |
+| **Copyright** | © 2024-2026 Vaquar Khan  - proprietary method (name + invariants) |
 | **Status** | Proprietary method · open reference implementation (Apache-2.0) |
 | **Cite** | [arXiv:2608.14643](https://arxiv.org/abs/2608.14643) · [docs/vaquar-pattern.md](vaquar-pattern.md) · [NOTICE](../NOTICE) |
 
 Manuscript: CC BY 4.0. Reference gate: Apache-2.0. CogniMesh software: see [LICENSE](../LICENSE).
 
-### Paper N1–N20 in CogniMesh
+### Paper N1-N20 in CogniMesh
 
 The paper’s shipped protocol is **PVDM** (Physical → Verify → Durable → Metadata). Agent **decision attestation** in this repo is a **CogniMesh product extension**, not part of the paper’s reference gate.
 
@@ -83,8 +83,8 @@ The paper’s shipped protocol is **PVDM** (Physical → Verify → Durable → 
 | N14 | Appendix A typed canonicalization (NFC, decimals, timestamps, null sentinel) | Implemented (`lib/vrp/canonical.js`) |
 | N15 | Schema fingerprint + source snapshot binding | Implemented on every proof |
 | N16 | Profile T distinct attestors + artifacts | Implemented |
-| N2 / N12 / N17 | Three-account Producer / Steward / Publisher + KMS isolation | **Ops / IAM** — document in Terraform; not enforced by this Node process |
-| N18 | Profile T artifact attestations in the catalog | Partial — bound on the proof; catalog host stores tags |
+| N2 / N12 / N17 | Three-account Producer / Steward / Publisher + KMS isolation | **Ops / IAM**  - document in Terraform; not enforced by this Node process |
+| N18 | Profile T artifact attestations in the catalog | Partial  - bound on the proof; catalog host stores tags |
 | N19 / N20 | Shared conformance vectors vs the Python reference | JS suite here; Python 30/30 lives in the reference gate repo |
 | PVDM-A / MCP | Paper: must **not** be presented as the shipped PVDM protocol | CogniMesh extension: [`decision-attestation.js`](../lib/vrp/decision-attestation.js) |
 
@@ -607,6 +607,8 @@ Product features for proof-gated publish (`proof_version: "3"`; v2 proofs still 
 - KMS signing in production; offline verifier and CLI
 - Fail-closed verdicts (`UNVERIFIED` / `FAIL`, not silent `PASS`)
 - Real Iceberg snapshot ids and snapshot pin SQL
+- Marketplace offline verify (`POST /api/v1/proofs/verify`) and proof diff (`POST /api/v1/proofs/diff`)
+- Proof SLA freshness (hours since last VRP PASS) and fail-closed consumer samples
 - Transparency log for issued proofs
 - Signed contract hash and environment binding in each proof
 
@@ -778,9 +780,9 @@ The Vaquar Pattern is also embodied in the open-source **[AWS Serverless Data Me
 |---|---|
 | **Method name** | Vaquar Pattern |
 | **Operational acronym** | PVDM (Physical · Verify · Durable · Metadata) |
-| **Paper** | [arXiv:2608.14643](https://arxiv.org/abs/2608.14643) — *Proof-Gated Publication: Verify-Before-Commit Content Integrity for Serverless Data-Mesh Lakehouses* |
+| **Paper** | [arXiv:2608.14643](https://arxiv.org/abs/2608.14643)  - *Proof-Gated Publication: Verify-Before-Commit Content Integrity for Serverless Data-Mesh Lakehouses* |
 | **Inventor** | [Vaquar Khan](https://github.com/vaquarkhan) |
-| **Copyright** | © 2024–2026 Vaquar Khan — proprietary method (name + invariants) |
+| **Copyright** | © 2024-2026 Vaquar Khan  - proprietary method (name + invariants) |
 | **Status** | Proprietary method · open reference implementation (Apache-2.0) |
 | **Reference gate** | [Proof-gated-publication-PVDM](https://github.com/vaquarkhan/Proof-gated-publication-PVDM) |
 | **Platform** | [CogniMesh](https://github.com/vaquarkhan/CogniMesh) |

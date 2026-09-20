@@ -60,13 +60,13 @@ function watchHowItWorks(kind) {
     ? "CogniMesh pipeline walkthrough: load a pattern, AWS Design Review, preview YAML, deploy, marketplace"
     : "CogniMesh agent walkthrough: templates and blocks, guardrails, preview manifest, export, deploy";
   const caption = isPipeline
-    ? "Load a pattern → AWS review → preview YAML → deploy → marketplace"
-    : "Templates &amp; blocks → load agent → guardrails → preview → export → deploy";
+    ? "Load a pattern, AWS review, preview YAML, deploy, marketplace (click to play video)"
+    : "Templates and blocks, load agent, guardrails, preview, export, deploy (click to play video)";
   return `<p align="center">
   <a href="../../assets/${file}.mp4">
     <img src="../../assets/${file}-poster.png" alt="${alt}" width="720" />
   </a>
-  <br /><em>${caption} — click to play video</em>
+  <br /><em>${caption}</em>
 </p>
 `;
 }
@@ -358,6 +358,8 @@ function writeIndex(pipelines, agents) {
 | Goal | Start here |
 |------|------------|
 | **UI walkthrough (video)** | [Getting started UI](getting-started-ui.md) |
+| **Proof-gated marketplace** | [Verify proofs, trust grade, SLA](proof-gated-marketplace.md) |
+| **SDP + dbt export** | [Spark Declarative Pipelines and dbt](sdp-and-dbt.md) |
 | **How it works (video)** | [Captioned tour](../assets/cognimesh-howto-demo.mp4) · [Pipeline](../assets/cognimesh-pipeline-demo.mp4) · [Agent](../assets/cognimesh-agent-demo.mp4) |
 | **Data pipeline** | [Pipeline tutorials](#data-pipeline-tutorials) |
 | **AI agent** | [Agent tutorials](#agent-tutorials) |

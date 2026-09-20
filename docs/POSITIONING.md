@@ -79,7 +79,7 @@ CogniMesh, [veridata](https://github.com/vaquarkhan/veridata), and the [AWS Serv
 
 | | |
 |---|---|
-| **arXiv preprint** | [arXiv:2608.14643](https://arxiv.org/abs/2608.14643) — *Proof-Gated Publication: Verify-Before-Commit Content Integrity for Serverless Data-Mesh Lakehouses* |
+| **arXiv preprint** | [arXiv:2608.14643](https://arxiv.org/abs/2608.14643)  - *Proof-Gated Publication: Verify-Before-Commit Content Integrity for Serverless Data-Mesh Lakehouses* |
 | **Reference gate + adversarial suite** | [github.com/vaquarkhan/Proof-gated-publication-PVDM](https://github.com/vaquarkhan/Proof-gated-publication-PVDM) (stdlib Python gate, 30/30 suite, Spark/Iceberg benchmarks) |
 | **This repo** | CogniMesh control plane + JS VRP gate (portal, contracts, marketplace). Not the Python IceGuard/veridata-recon package. |
 
@@ -88,7 +88,7 @@ CogniMesh, [veridata](https://github.com/vaquarkhan/veridata), and the [AWS Serv
 | **Method name** | Vaquar Pattern |
 | **Operational acronym** | PVDM (Physical · Verify · Durable · Metadata) |
 | **Inventor** | Vaquar Khan |
-| **Copyright** | © 2024–2026 Vaquar Khan — proprietary method (name + invariants) |
+| **Copyright** | © 2024-2026 Vaquar Khan  - proprietary method (name + invariants) |
 | **Status** | Proprietary method · open reference implementation (Apache-2.0) |
 | **Cite** | [arXiv:2608.14643](https://arxiv.org/abs/2608.14643) · [docs/vaquar-pattern.md](vaquar-pattern.md) · [NOTICE](../NOTICE) |
 
@@ -114,10 +114,12 @@ Technical integration plan: [veridata integration](veridata-integration.md).
 | **C1** | CogniMesh delegates transform verification to **veridata** | One Rust implementation; CogniMesh calls veridata instead of duplicate JS |
 | **V1** | Per-group lineage in veridata `recon.rs` | Swap-attack detection in Rust; datamesh framework inherits |
 | **V2** | Derived invariants from transform spec in veridata | Aggregate pipelines shared across all Vaquar consumers |
-| **V3–V7** | Money model, Merkle localization, logical digest, contract/env binding in veridata | Feature parity with CogniMesh v3 proof envelope |
+| **V3-V7** | Money model, Merkle localization, logical digest, contract/env binding in veridata | Feature parity with CogniMesh v3 proof envelope |
 | **Shared conformance** | Same `fixtures/vrp-conformance/` for JS and Rust | Both engines pass identical vectors in CI |
 | **Attestation log** | Extend transparency log to decision attestations | End-to-end audit trail across data and agent layers |
-| **Portal** | Deeper veridata status in Run History | Single pane for proof engine version and verify source |
+| **Marketplace** | Deeper veridata status in Run History | Single pane for proof engine version and verify source |
+| **Consumer verify** | Shareable offline verify + proof diff | Marketplace paste JSON; SLA freshness on last VRP PASS |
+| **SDP / dbt bridges** | Export Spark Declarative Pipelines + dbt projects | Portable transforms; CogniMesh keeps proof-gated publish |
 
 Prioritized engineering detail for C1 and V1/V2: [veridata-integration.md](veridata-integration.md).
 

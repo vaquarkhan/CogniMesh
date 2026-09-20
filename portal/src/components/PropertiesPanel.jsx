@@ -316,11 +316,52 @@ export default function PropertiesPanel({
               ))}
             </select>
           </FormField>
-          {(d.transformType === "spark_sql" || d.transformType === "glue_etl" || d.transformType === "glue_streaming") && (
+          {(d.transformType === "spark_sql" ||
+            d.transformType === "spark_declarative" ||
+            d.transformType === "dbt" ||
+            d.transformType === "glue_etl" ||
+            d.transformType === "glue_streaming") && (
             <>
-              <FormField label={d.transformType === "glue_etl" ? "Glue script / Spark SQL" : "Spark SQL"} tip={tipFor("transform", "sparkSql")}>
+              <FormField
+                label={
+                  d.transformType === "glue_etl"
+                    ? "Glue script / Spark SQL"
+                    : d.transformType === "dbt"
+                      ? "dbt model SQL (SELECT)"
+                      : d.transformType === "spark_declarative"
+                        ? "Gold SDP SQL"
+                        : "Spark SQL"
+                }
+                tip={tipFor("transform", "sparkSql")}
+              >
                 <textarea rows={5} value={d.sparkSql || ""} onChange={(e) => update({ sparkSql: e.target.value })} />
               </FormField>
+              {d.transformType === "spark_declarative" && (
+                <>
+                  <FormField label="Bronze SDP SQL (optional)">
+                    <textarea rows={3} value={d.bronzeSql || ""} onChange={(e) => update({ bronzeSql: e.target.value })} />
+                  </FormField>
+                  <FormField label="Silver SDP SQL (optional)">
+                    <textarea rows={3} value={d.silverSql || ""} onChange={(e) => update({ silverSql: e.target.value })} />
+                  </FormField>
+                  <p className="properties-hint">Export SDP project from AWS Design Review → spark-pipelines run. PVDM still gates gold publish.</p>
+                </>
+              )}
+              {d.transformType === "dbt" && (
+                <>
+                  <FormField label="dbt profile">
+                    <input value={d.dbtProfile || "cognimesh"} onChange={(e) => update({ dbtProfile: e.target.value })} />
+                  </FormField>
+                  <FormField label="Materialization">
+                    <select value={d.dbtMaterialization || "table"} onChange={(e) => update({ dbtMaterialization: e.target.value })}>
+                      <option value="table">table</option>
+                      <option value="view">view</option>
+                      <option value="incremental">incremental</option>
+                    </select>
+                  </FormField>
+                  <p className="properties-hint">Export dbt project from AWS Design Review. dbt test is observational; VRP still required for Iceberg commit.</p>
+                </>
+              )}
 
               <div className="properties-section">
                 <h3 className="properties-section-title">Data quality (PVDM)</h3>

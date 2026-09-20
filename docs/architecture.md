@@ -119,9 +119,9 @@ The Agent Builder supports two deploy targets via a dropdown:
 - **AgentCore Runtime (Strands)**: Generates a standalone Python project using Strands + BedrockAgentCoreApp, downloadable as a ZIP.
 
 The AgentCore Runtime project (`lib/platform/agentcore-runtime-deploy.js`) generates:
-- `agent.py` — Strands Agent with BedrockModel and @tool stubs from the manifest
-- `Dockerfile` — linux/arm64 container for ECR
-- `deploy.sh` — ECR push + `aws bedrock-agentcore-control create-agent-runtime`
+- `agent.py`  - Strands Agent with BedrockModel and @tool stubs from the manifest
+- `Dockerfile`  - linux/arm64 container for ECR
+- `deploy.sh`  - ECR push + `aws bedrock-agentcore-control create-agent-runtime`
 - `requirements.txt`, `.env.example`, `README.md`
 
 When `AGENTCORE_RUNTIME_ENABLED=true` + `AGENTCORE_RUNTIME_ROLE_ARN` + `AGENTCORE_ECR_IMAGE_URI` are set, the API can also call `CreateAgentRuntime` directly.

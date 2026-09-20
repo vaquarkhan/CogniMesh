@@ -1,7 +1,7 @@
 # AgentCore Studio Setup
 
 The **AgentCore Studio** tab in CogniMesh embeds the AWS-sample AgentCore self-service
-platform via an iframe. This is a **separate deployment** — by design, it is NOT vendored
+platform via an iframe. This is a **separate deployment**  - by design, it is NOT vendored
 into CogniMesh because:
 
 1. It's a distinct Apache-2.0/MIT-0 project (`aws-samples/sample-ai-agent-factory`)
@@ -80,7 +80,7 @@ The rest of CogniMesh (pipelines, agents, dashboard) works independently.
   (Firefox, Safari with strict tracking protection). The "Open in new tab" fallback works.
 - The studio's CloudFront WAF (CLOUDFRONT scope) can only be created in us-east-1.
   In other regions, deploy without WAF or use a regional WAF on the API Gateway.
-- `cdk-nag` version 3.x breaks the stack — pin to `>=2.28.0,<3`.
+- `cdk-nag` version 3.x breaks the stack  - pin to `>=2.28.0,<3`.
 
 ### Teardown
 
@@ -91,5 +91,5 @@ cdk destroy agentcore-workflow-<env> \
   -c project_name=agentcore-workflow
 ```
 
-Note: S3 buckets use RETAIN policy — empty them manually before destroy.
+Note: S3 buckets use RETAIN policy  - empty them manually before destroy.
 ```

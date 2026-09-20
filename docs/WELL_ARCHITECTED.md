@@ -89,6 +89,6 @@ The script prints a console URL to start a lens review (Well-Architected Framewo
 
 ## Related
 
-- [Terraform README](../infra/terraform/README.md) — deploy order, feature flags
-- [Platform Operations API](PLATFORM_OPS.md) — product observability APIs
+- [Terraform README](../infra/terraform/README.md)  - deploy order, feature flags
+- [Platform Operations API](PLATFORM_OPS.md)  - product observability APIs
 - Security hardening commit: remote state, API tier, WAF, KMS, detective controls

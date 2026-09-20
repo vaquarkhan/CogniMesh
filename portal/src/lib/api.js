@@ -241,6 +241,54 @@ export async function getProductConsumerDetail({ token, productId }) {
   return data;
 }
 
+export async function exportSparkDeclarative({ token, nodes, edges, pipelineMeta }) {
+  const res = await apiFetch("/api/v1/pipelines/export/spark-declarative", {
+    method: "POST",
+    token,
+    body: JSON.stringify({ nodes, edges, pipelineMeta }),
+  });
+  const data = await safeJson(res, "SDP export");
+  if (!res.ok || !data || data.status !== "success") {
+    throw new Error(data?.errors?.[0] || "Spark Declarative Pipelines export failed");
+  }
+  return data;
+}
+
+export async function exportDbtProject({ token, nodes, edges, pipelineMeta }) {
+  const res = await apiFetch("/api/v1/pipelines/export/dbt", {
+    method: "POST",
+    token,
+    body: JSON.stringify({ nodes, edges, pipelineMeta }),
+  });
+  const data = await safeJson(res, "dbt export");
+  if (!res.ok || !data || data.status !== "success") {
+    throw new Error(data?.errors?.[0] || "dbt export failed");
+  }
+  return data;
+}
+
+export async function verifyVrpProofApi({ token, proof, publicKeyPem, requireSignature }) {
+  const res = await apiFetch("/api/v1/proofs/verify", {
+    method: "POST",
+    token,
+    body: JSON.stringify({ proof, publicKeyPem, requireSignature }),
+  });
+  const data = await safeJson(res, "Proof verify");
+  if (!data) throw new Error("Proof verify unavailable");
+  return data;
+}
+
+export async function diffVrpProofsApi({ token, left, right }) {
+  const res = await apiFetch("/api/v1/proofs/diff", {
+    method: "POST",
+    token,
+    body: JSON.stringify({ left, right }),
+  });
+  const data = await safeJson(res, "Proof diff");
+  if (!data) throw new Error(data?.error || "Proof diff unavailable");
+  return data;
+}
+
 export async function listPendingAccessRequests({ token }) {
   const res = await apiFetch("/api/v1/access-requests/pending", { token });
   if (!res.ok) throw new Error("Failed to load access requests");

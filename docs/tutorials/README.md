@@ -25,6 +25,8 @@
 | Goal | Start here |
 |------|------------|
 | **UI walkthrough (video)** | [Getting started UI](getting-started-ui.md) |
+| **Proof-gated marketplace** | [Verify proofs, trust grade, SLA](proof-gated-marketplace.md) |
+| **SDP + dbt export** | [Spark Declarative Pipelines and dbt](sdp-and-dbt.md) |
 | **How it works (video)** | [Captioned tour](../assets/cognimesh-howto-demo.mp4) · [Pipeline](../assets/cognimesh-pipeline-demo.mp4) · [Agent](../assets/cognimesh-agent-demo.mp4) |
 | **Data pipeline** | [Pipeline tutorials](#data-pipeline-tutorials) |
 | **AI agent** | [Agent tutorials](#agent-tutorials) |

@@ -1,13 +1,33 @@
 import { useEffect, useState } from "react";
-import { listProducts, requestProductAccess, getProductConsumerDetail } from "../lib/api";
+import {
+  listProducts,
+  requestProductAccess,
+  getProductConsumerDetail,
+  verifyVrpProofApi,
+  diffVrpProofsApi,
+} from "../lib/api";
 
-function freshnessLabel(registeredAt) {
-  if (!registeredAt) return { text: "Unknown", className: "freshness-unknown" };
-  const ageMs = Date.now() - new Date(registeredAt).getTime();
+function freshnessFromSla(product) {
+  const sla = product?.trust?.sla;
+  if (sla?.label) {
+    return {
+      text: sla.label,
+      className: sla.fresh ? "freshness-ok" : sla.status === "unknown" ? "freshness-unknown" : "freshness-stale",
+    };
+  }
+  if (!product?.registeredAt) return { text: "Unknown", className: "freshness-unknown" };
+  const ageMs = Date.now() - new Date(product.registeredAt).getTime();
   const hours = ageMs / (1000 * 60 * 60);
-  if (hours < 6) return { text: `Fresh (${Math.round(hours)}h ago)`, className: "freshness-ok" };
-  if (hours < 24) return { text: `${Math.round(hours)}h ago`, className: "freshness-warn" };
-  return { text: `STALE (>${Math.round(hours / 24)}d)`, className: "freshness-stale" };
+  if (hours < 6) return { text: `Registered ${Math.round(hours)}h ago`, className: "freshness-ok" };
+  if (hours < 24) return { text: `${Math.round(hours)}h since register`, className: "freshness-warn" };
+  return { text: `STALE register (>${Math.round(hours / 24)}d)`, className: "freshness-stale" };
+}
+
+function parseProofJson(text) {
+  const raw = String(text || "").trim();
+  if (!raw) throw new Error("Paste a VRP proof JSON object");
+  const parsed = JSON.parse(raw);
+  return parsed.proof && parsed.verdict ? parsed.proof : parsed;
 }
 
 export default function MarketplacePanel({ token, refreshKey }) {
@@ -18,6 +38,11 @@ export default function MarketplacePanel({ token, refreshKey }) {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [detail, setDetail] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [proofJson, setProofJson] = useState("");
+  const [proofJsonB, setProofJsonB] = useState("");
+  const [verifyResult, setVerifyResult] = useState(null);
+  const [diffResult, setDiffResult] = useState(null);
+  const [proofBusy, setProofBusy] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -37,6 +62,8 @@ export default function MarketplacePanel({ token, refreshKey }) {
   const openDetail = async (product) => {
     setSelectedProduct(product);
     setDetailLoading(true);
+    setVerifyResult(null);
+    setDiffResult(null);
     try {
       const d = await getProductConsumerDetail({ token, productId: product.id });
       setDetail(d);
@@ -47,10 +74,39 @@ export default function MarketplacePanel({ token, refreshKey }) {
     }
   };
 
+  const runVerify = async () => {
+    setProofBusy(true);
+    setVerifyResult(null);
+    try {
+      const proof = parseProofJson(proofJson);
+      const data = await verifyVrpProofApi({ token, proof, requireSignature: Boolean(proof.signing?.signature) });
+      setVerifyResult(data);
+    } catch (err) {
+      setVerifyResult({ valid: false, error: err.message });
+    } finally {
+      setProofBusy(false);
+    }
+  };
+
+  const runDiff = async () => {
+    setProofBusy(true);
+    setDiffResult(null);
+    try {
+      const left = parseProofJson(proofJson);
+      const right = parseProofJson(proofJsonB);
+      const data = await diffVrpProofsApi({ token, left, right });
+      setDiffResult(data);
+    } catch (err) {
+      setDiffResult({ error: err.message });
+    } finally {
+      setProofBusy(false);
+    }
+  };
+
   return (
     <aside className="marketplace-panel">
       <h2>Marketplace</h2>
-      <p className="properties-hint">Discover data products · view schema · request access · query in Athena</p>
+      <p className="properties-hint">Discover data products · verify proofs · pin snapshots · request access</p>
       {loading && <p className="properties-hint">Loading products…</p>}
       {error && <p className="login-error" role="alert">{error}</p>}
       {accessMsg && <p className="properties-hint">{accessMsg}</p>}
@@ -79,6 +135,11 @@ export default function MarketplacePanel({ token, refreshKey }) {
                     {detail.sourceSnapshotId ? " · source snapshot bound" : ""}
                     {detail.snapshotPin?.snapshot_id ? ` · pin ${detail.snapshotPin.snapshot_id}` : ""}
                   </p>
+                  {(detail.sla || detail.trust.sla) && (
+                    <p className={`freshness-badge ${(detail.sla || detail.trust.sla).fresh ? "freshness-ok" : "freshness-stale"}`}>
+                      {(detail.sla || detail.trust.sla).label}
+                    </p>
+                  )}
                   {(detail.trust.badges || []).length > 0 && (
                     <div className="product-badges">
                       {detail.trust.badges.map((b) => (
@@ -109,11 +170,54 @@ export default function MarketplacePanel({ token, refreshKey }) {
                 </tbody>
               </table>
               <h4>Sample rows</h4>
-              <pre className="sample-rows">{JSON.stringify(detail.sampleRows, null, 2)}</pre>
+              {detail.sampleRowsWithheld ? (
+                <p className="properties-hint">{detail.sampleRowsReason}</p>
+              ) : (
+                <pre className="sample-rows">{JSON.stringify(detail.sampleRows, null, 2)}</pre>
+              )}
               {detail.athenaUrl && (
                 <a href={detail.athenaUrl} target="_blank" rel="noreferrer" className="athena-link deploy-btn compact">
                   Open in Athena ↗
                 </a>
+              )}
+              <h4>Verify or diff a proof</h4>
+              <p className="properties-hint">Paste VRP JSON from Run History. No AWS credentials needed.</p>
+              <textarea
+                className="proof-paste"
+                rows={4}
+                placeholder='{"proof_version":"3","verdict":"PASS",...}'
+                value={proofJson}
+                onChange={(e) => setProofJson(e.target.value)}
+              />
+              <textarea
+                className="proof-paste"
+                rows={3}
+                placeholder="Optional second proof JSON to diff"
+                value={proofJsonB}
+                onChange={(e) => setProofJsonB(e.target.value)}
+              />
+              <div className="product-badges">
+                <button type="button" className="deploy-btn compact" disabled={proofBusy} onClick={runVerify}>
+                  Verify proof
+                </button>
+                <button type="button" className="btn-secondary" disabled={proofBusy} onClick={runDiff}>
+                  Diff proofs
+                </button>
+              </div>
+              {verifyResult && (
+                <p className={verifyResult.valid ? "vrp-pass-text" : "vrp-fail-text"}>
+                  {verifyResult.valid ? "Proof VERIFIED" : `Not verified: ${verifyResult.reason || verifyResult.error}`}
+                  {verifyResult.verdict ? ` · verdict ${verifyResult.verdict}` : ""}
+                </p>
+              )}
+              {diffResult && (
+                <pre className="sample-rows">
+                  {diffResult.error
+                    ? diffResult.error
+                    : diffResult.identical
+                      ? "Proofs are identical on integrity fields"
+                      : JSON.stringify(diffResult.changes, null, 2)}
+                </pre>
               )}
             </>
           )}
@@ -122,7 +226,7 @@ export default function MarketplacePanel({ token, refreshKey }) {
 
       <ul className="product-list">
         {products.map((p) => {
-          const fresh = freshnessLabel(p.registeredAt);
+          const fresh = freshnessFromSla(p);
           return (
             <li key={p.id} className="product-card">
               <button type="button" className="product-card-main" onClick={() => openDetail(p)}>

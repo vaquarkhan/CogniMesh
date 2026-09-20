@@ -56,6 +56,41 @@ CDC pipelines set `cdc.enabled: true` with `primaryKey` columns.
 
 Agentic transforms require `agentic.compensationHandler` and `agentic.idempotencyKey` for exactly-once semantics.
 
+### `transform.pvdm` (proof-gated publish)
+
+When `spec.execution.pattern` is `vaquar` or `spec.transform.pvdm` is set, catalog commit is gated on VRP PASS.
+
+```yaml
+spec:
+  transform:
+    pvdm:
+      identityFields: [payment_id]
+      contentFields: [payment_id, amount]
+      sourceSnapshotId: "glue:orders@123456789"
+      fieldTypes:
+        amount: { type: decimal, scale: 2 }
+        event_ts: { type: timestamp }
+      vrp:
+        mode: identity          # identity | aggregate
+        profile: A              # A | O | T
+        sequenceField: event_seq  # required for Profile O (paper N9)
+        producerAttestorId: steward-spark
+        independentAttestorId: steward-duckdb
+        producerArtifactDigest: sha256:aaa
+        independentArtifactDigest: sha256:bbb
+```
+
+See [Proof-gated marketplace tutorial](tutorials/proof-gated-marketplace.md) and [Vaquar Pattern](vaquar-pattern.md).
+
+### `transform.type`: `spark_declarative` and `dbt`
+
+| Type | Export | Runtime |
+|------|--------|---------|
+| `spark_declarative` | `POST /api/v1/pipelines/export/spark-declarative` | `spark-pipelines run` (Spark 4.1+) |
+| `dbt` | `POST /api/v1/pipelines/export/dbt` | `dbt run` / `dbt test` |
+
+Both keep `transform.pvdm` so CogniMesh can proof-gate Iceberg publish after the external engine succeeds. Tutorial: [SDP and dbt](tutorials/sdp-and-dbt.md).
+
 ### `target` (Sink Block)
 
 Destination storage: `s3`, `iceberg`, `redshift`, `delta`. Includes Glue catalog registration hints.

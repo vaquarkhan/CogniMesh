@@ -56,7 +56,9 @@
 
 | If you are… | Read this first |
 |-------------|-----------------|
-| **Watch how it works** | **[Play video](docs/assets/cognimesh-howto-demo.mp4)** — caption, then live demo of each feature |
+| **Watch how it works** | **[Play video](docs/assets/cognimesh-howto-demo.mp4)** - caption, then live demo of each feature |
+| **Verify a marketplace proof** | **[Proof-gated marketplace tutorial](docs/tutorials/proof-gated-marketplace.md)** |
+| **Export SDP or dbt** | **[Spark Declarative Pipelines + dbt](docs/tutorials/sdp-and-dbt.md)** |
 | **C-suite / executive (CEO, CFO, CDO, CISO)** | **[Business guide - C-suite summary](docs/README-business-stewards.md#for-c-suite--executive-leadership)** (2 min) |
 | **Business / product owner** | **[Business & steward guide](docs/README-business-stewards.md)** (plain language only) |
 | **Data steward / governance** | **[Business & steward guide](docs/README-business-stewards.md)** - approvals, proof, marketplace, audit |
@@ -580,13 +582,13 @@ flowchart LR
 
 CogniMesh implements **[The Vaquar Pattern](docs/vaquar-pattern.md)** (inventor: **Vaquar Khan**). When the Vaquar path is enabled, catalog commit follows **`commit_metadata ⟹ VRP = PASS`**. Verification runs in CogniMesh JS today ([POSITIONING](docs/POSITIONING.md)).
 
-**Proof-Gated Serverless Lakehouse Publication (PVDM)** — Physical → Verify → Durable → Metadata.
+**Proof-Gated Serverless Lakehouse Publication (PVDM)** - Physical → Verify → Durable → Metadata.
 
 ### Read the paper & reference gate
 
 | | |
 |---|---|
-| **arXiv preprint** | [arXiv:2608.14643](https://arxiv.org/abs/2608.14643) — *Proof-Gated Publication: Verify-Before-Commit Content Integrity for Serverless Data-Mesh Lakehouses* |
+| **arXiv preprint** | [arXiv:2608.14643](https://arxiv.org/abs/2608.14643)  - *Proof-Gated Publication: Verify-Before-Commit Content Integrity for Serverless Data-Mesh Lakehouses* |
 | **Reference gate + adversarial suite** | [github.com/vaquarkhan/Proof-gated-publication-PVDM](https://github.com/vaquarkhan/Proof-gated-publication-PVDM) (stdlib Python gate, 30/30 suite, Spark/Iceberg benchmarks) |
 | **This repo** | CogniMesh control plane + JS VRP gate (portal, contracts, marketplace). Python IceGuard mapping is a separate package. |
 
@@ -595,7 +597,7 @@ CogniMesh implements **[The Vaquar Pattern](docs/vaquar-pattern.md)** (inventor:
 | **Method name** | Vaquar Pattern |
 | **Operational acronym** | PVDM (Physical · Verify · Durable · Metadata) |
 | **Inventor** | Vaquar Khan |
-| **Copyright** | © 2024–2026 Vaquar Khan — proprietary method (name + invariants) |
+| **Copyright** | © 2024-2026 Vaquar Khan  - proprietary method (name + invariants) |
 | **Status** | Proprietary method · open reference implementation (Apache-2.0) |
 | **Cite** | [arXiv:2608.14643](https://arxiv.org/abs/2608.14643) · [docs/vaquar-pattern.md](docs/vaquar-pattern.md) · [NOTICE](NOTICE) |
 
@@ -813,7 +815,7 @@ CogniMesh/
 
 ## License
 
-Proprietary - see [LICENSE](LICENSE). PVDM method © 2024–2026 Vaquar Khan — see [NOTICE](NOTICE). Cite [arXiv:2608.14643](https://arxiv.org/abs/2608.14643).
+Proprietary - see [LICENSE](LICENSE). PVDM method © 2024-2026 Vaquar Khan  - see [NOTICE](NOTICE). Cite [arXiv:2608.14643](https://arxiv.org/abs/2608.14643).
 
 Security: [SECURITY.md](SECURITY.md) · Changelog: [CHANGELOG.md](CHANGELOG.md)
 

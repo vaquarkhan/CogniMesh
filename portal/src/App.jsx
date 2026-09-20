@@ -13,7 +13,7 @@ import LoadingOverlay from "./components/LoadingOverlay";
 import ErrorBoundary from "./components/ErrorBoundary";
 import HeaderDockMenu from "./components/HeaderDockMenu";
 import { createNodeIdFactory } from "./lib/node-id";
-import { deployPipeline, previewPipeline, runAwsDesignReview, isApiReachable, getApiHealth, getDesignReviewFixHelp } from "./lib/api";
+import { deployPipeline, previewPipeline, runAwsDesignReview, isApiReachable, getApiHealth, getDesignReviewFixHelp, exportSparkDeclarative, exportDbtProject } from "./lib/api";
 import { insertIntegrityGate } from "./lib/integrity-gate-insert";
 import { resolveAutoFix, resolvePlanActions } from "./lib/aws-fix-apply";
 import { buildClientFixPlan, mergeWizardFindings } from "./lib/client-fix-plan";
@@ -21,6 +21,7 @@ import {
   generateDrawioArchitecture,
   generatePipelineTerraform,
   downloadTextFile,
+  downloadBase64Zip,
 } from "./lib/infrastructure-export";
 import { normalizeGraphNodes, normalizeNodeData } from "./lib/resource-provisioning";
 import { DEFAULT_AWS_REGION } from "./lib/aws-regions";
@@ -517,6 +518,36 @@ export default function App() {
     success(`Terraform exported (${result.provisionCount} RDS resource${result.provisionCount > 1 ? "s" : ""})`);
   }, [nodes, pipelineMeta, userEmail, success, toastError]);
 
+  const exportSdpProject = useCallback(async () => {
+    if (!nodes.length) {
+      toastError("Load a pattern or add blocks first");
+      return;
+    }
+    try {
+      const meta = { ...pipelineMeta, ownerEmail: userEmail };
+      const result = await exportSparkDeclarative({ token, nodes, edges, pipelineMeta: meta });
+      downloadBase64Zip(`${result.projectName || "pipeline"}-sdp.zip`, result.zipBase64);
+      success(`Spark Declarative Pipelines project exported (${result.fileCount} files). Run: ${result.runHint}`);
+    } catch (err) {
+      toastError(err.message || "SDP export failed");
+    }
+  }, [nodes, edges, pipelineMeta, userEmail, token, success, toastError]);
+
+  const exportDbtBundle = useCallback(async () => {
+    if (!nodes.length) {
+      toastError("Load a pattern or add blocks first");
+      return;
+    }
+    try {
+      const meta = { ...pipelineMeta, ownerEmail: userEmail };
+      const result = await exportDbtProject({ token, nodes, edges, pipelineMeta: meta });
+      downloadBase64Zip(`${result.projectName || "pipeline"}-dbt.zip`, result.zipBase64);
+      success(`dbt project exported (${result.fileCount} files). Run: ${result.runHint}`);
+    } catch (err) {
+      toastError(err.message || "dbt export failed");
+    }
+  }, [nodes, edges, pipelineMeta, userEmail, token, success, toastError]);
+
   const selectedNode = nodesWithValidation.find((n) => n.id === selectedId) || null;
 
   const handlePreview = async () => {
@@ -935,6 +966,8 @@ export default function App() {
               applyingFindingId={applyingFindingId}
               onExportDrawio={exportArchitectureDrawio}
               onExportTerraform={exportInfrastructureTerraform}
+              onExportSdp={exportSdpProject}
+              onExportDbt={exportDbtBundle}
               token={token}
               nodes={nodes}
               edges={edges}

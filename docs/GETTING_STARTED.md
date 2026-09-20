@@ -18,7 +18,7 @@ Open **http://localhost:3000** in your browser.
 1. On the canvas empty state, click **Load: Multi-Source workflow**.
 2. Or open **Patterns** in the left sidebar → expand a pattern → **Use pattern**.
 
-You will see a Step Functions–style graph: sources, transforms, integrity gate, and sinks.
+You will see a Step Functions-style graph: sources, transforms, integrity gate, and sinks.
 
 ## 3. Preview and deploy (1 min)
 
@@ -49,7 +49,8 @@ Agent descriptions must be at least 40 characters for Bedrock.
 | Goal | Where to go |
 |------|-------------|
 | Operations & lineage | **Operations** button in the header |
-| Marketplace & access | **Marketplace** and **Approvals** |
+| Marketplace & proof verify | **Marketplace** · [Proof-gated marketplace tutorial](tutorials/proof-gated-marketplace.md) |
+| SDP / dbt export | Patterns **SDP Medallion** / **dbt Silver→Gold** · [SDP and dbt](tutorials/sdp-and-dbt.md) |
 | Real AWS deploy | [CONTRIBUTING.md](../CONTRIBUTING.md) → Terraform outputs |
 | Developer customization | [docs/developer/README.md](developer/README.md) |
 

@@ -685,3 +685,17 @@ export function downloadTextFile(filename, content, mime = "text/plain") {
   link.click();
   URL.revokeObjectURL(url);
 }
+
+/** Download a base64-encoded ZIP from the API export endpoints. */
+export function downloadBase64Zip(filename, base64) {
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  const blob = new Blob([bytes], { type: "application/zip" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+}

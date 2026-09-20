@@ -220,7 +220,7 @@
       "properties": {
         "type": {
           "type": "string",
-          "enum": ["spark_sql", "glue_etl", "agentic", "passthrough"]
+          "enum": ["spark_sql", "spark_declarative", "dbt", "glue_etl", "agentic", "passthrough"]
         },
         "layers": {
           "type": "array",
@@ -235,6 +235,42 @@
           "properties": {
             "enabled": { "type": "boolean" },
             "drlS3Uri": { "type": "string" }
+          }
+        },
+        "sdp": {
+          "type": "object",
+          "description": "Apache Spark Declarative Pipelines export hints (spark-pipelines CLI)",
+          "properties": {
+            "storage": { "type": "string" },
+            "layers": {
+              "type": "object",
+              "properties": {
+                "bronze": {
+                  "type": "object",
+                  "properties": { "sql": { "type": "string" } }
+                },
+                "silver": {
+                  "type": "object",
+                  "properties": { "sql": { "type": "string" } }
+                },
+                "gold": {
+                  "type": "object",
+                  "properties": { "sql": { "type": "string" } }
+                }
+              }
+            }
+          }
+        },
+        "dbt": {
+          "type": "object",
+          "description": "dbt project export hints (models + schema tests)",
+          "properties": {
+            "profile": { "type": "string" },
+            "materialization": {
+              "type": "string",
+              "enum": ["table", "view", "incremental", "ephemeral"]
+            },
+            "projectDir": { "type": "string" }
           }
         },
         "pvdm": {

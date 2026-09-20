@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added - `paper-conformance-and-platform-gaps` branch
+
+- **Spark Declarative Pipelines (SDP) export**: canvas / contract → `spark-pipeline.yml` + bronze/silver/gold SQL zip; `POST /api/v1/pipelines/export/spark-declarative`; portal patterns + AWS Design Review button
+- **dbt project export**: models, sources, schema tests zip; `POST /api/v1/pipelines/export/dbt`; dbt transform type + pattern. dbt/SDP success remains observational - Iceberg publish still requires VRP PASS
+- **Marketplace consumer tools**: offline proof verify, proof diff, fail-closed samples, proof SLA freshness
+- Tutorial: [docs/tutorials/sdp-and-dbt.md](docs/tutorials/sdp-and-dbt.md)
+
 ### Added - `pvdm-architecture-review-2026-07-21` branch
 
 - **E2E architecture docs**: [docs/E2E_ARCHITECTURE.md](docs/E2E_ARCHITECTURE.md) with platform + AWS PVDM illustrated images
@@ -18,15 +25,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added - `ui-enhancement-2026-06-20` branch
 
-- **AgentCore Runtime (Strands) deploy target**: New deploy dropdown in Agent Builder — generates a downloadable Python project (agent.py, Dockerfile, deploy.sh) using Strands + BedrockAgentCoreApp. Optionally calls CreateAgentRuntime when env configured.
+- **AgentCore Runtime (Strands) deploy target**: New deploy dropdown in Agent Builder - generates a downloadable Python project (agent.py, Dockerfile, deploy.sh) using Strands + BedrockAgentCoreApp. Optionally calls CreateAgentRuntime when env configured.
 - **Native Dashboard tab**: In-app dashboard with KPI cards, SVG donut chart (pipeline run status), bar chart (agents by status), and full pipeline/agent tables. Auto-refreshes every 15s from `/api/v1/public/status`.
 - **AgentCore Studio tab**: Embeds the AWS-sample AgentCore self-service platform (separately deployed CDK stack) via iframe. Fallback "Open in new tab" when blocked.
 - **ZIP download utility**: Dependency-free browser ZIP builder (CRC32 + store) for downloading generated projects.
 - **4-tab header navigation**: Data Pipeline | Agent Builder | AgentCore Studio | 📊 Dashboard
 
-### Added — `ui-enhancement-2026-06-18` branch
+### Added - `ui-enhancement-2026-06-18` branch
 
-- **Dynamic draw.io export**: Architecture diagram reads actual canvas nodes — only shows RDS, Kinesis, Glue, Firehose, Integrity Gate, etc. when those blocks exist on the pipeline canvas
+- **Dynamic draw.io export**: Architecture diagram reads actual canvas nodes - only shows RDS, Kinesis, Glue, Firehose, Integrity Gate, etc. when those blocks exist on the pipeline canvas
 - **VPC provisioning mode**: Choose between Terraform-managed VPC or reference an existing VPC (affects Terraform export and draw.io diagrams)
 - **Streamlit agent chat UI**: Auto-launches a Streamlit chat interface after deploying a Bedrock Agent from the Agent Builder panel
 - **Amazon Q fix integration**: Design Review findings can invoke Amazon Q Business to generate step-by-step remediation guides
@@ -58,7 +65,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Platform operations (Tier 1–4): live dashboard, versioning, deploy approval, health/cost/audit, federated mesh, column lineage, self-heal, multi-cloud, plugins, copilot, DQ rules, SLA, open spec
+- Platform operations (Tier 1-4): live dashboard, versioning, deploy approval, health/cost/audit, federated mesh, column lineage, self-heal, multi-cloud, plugins, copilot, DQ rules, SLA, open spec
 - DynamoDB platform store (`PLATFORM_STORE=dynamodb`) with file fallback for versions, approvals, plugins, billing
 - Terraform `platform-ops` module: DynamoDB state table, Athena workgroup, Bedrock/RDS Data API IAM
 - Playwright portal E2E (`npm run test:portal-e2e`) for Operations panel and steward approvals

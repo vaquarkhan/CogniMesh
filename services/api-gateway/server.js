@@ -263,6 +263,39 @@ app.post("/api/v1/access-requests/:id/reject", requireAuth, (req, res) => {
   res.json(result);
 });
 
+app.post("/api/v1/proofs/verify", requireAuth, (req, res) => {
+  const { verifyVrpProof } = require("../../lib/vrp/verify");
+  try {
+    const { proof, publicKeyPem, requireSignature } = req.body || {};
+    if (!proof) return res.status(400).json({ valid: false, error: "proof is required" });
+    const result = verifyVrpProof(proof, {
+      publicKeyPem,
+      requireSignature: requireSignature !== false && Boolean(proof.signing?.signature || publicKeyPem),
+      requireSnapshotPin: false,
+      checkTransparencyLog: false,
+    });
+    res.json({
+      valid: result.valid,
+      reason: result.reason || null,
+      checks: result.checks,
+      proofId: proof.proof_id || null,
+      verdict: proof.verdict || null,
+    });
+  } catch (err) {
+    res.status(400).json({ valid: false, error: err.message });
+  }
+});
+
+app.post("/api/v1/proofs/diff", requireAuth, (req, res) => {
+  const { diffProofs } = require("../../lib/vrp/proof-diff");
+  try {
+    const { left, right } = req.body || {};
+    res.json(diffProofs(left, right));
+  } catch (err) {
+    res.status(400).json({ error: err.message, code: err.code || "PROOF_DIFF_INVALID" });
+  }
+});
+
 app.post("/api/v1/gateway/serve", requireAuth, async (req, res) => {
   const { serveProofGatedDataset, ProofGatewayError } = require("../../lib/vrp/proof-gateway");
   try {
@@ -307,8 +340,10 @@ app.get("/api/v1/products/:id/consumer-detail", requireAuth, async (req, res) =>
   }
   const { productTrust } = require("../../lib/vrp/product-trust");
   const { buildSnapshotPinSql } = require("../../lib/vrp/snapshot-pin");
+  const { proofSla } = require("../../lib/vrp/proof-sla");
   const tags = product?.tags || {};
   const icebergSnapshotId = tags.icebergSnapshotId || product?.trust?.icebergSnapshotId || null;
+  const lastProofAt = tags.lastProofAt || product?.trust?.lastProofAt || null;
   const trust =
     product?.trust ||
     productTrust({
@@ -317,17 +352,25 @@ app.get("/api/v1/products/:id/consumer-detail", requireAuth, async (req, res) =>
       conformanceProfile: tags.conformanceProfile || null,
       icebergSnapshotId,
       sourceSnapshotId: tags.sourceSnapshotId || null,
+      lastProofAt,
     });
+  const sla = trust.sla || proofSla({ lastProofAt });
+  const vrpPass = trust.vrpVerdict === "PASS" || (trust.badges || []).includes("VRP_PASS");
   const snapshotPin = icebergSnapshotId
     ? buildSnapshotPinSql({ database, table }, icebergSnapshotId)
     : null;
   res.json({
     product: product || { id: req.params.id, name: req.params.id },
     schema,
-    sampleRows,
+    sampleRows: vrpPass ? sampleRows : [],
+    sampleRowsWithheld: !vrpPass,
+    sampleRowsReason: vrpPass
+      ? null
+      : "Sample rows are withheld until VRP PASS (fail-closed consumer)",
     athenaUrl,
     proofGated: Boolean(trust.proofGated),
     trust,
+    sla,
     snapshotPin,
     sourceSnapshotId: trust.sourceSnapshotId,
     conformanceProfile: trust.conformanceProfile,
@@ -336,6 +379,8 @@ app.get("/api/v1/products/:id/consumer-detail", requireAuth, async (req, res) =>
       mcpServeEndpoint: "/mcp/gateway/serve",
       requiresGatewayToken: true,
       consumerSnapshotPolicy: "gated_catalog_only",
+      verifyEndpoint: "/api/v1/proofs/verify",
+      diffEndpoint: "/api/v1/proofs/diff",
     },
     access,
   });
@@ -476,6 +521,38 @@ app.post("/api/v1/pipelines/export/drawio", requireAuth, (req, res) => {
     pipelineMeta: pipelineMeta || {},
   });
   res.json({ status: "success", ...result });
+});
+
+app.post("/api/v1/pipelines/export/spark-declarative", requireAuth, (req, res) => {
+  const { graphToContractSmart } = require("../../lib/contract-builder");
+  const { exportProjectBundle } = require("../../lib/export");
+  const { nodes, edges, pipelineMeta, contract: bodyContract } = req.body || {};
+  let contract = bodyContract;
+  if (!contract && nodes?.length) {
+    const built = graphToContractSmart(nodes, edges || [], pipelineMeta || {});
+    if (!built.success) return res.status(422).json({ status: "error", errors: built.errors });
+    contract = built.contract;
+  }
+  if (!contract) return res.status(400).json({ status: "error", errors: ["nodes or contract required"] });
+  const result = exportProjectBundle("sdp", contract);
+  if (result.status !== "success") return res.status(422).json(result);
+  res.json(result);
+});
+
+app.post("/api/v1/pipelines/export/dbt", requireAuth, (req, res) => {
+  const { graphToContractSmart } = require("../../lib/contract-builder");
+  const { exportProjectBundle } = require("../../lib/export");
+  const { nodes, edges, pipelineMeta, contract: bodyContract } = req.body || {};
+  let contract = bodyContract;
+  if (!contract && nodes?.length) {
+    const built = graphToContractSmart(nodes, edges || [], pipelineMeta || {});
+    if (!built.success) return res.status(422).json({ status: "error", errors: built.errors });
+    contract = built.contract;
+  }
+  if (!contract) return res.status(400).json({ status: "error", errors: ["nodes or contract required"] });
+  const result = exportProjectBundle("dbt", contract);
+  if (result.status !== "success") return res.status(422).json(result);
+  res.json(result);
 });
 
 app.get("/api/v1/audit", requireAuth, (_req, res) => {

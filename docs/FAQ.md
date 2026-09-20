@@ -64,9 +64,13 @@ No. CogniMesh proves **provenance, integrity, and declared invariants**. It does
 
 ### Where is the PVDM paper?
 
-**Proof-Gated Serverless Lakehouse Publication (PVDM)** — Physical → Verify → Durable → Metadata. Invariant: `commit_metadata ⟹ VRP = PASS`.
+**Proof-Gated Serverless Lakehouse Publication (PVDM)**: Physical → Verify → Durable → Metadata. Invariant: `commit_metadata ⟹ VRP = PASS`.
 
-Paper: [arXiv:2608.14643](https://arxiv.org/abs/2608.14643). Reference Python gate: [Proof-gated-publication-PVDM](https://github.com/vaquarkhan/Proof-gated-publication-PVDM). CogniMesh is the **control plane + JS VRP gate**, not the Python IceGuard package. N1–N20 mapping: [Vaquar Pattern](vaquar-pattern.md#paper-n1n20-in-cognimesh).
+Paper: [arXiv:2608.14643](https://arxiv.org/abs/2608.14643). Reference Python gate: [Proof-gated-publication-PVDM](https://github.com/vaquarkhan/Proof-gated-publication-PVDM). CogniMesh is the **control plane + JS VRP gate**, not the Python IceGuard package. N1-N20 mapping: [Vaquar Pattern](vaquar-pattern.md#paper-n1n20-in-cognimesh).
+
+### How do I verify a proof without AWS?
+
+Paste proof JSON in **Marketplace → Verify proof**, or run `node scripts/verify-vrp-proof.js path/to/proof.json`. HTTP: `POST /api/v1/proofs/verify`. Diff two publications with **Diff proofs** or `POST /api/v1/proofs/diff`. Tutorial: [Proof-gated marketplace](tutorials/proof-gated-marketplace.md). Sample rows stay hidden until VRP PASS.
 
 ### What VRP features are included?
 
@@ -160,6 +164,10 @@ Runs published **known-good and tampered** proof fixtures in `fixtures/vrp-confo
 ### Where is the proof implementation?
 
 [`lib/vrp/`](../lib/vrp/) - generate, verify, sign, transform verification, contract binding, logical digest, gateway, attestations. Runtime wiring: [`services/pvdm-runtime/`](../services/pvdm-runtime/).
+
+### Can I use Spark Declarative Pipelines or dbt?
+
+Yes as **export engines**, not as a replacement for VRP. Load the **SDP Medallion** or **dbt Silver→Gold** pattern, then export from AWS Design Review (`spark-pipelines run` or `dbt run` / `dbt test`). Iceberg catalog publish still requires VRP PASS. See [SDP and dbt](tutorials/sdp-and-dbt.md).
 
 ### What proof version should new pipelines emit?
 

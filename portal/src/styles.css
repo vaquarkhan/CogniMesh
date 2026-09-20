@@ -1821,6 +1821,17 @@ textarea:focus-visible,
 .product-trust-header { display: flex; justify-content: space-between; font-size: 0.85rem; color: #e2e8f0; }
 .product-trust-score { color: #6ee7b7; }
 .trust-badge { font-size: 0.68rem; background: #1e3a5f; color: #93c5fd; border-radius: 999px; padding: 0.1rem 0.4rem; }
+.proof-paste {
+  width: 100%;
+  margin: 0.35rem 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.7rem;
+  background: #0b1220;
+  color: #e2e8f0;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  padding: 0.4rem;
+}
 .execution-run-header-btn { width: 100%; text-align: left; background: transparent; border: none; color: inherit; cursor: pointer; padding: 0; }
 .execution-run-detail { margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid #243044; }
 .proof-dl { display: grid; grid-template-columns: auto 1fr; gap: 0.25rem 0.75rem; font-size: 0.75rem; }
