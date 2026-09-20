@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Spark Declarative Pipelines (SDP) export**: canvas / contract → `spark-pipeline.yml` + bronze/silver/gold SQL zip; `POST /api/v1/pipelines/export/spark-declarative`; portal patterns + AWS Design Review button
 - **dbt project export**: models, sources, schema tests zip; `POST /api/v1/pipelines/export/dbt`; dbt transform type + pattern. dbt/SDP success remains observational - Iceberg publish still requires VRP PASS
 - **Marketplace consumer tools**: offline proof verify, proof diff, fail-closed samples, proof SLA freshness
+- **Captioned UI demos**: SDP export, dbt export, marketplace proof verify (`npm run docs:demo`)
+- **Docs polish**: [docs/README.md](docs/README.md) map, examples hub, developer guides for export/proof APIs
 - Tutorial: [docs/tutorials/sdp-and-dbt.md](docs/tutorials/sdp-and-dbt.md)
 
 ### Added - `pvdm-architecture-review-2026-07-21` branch

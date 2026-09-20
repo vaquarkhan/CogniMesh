@@ -1,10 +1,18 @@
 # Local development without Docker Compose
 
-## One-command setup
+Docs map: [README.md](README.md) · Getting started: [GETTING_STARTED.md](GETTING_STARTED.md) · Developer hub: [developer/README.md](developer/README.md)
+
+## One-command setup (portal + API)
 
 ```bash
 npm install          # installs root + portal (postinstall)
 cp .env.example .env
+npm run start:dev    # portal :3000 + API :4000 (AUTH_DISABLED)
+```
+
+Full stack including Java catalog:
+
+```bash
 npm start            # API + portal + catalog (needs Java 17 + Maven)
 ```
 

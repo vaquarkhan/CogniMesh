@@ -53,15 +53,24 @@ function mdChips(items) {
   return `${items.map((s) => `\`${s}\``).join(" · ")}\n`;
 }
 
-function watchHowItWorks(kind) {
+function watchHowItWorks(kind, patternId) {
   const isPipeline = kind === "pipeline";
-  const file = isPipeline ? "cognimesh-pipeline-demo" : "cognimesh-agent-demo";
-  const alt = isPipeline
+  let file = isPipeline ? "cognimesh-pipeline-demo" : "cognimesh-agent-demo";
+  let alt = isPipeline
     ? "CogniMesh pipeline walkthrough: load a pattern, AWS Design Review, preview YAML, deploy, marketplace"
     : "CogniMesh agent walkthrough: templates and blocks, guardrails, preview manifest, export, deploy";
-  const caption = isPipeline
+  let caption = isPipeline
     ? "Load a pattern, AWS review, preview YAML, deploy, marketplace (click to play video)"
     : "Templates and blocks, load agent, guardrails, preview, export, deploy (click to play video)";
+  if (patternId === "spark-declarative-medallion") {
+    file = "cognimesh-sdp-export-demo";
+    alt = "SDP export: load medallion pattern, AWS review, export spark-pipelines zip";
+    caption = "Captioned SDP export walkthrough (click to play video)";
+  } else if (patternId === "dbt-silver-gold") {
+    file = "cognimesh-dbt-export-demo";
+    alt = "dbt export: load dbt pattern, AWS review, export dbt project zip";
+    caption = "Captioned dbt export walkthrough (click to play video)";
+  }
   return `<p align="center">
   <a href="../../assets/${file}.mp4">
     <img src="../../assets/${file}-poster.png" alt="${alt}" width="720" />
@@ -151,7 +160,7 @@ ${p.whenToUse || "Use when this architecture matches your latency, governance, a
 
 ## How it works
 
-${watchHowItWorks("pipeline")}
+${watchHowItWorks("pipeline", p.id)}
 \`\`\`
 ${p.exampleFlow || p.architectureDiagram || "Source → Transform → Sink (see canvas)"}
 \`\`\`

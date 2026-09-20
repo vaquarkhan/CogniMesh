@@ -29,10 +29,10 @@ Analytics engineers already live in dbt, but stewards need proof-gated lakehouse
 ## How it works
 
 <p align="center">
-  <a href="../../assets/cognimesh-pipeline-demo.mp4">
-    <img src="../../assets/cognimesh-pipeline-demo-poster.png" alt="CogniMesh pipeline walkthrough: load a pattern, AWS Design Review, preview YAML, deploy, marketplace" width="720" />
+  <a href="../../assets/cognimesh-dbt-export-demo.mp4">
+    <img src="../../assets/cognimesh-dbt-export-demo-poster.png" alt="dbt export: load dbt pattern, AWS review, export dbt project zip" width="720" />
   </a>
-  <br /><em>Load a pattern, AWS review, preview YAML, deploy, marketplace (click to play video)</em>
+  <br /><em>Captioned dbt export walkthrough (click to play video)</em>
 </p>
 
 ```

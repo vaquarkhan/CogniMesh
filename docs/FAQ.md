@@ -4,10 +4,11 @@ Answers to questions that come up repeatedly. Share this link in onboarding, PRs
 
 | Audience | Jump to |
 |----------|---------|
+| All docs index | [Documentation map](README.md) |
 | Evaluators & product owners | [POSITIONING](POSITIONING.md) |
 | Executives & stewards | [Business & governance](#business--governance) |
 | Proof & trust | [VRP, proof, and verification](#vrp-proof-and-verification) · [PVDM paper](#where-is-the-pvdm-paper) |
-| Engineers | [Technical & development](#technical--development) |
+| Engineers | [Technical & development](#technical--development) · [Developer hub](developer/README.md) |
 | AI / agents | [Agents & attestations](#agents--attestations) |
 | Ops & incidents | [Operations & troubleshooting](#operations--troubleshooting) |
 

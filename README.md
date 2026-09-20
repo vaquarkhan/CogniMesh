@@ -64,6 +64,7 @@
 | **Data steward / governance** | **[Business & steward guide](docs/README-business-stewards.md)** - approvals, proof, marketplace, audit |
 | **Evaluator / product owner** | **[POSITIONING.md](docs/POSITIONING.md)** - scope, ecosystem, roadmap |
 | **Everyone (repeat questions)** | **[FAQ](docs/FAQ.md)** - proof, PASS/FAIL, features, agents, ops |
+| **All documentation** | **[Documentation map](docs/README.md)** - tutorials, examples, developer guides |
 | **Engineer / architect** | [At a glance](#at-a-glance), [Quick start](#quick-start), [POSITIONING](docs/POSITIONING.md), [Vaquar Pattern](docs/vaquar-pattern.md) |
 
 **The problem:** Teams ship dashboards and datasets that *look* fine but nobody can prove the numbers match the source. When something breaks, you discover it in production-not at publish time.

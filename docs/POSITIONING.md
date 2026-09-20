@@ -145,7 +145,7 @@ Prioritized engineering detail for C1 and V1/V2: [veridata-integration.md](verid
 
 **Lead with:** visual data-mesh control plane · Vaquar Pattern · proof before publish · marketplace and steward workflows · offline-verifiable proofs.
 
-**Highlight when relevant:** aggregate mode for roll-ups · KMS-signed proofs in production · gateway-enforced agent inputs · 27 ready-made pipeline canvases.
+**Highlight when relevant:** aggregate mode for roll-ups · KMS-signed proofs in production · gateway-enforced agent inputs · 29 ready-made pipeline canvases (incl. SDP + dbt) · marketplace offline verify.
 
 ---
 
