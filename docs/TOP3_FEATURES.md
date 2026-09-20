@@ -56,7 +56,7 @@ Without flags, deploy **compiles + registers catalog + local/demo VRP** - portal
 | Lake Formation grant on approve | **Not implemented** | Access is approved in CogniMesh only; LF `GrantPermissions` is not called |
 | Open in Athena | Demo | Pre-filled `SELECT * … LIMIT 10` link |
 | Access status for consumer | Demo | Pending / approved / rejected in product detail |
-| Proof-gated product banner | Demo | Marketplace detail modal |
+| Proof-gated product banner + trust grade | Demo | Marketplace detail: VRP PASS, Profile A/T/O, source snapshot, consumer snapshot pin |
 
 **Try it:** Deploy pipeline → **Panels → Marketplace** → Request Access → **Approvals** → Approve (catalog status only until LF is wired).
 

@@ -587,8 +587,8 @@ CogniMesh implements **[The Vaquar Pattern](docs/vaquar-pattern.md)** (inventor:
 | | |
 |---|---|
 | **arXiv preprint** | [arXiv:2608.14643](https://arxiv.org/abs/2608.14643) — *Proof-Gated Publication: Verify-Before-Commit Content Integrity for Serverless Data-Mesh Lakehouses* |
-| **Reference gate + adversarial suite** | [github.com/vaquarkhan/Proof-gated-publication-PVDM](https://github.com/vaquarkhan/Proof-gated-publication-PVDM) (stdlib gate, 30/30 suite, Spark/Iceberg benchmarks) |
-| **This repo** | Production AWS mapping (IceGuard · veridata-recon · Durable SDK · Glue/Iceberg) |
+| **Reference gate + adversarial suite** | [github.com/vaquarkhan/Proof-gated-publication-PVDM](https://github.com/vaquarkhan/Proof-gated-publication-PVDM) (stdlib Python gate, 30/30 suite, Spark/Iceberg benchmarks) |
+| **This repo** | CogniMesh control plane + JS VRP gate (portal, contracts, marketplace). Python IceGuard mapping is a separate package. |
 
 | | |
 |---|---|

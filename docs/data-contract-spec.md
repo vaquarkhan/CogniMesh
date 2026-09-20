@@ -1,6 +1,8 @@
-# CogniMesh Data Contract Specification (Appendix A)
+# CogniMesh Data Contract Specification
 
 Version 1.0: `cognimesh.io/v1`
+
+This is the **CogniMesh pipeline contract** schema (portal → compiler → runtime). It is not Appendix A of [arXiv:2608.14643](https://arxiv.org/abs/2608.14643). Paper Appendix A is the **typed canonicalization** used when hashing VRP rows (`lib/vrp/canonical.js`).
 
 ## Overview
 

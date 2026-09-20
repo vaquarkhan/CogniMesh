@@ -66,20 +66,7 @@ No. CogniMesh proves **provenance, integrity, and declared invariants**. It does
 
 **Proof-Gated Serverless Lakehouse Publication (PVDM)** — Physical → Verify → Durable → Metadata. Invariant: `commit_metadata ⟹ VRP = PASS`.
 
-| | |
-|---|---|
-| **arXiv preprint** | [arXiv:2608.14643](https://arxiv.org/abs/2608.14643) — *Proof-Gated Publication: Verify-Before-Commit Content Integrity for Serverless Data-Mesh Lakehouses* |
-| **Reference gate + adversarial suite** | [github.com/vaquarkhan/Proof-gated-publication-PVDM](https://github.com/vaquarkhan/Proof-gated-publication-PVDM) (stdlib gate, 30/30 suite, Spark/Iceberg benchmarks) |
-| **This repo** | Production AWS mapping (IceGuard · veridata-recon · Durable SDK · Glue/Iceberg) |
-
-| | |
-|---|---|
-| **Method name** | Vaquar Pattern |
-| **Operational acronym** | PVDM (Physical · Verify · Durable · Metadata) |
-| **Inventor** | Vaquar Khan |
-| **Copyright** | © 2024–2026 Vaquar Khan — proprietary method (name + invariants) |
-| **Status** | Proprietary method · open reference implementation (Apache-2.0) |
-| **Cite** | [arXiv:2608.14643](https://arxiv.org/abs/2608.14643) · [docs/vaquar-pattern.md](vaquar-pattern.md) · [NOTICE](../NOTICE) |
+Paper: [arXiv:2608.14643](https://arxiv.org/abs/2608.14643). Reference Python gate: [Proof-gated-publication-PVDM](https://github.com/vaquarkhan/Proof-gated-publication-PVDM). CogniMesh is the **control plane + JS VRP gate**, not the Python IceGuard package. N1–N20 mapping: [Vaquar Pattern](vaquar-pattern.md#paper-n1n20-in-cognimesh).
 
 ### What VRP features are included?
 
@@ -213,9 +200,9 @@ Full list: [Vaquar Pattern - Environment](vaquar-pattern.md#trust-model).
 
 **Not by default.** Decision attestations require a **`gatewayToken`** from `serveProofGatedDataset()` - proof verified, rows served, HMAC issued. Self-declared `inputProofs` are rejected unless `VRP_ALLOW_DECLARED_INPUTS=true` (tests only).
 
-### What is PVDM-A?
+### What is decision attestation?
 
-**Decision attestation** - a signed record binding an agent's output hash to **gateway-verified** input proofs and session context. See [PVDM-A in Vaquar Pattern](vaquar-pattern.md#pvdm-a-carrying-proof-into-agent-decisions).
+A **CogniMesh extension** (not part of the PVDM paper’s shipped protocol): a signed record binding an agent's output hash to **gateway-verified** input proofs and session context. See [Decision attestation in Vaquar Pattern](vaquar-pattern.md#decision-attestation-cognimesh-extension-not-the-paper-protocol).
 
 ### Does attestation prove the AI decision is correct?
 

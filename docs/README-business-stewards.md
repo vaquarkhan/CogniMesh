@@ -85,7 +85,7 @@ These map directly to portal screens - no custom BI required to start:
 
 | Question | CogniMesh answer |
 |----------|------------------|
-| “Can we prove what data the model saw?” | Proof-gated gateway + **decision attestations** on the agent path |
+| “Can we prove what data the model saw?” | Proof-gated gateway + **decision attestations** on the agent path (CogniMesh extension; not the PVDM paper protocol) |
 | “Can a bad pipeline corrupt gold data?” | **Fail closed** - no PASS on error or empty runs |
 | “Who approved consumer access?” | **Approvals** log with steward identity |
 | “Can we roll back a bad deploy?” | **Version diff and rollback** on the pipeline canvas |
@@ -243,7 +243,7 @@ CogniMesh uses **[The Vaquar Pattern](vaquar-pattern.md)** for proof before publ
 - That an **aggregation** allocated amounts to the wrong groups **when aggregate mode is not configured** - use `pvdm.vrp.mode: aggregate` for sum-by-group pipelines ([FAQ](FAQ.md#row-preserving-vs-aggregation---which-verification-applies)).
 - That an AI agent’s **judgment** is right - only that it used **verified inputs** when attestations are enforced.
 
-For AI-heavy flows, CogniMesh also supports **decision attestations**: a signed record that an agent’s output was produced from gateway-verified data, not self-declared inputs.
+For AI-heavy flows, CogniMesh also supports **decision attestations** (a product extension, not the PVDM paper protocol): a signed record that an agent’s output was produced from gateway-verified data, not self-declared inputs.
 
 ---
 

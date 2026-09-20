@@ -299,6 +299,7 @@ async function runPvdmWorkload(workload) {
         target: expectedTarget,
         nonce: crypto.randomUUID(),
         parquetUri,
+        sourceSnapshotId: pvdmSpec.sourceSnapshotId || contract?.spec?.source?.snapshotId || undefined,
         sinkFileDigest: {
           sha256: readBack.sha256,
           footer_sha256: readBack.footer_sha256,
