@@ -609,6 +609,7 @@ Product features for proof-gated publish (`proof_version: "3"`; v2 proofs still 
 - Real Iceberg snapshot ids and snapshot pin SQL
 - Marketplace offline verify (`POST /api/v1/proofs/verify`) and proof diff (`POST /api/v1/proofs/diff`)
 - Proof SLA freshness (hours since last VRP PASS) and fail-closed consumer samples
+- Portable transform export: Spark Declarative Pipelines + dbt ([sdp-and-dbt.md](tutorials/sdp-and-dbt.md)) - engines run SQL; CogniMesh still gates catalog publish
 - Transparency log for issued proofs
 - Signed contract hash and environment binding in each proof
 

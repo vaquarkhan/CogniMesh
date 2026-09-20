@@ -186,6 +186,7 @@ Built on **[The Vaquar Pattern](docs/vaquar-pattern.md)** by [Vaquarkhan](https:
 - RDS CDC → Bronze → Silver → Iceberg Gold
 - Vaquar PVDM + VRP proof
 - Lambda + Step Functions
+- Optional **SDP** / **dbt** export for portable transforms
 
 </td>
 <td width="50%">
@@ -212,8 +213,9 @@ CogniMesh is a **data mesh control plane**: zero-code portal, optional proof-gat
 | You get | What it means |
 |---------|----------------|
 | **Visual pipeline designer** | Drag Source → Transform → Sink on React Flow. No YAML hand-editing required. |
-| **27 ready-made pipeline canvases** | 26 wired examples + blank canvas ([breakdown](#pipeline-pattern-library)) |
+| **29 ready-made pipeline canvases** | 28 wired examples + blank canvas ([breakdown](#pipeline-pattern-library)) |
 | **AWS-native blocks** | Glue, Kinesis, MSK, DMS, Firehose, Step Functions Parallel/Choice/Map |
+| **SDP + dbt export** | Export `spark-pipelines` or dbt project zips from Design Review; CogniMesh still VRP-gates Iceberg publish |
 | **AI Pipeline Designer** | Describe a pipeline in English → auto-load pattern + blocks + explanation |
 | **Agent Builder** | Bedrock AgentCore canvas: templates, guardrails, KB, tools, manifest export |
 | **AI Agent Generator** | Natural language → agent graph in Agent Builder |
@@ -222,7 +224,7 @@ CogniMesh is a **data mesh control plane**: zero-code portal, optional proof-gat
 | **Business rules editor** | DQ rules on transform blocks → Spark SQL expressions |
 | **Undo / redo · toasts · mobile-aware** | Production-grade portal UX |
 
-→ [Pattern catalog](docs/PORTAL_UI.md) · [26 pipeline + 8 agent tutorials](docs/tutorials/README.md) · [Developer customization](docs/developer/README.md)
+→ [Pattern catalog](docs/PORTAL_UI.md) · [28 pipeline + 8 agent tutorials](docs/tutorials/README.md) · [SDP + dbt](docs/tutorials/sdp-and-dbt.md) · [Developer customization](docs/developer/README.md)
 
 ### Pipeline pattern library
 
@@ -232,9 +234,9 @@ CogniMesh is a **data mesh control plane**: zero-code portal, optional proof-gat
 |----------|--------|
 | **What is a pattern?** | A pre-built visual pipeline (React Flow) with AWS blocks labeled (Glue, Kinesis, RDS, Iceberg, Step Functions, Bedrock, etc.). |
 | **Do I need to code?** | **No** to start. Code is optional (Python SDK, custom Spark, Terraform from exports). |
-| **What is in the library?** | **27 pipeline entries:** **26 wired examples** + **blank canvas**. **8 agent tutorials** in Agent Builder are separate (not counted as pipeline patterns). |
-| **What do they cover?** | Data mesh, lake / lakehouse, Kappa & Lambda, streaming, medallion, CDC, finance, healthcare, retail, fraud/DQ, GenAI RAG, IoT, SCD2, feature store, multi-source SFN, and more. |
-| **After you pick one?** | Customize → **AWS Design Review** → compile **DataContract** + Step Functions → optional PVDM/VRP before gold commit (Vaquar path). |
+| **What is in the library?** | **29 pipeline entries:** **28 wired examples** + **blank canvas**. **8 agent tutorials** in Agent Builder are separate (not counted as pipeline patterns). |
+| **What do they cover?** | Data mesh, lake / lakehouse, Kappa & Lambda, streaming, medallion, CDC, finance, healthcare, retail, fraud/DQ, GenAI RAG, IoT, SCD2, feature store, multi-source SFN, **Spark Declarative Pipelines**, **dbt**, and more. |
+| **After you pick one?** | Customize → **AWS Design Review** → compile **DataContract** + Step Functions → optional PVDM/VRP before gold commit (Vaquar path). Optional: export SDP or dbt project zips for portable SQL engines. |
 
 **By category (all in the Architectures tab):**
 
@@ -242,11 +244,11 @@ CogniMesh is a **data mesh control plane**: zero-code portal, optional proof-gat
 |----------|------------------------------|
 | **Data Mesh** | Single-domain data product with catalog + Lake Formation share; multi-domain **Customer 360** with parallel domains merging to gold. |
 | **Data Lake** | Classic **raw → curated → consumption** zone layout on S3. |
-| **Lakehouse** | **Iceberg medallion** with ACID gold tables. |
+| **Lakehouse** | **Iceberg medallion** with ACID gold tables; **Spark Declarative Pipelines (SDP)** medallion export. |
 | **Kappa** | **Stream-only** path: Kinesis → Flink → Iceberg (no batch layer). |
 | **Lambda λ** | **Batch + speed** layers in parallel, merged for serving (e.g. Athena). |
 | **Streaming** | **Kinesis → Firehose → analytics**; **MSK → Glue streaming → lakehouse**. |
-| **ETL / ELT** | **Glue multi-stage factory**; **load-first ELT into Redshift** marts. |
+| **ETL / ELT** | **Glue multi-stage factory**; **load-first ELT into Redshift** marts; **dbt silver→gold** (+ PVDM). |
 | **Medallion** | Canonical **bronze → silver → gold** lakehouse stack. |
 | **Structured starters** | **RDS CDC → Iceberg** (Vaquar); **S3 files → Iceberg**; **Kafka → Iceberg**; **MySQL → Redshift**; **multi-source parallel → choice** routing. |
 | **Finance** | **Double-entry payment ledger** with strict audit / SOX-style quality. |
@@ -256,7 +258,7 @@ CogniMesh is a **data mesh control plane**: zero-code portal, optional proof-gat
 | **Compliance & analytics** | **Fraud scoring** (rules + ML in parallel); **DQ quarantine lane**; **IoT sensor fleet**; **SCD Type 2** customer dimension; **ML feature store** pipeline. |
 | **Blank canvas** | Empty designer when you already know your layout. |
 
-For screenshots and filters, see [Zero-code portal](#zero-code-portal) below. For step-by-step walkthroughs, see **[docs/tutorials/README.md](docs/tutorials/README.md)** (26 pipeline lessons + 8 agent lessons).
+For screenshots and filters, see [Zero-code portal](#zero-code-portal) below. For step-by-step walkthroughs, see **[docs/tutorials/README.md](docs/tutorials/README.md)** (28 pipeline lessons + 8 agent lessons).
 
 ### Trust & proof (Vaquar path)
 
@@ -451,10 +453,10 @@ sequenceDiagram
 
 ## Zero-code portal
 
-Visual pipeline designer with a **pattern library** ([27 ready-made canvases](#pipeline-pattern-library)): pick a blueprint, customize in the UI without writing code, then deploy when AWS is configured. Includes AWS service blocks (Glue, Kinesis, MSK, DMS, Firehose), **AI Builder** (describe a pipeline or agent in English), **Agent Builder** (Bedrock AgentCore canvas), live AWS security/architecture review, VRP observability, and a consumer marketplace.
+Visual pipeline designer with a **pattern library** ([29 ready-made canvases](#pipeline-pattern-library)): pick a blueprint, customize in the UI without writing code, then deploy when AWS is configured. Includes AWS service blocks (Glue, Kinesis, MSK, DMS, Firehose), **AI Builder** (describe a pipeline or agent in English), **Agent Builder** (Bedrock AgentCore canvas), live AWS security/architecture review, **SDP / dbt export**, VRP observability, and a consumer marketplace.
 
 → Full pattern catalog: **[docs/PORTAL_UI.md](docs/PORTAL_UI.md)**  
-→ **Step-by-step tutorials (26 pipelines + 8 agents):** **[docs/tutorials/README.md](docs/tutorials/README.md)**  
+→ **Step-by-step tutorials (28 pipelines + 8 agents):** **[docs/tutorials/README.md](docs/tutorials/README.md)**  
 → **Developer customization (screenshots + code):** **[docs/developer/README.md](docs/developer/README.md)**
 
 ### Portal screenshots

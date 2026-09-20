@@ -84,6 +84,7 @@ flowchart LR
 
 | Tutorial | Level | Summary |
 |----------|-------|--------|
+| [dbt Silver → Gold (+ PVDM)](pipelines/dbt-silver-gold.md) | Intermediate | Use dbt for SQL modeling and schema tests, then publish through CogniMesh so Iceberg … |
 | [ELT - Load First → Redshift Transform](pipelines/arch-elt-redshift.md) | Intermediate | Classic cloud ELT: land raw files on S3, COPY into Redshift staging, transform with S… |
 | [Glue ETL Factory - Multi-Stage Pipeline](pipelines/arch-glue-etl-factory.md) | Advanced | Enterprise ETL chain entirely on AWS Glue: extract (DMS) → ELT bronze → ETL cleanse →… |
 
@@ -111,6 +112,7 @@ flowchart LR
 | Tutorial | Level | Summary |
 |----------|-------|--------|
 | [Lakehouse - Iceberg Medallion + ACID](pipelines/arch-lakehouse-iceberg.md) | Intermediate | Modern lakehouse: Iceberg tables at each medallion layer with ACID commits, time trav… |
+| [Spark Declarative Pipelines (SDP) Medallion](pipelines/spark-declarative-medallion.md) | Intermediate | Author bronze/silver/gold as Spark Declarative Pipelines (CREATE OR REFRESH MATERIALI… |
 
 ### Lambda Architecture
 

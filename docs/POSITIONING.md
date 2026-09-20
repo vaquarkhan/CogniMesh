@@ -24,7 +24,9 @@ CogniMesh is a **visual control plane** for trustworthy data products on AWS:
 |------------|---------|
 | **Proof-gated publication** | On the Vaquar path, catalog commit proceeds when verification **PASS**es. Runs are recorded in Run History with clear outcomes. |
 | **VRP v3** | Identity and aggregate transform verification, contract binding, logical content digest, offline verify CLI |
-| **27 pipeline canvases** | 26 wired examples + blank canvas; 8 agent tutorials in Agent Builder |
+| **29 pipeline canvases** | 28 wired examples + blank canvas (incl. SDP Medallion + dbt Silver→Gold); 8 agent tutorials in Agent Builder |
+| **SDP / dbt export** | Zip export for `spark-pipelines` and dbt projects; CogniMesh still proof-gates Iceberg publish |
+| **Marketplace verify** | Offline proof verify + diff, fail-closed samples, proof SLA freshness |
 | **Integrity gate** | Design-time policy checks before deploy |
 | **KMS signing** | Production proofs via AWS KMS when configured |
 | **Gateway + attestations** | Proof-aware data serve and signed decision attestations on agent paths (**CogniMesh extension**, not the PVDM paper protocol) |

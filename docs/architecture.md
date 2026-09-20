@@ -111,6 +111,19 @@ The draw.io architecture export (`portal/src/lib/infrastructure-export.js`) read
 - VPC/subnet structure adjusts based on `vpcMode` (existing vs. Terraform-provisioned)
 - Connections between services are wired based on the actual data flow
 
+## Spark Declarative Pipelines + dbt export
+
+CogniMesh stays the control plane. Portable transform engines are **export bridges**:
+
+| Engine | Contract type | Export | Run |
+|--------|---------------|--------|-----|
+| **SDP** | `transform.type: spark_declarative` | `POST /api/v1/pipelines/export/spark-declarative` | `spark-pipelines run` (Spark 4.1+) |
+| **dbt** | `transform.type: dbt` | `POST /api/v1/pipelines/export/dbt` | `dbt run` / `dbt test` |
+
+Portal: load **SDP Medallion** or **dbt Silver→Gold**, then AWS Design Review → export zip. Implementation: `lib/export/`. Tutorial: [sdp-and-dbt.md](tutorials/sdp-and-dbt.md).
+
+Honest boundary: SDP / dbt success does **not** replace VRP. Invariant remains `commit_metadata ⇒ VRP = PASS`.
+
 ## AgentCore Runtime (Strands) Deploy Target
 
 The Agent Builder supports two deploy targets via a dropdown:
@@ -154,6 +167,8 @@ The studio URL is configured via `VITE_AGENTCORE_STUDIO_URL` (baked at build tim
 | [vaquar-pattern.md](vaquar-pattern.md) | The Vaquar Pattern (PVDM) · [arXiv:2608.14643](https://arxiv.org/abs/2608.14643) |
 | [drag-drop-pipeline-flow.md](drag-drop-pipeline-flow.md) | Portal E2E |
 | [data-contract-spec.md](data-contract-spec.md) | DataContract spec |
+| [tutorials/sdp-and-dbt.md](tutorials/sdp-and-dbt.md) | Spark Declarative Pipelines + dbt export |
+| [tutorials/proof-gated-marketplace.md](tutorials/proof-gated-marketplace.md) | Marketplace trust, verify, diff, SLA |
 | [TUTORIAL_AGENT_DEPLOY.md](TUTORIAL_AGENT_DEPLOY.md) | Tutorial: Deploy agent with Streamlit chat |
 | [TUTORIAL_DRAWIO_EXPORT.md](TUTORIAL_DRAWIO_EXPORT.md) | Tutorial: Export architecture diagrams |
 
