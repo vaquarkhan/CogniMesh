@@ -150,8 +150,32 @@
   </a>
   <br />
   <em>Templates &amp; blocks → load agent → guardrail review → preview → export → deploy</em>
+</p>
+
+### SDP · dbt · marketplace proof (captioned)
+
+<p align="center">
+  <a href="docs/assets/cognimesh-sdp-export-demo.mp4">
+    <img src="docs/assets/cognimesh-sdp-export-demo-poster.png" alt="SDP export demo" width="300" />
+  </a>
+  &nbsp;
+  <a href="docs/assets/cognimesh-dbt-export-demo.mp4">
+    <img src="docs/assets/cognimesh-dbt-export-demo-poster.png" alt="dbt export demo" width="300" />
+  </a>
+  &nbsp;
+  <a href="docs/assets/cognimesh-marketplace-proof-demo.mp4">
+    <img src="docs/assets/cognimesh-marketplace-proof-demo-poster.png" alt="Marketplace proof verify demo" width="300" />
+  </a>
   <br />
-  <code>npm run docs:demo</code> to regenerate demos · <code>DEMO_ONLY=howto</code> for the captioned tutorial · portal build + Playwright · optional ffmpeg for MP4/GIF
+  <a href="docs/assets/cognimesh-sdp-export-demo.mp4"><strong>SDP export</strong></a>
+  &nbsp;·&nbsp;
+  <a href="docs/assets/cognimesh-dbt-export-demo.mp4"><strong>dbt export</strong></a>
+  &nbsp;·&nbsp;
+  <a href="docs/assets/cognimesh-marketplace-proof-demo.mp4"><strong>Marketplace verify</strong></a>
+  <br />
+  <em>Caption first, then live UI · tutorials: <a href="docs/tutorials/sdp-and-dbt.md">SDP + dbt</a> · <a href="docs/tutorials/proof-gated-marketplace.md">proof-gated marketplace</a></em>
+  <br />
+  <code>npm run docs:demo</code> · <code>DEMO_ONLY=howto</code> · <code>DEMO_ONLY=sdp-export,dbt-export,marketplace-proof</code> · Playwright + ffmpeg
 </p>
 
 <p align="center">
@@ -521,7 +545,7 @@ Data pipeline (preview plan + natural-language explanation) · AI agent → Agen
 
 Regenerate all UI images: `npm run docs:screenshots` (builds portal, starts API + preview, writes `docs/assets/` and `docs/images/`).
 
-Regenerate the README demo GIFs/MP4s: `npm run docs:demo` (Playwright records pipeline + agent walkthroughs; install [ffmpeg](https://ffmpeg.org/) for MP4/GIF export).
+Regenerate the README demo GIFs/MP4s: `npm run docs:demo` (Playwright; install [ffmpeg](https://ffmpeg.org/) for MP4/GIF). Subsets: `DEMO_ONLY=howto` · `DEMO_ONLY=sdp-export,dbt-export,marketplace-proof`.
 
 **Agent Builder:** use feature checkboxes (guardrails, memory, KB, tools) when creating agents - see **[docs/AGENT_BUILDER.md](docs/AGENT_BUILDER.md)**.
 

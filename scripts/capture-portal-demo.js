@@ -5,12 +5,16 @@
  * Record portal UI walkthroughs for README / docs.
  * Usage: npm run docs:demo
  *        DEMO_ONLY=howto npm run docs:demo   (captioned end-to-end tutorial)
+ *        DEMO_ONLY=sdp-export,dbt-export,marketplace-proof npm run docs:demo
  * Output:
  *   docs/assets/cognimesh-howto-demo.{webm,mp4,gif}   caption → demo, each feature
  *   docs/assets/cognimesh-features-demo.{webm,mp4,gif}
  *   docs/assets/cognimesh-pipeline-demo.{webm,mp4,gif}
  *   docs/assets/cognimesh-agent-demo.{webm,mp4,gif}
  *   docs/assets/cognimesh-tutorial-demo.{webm,mp4,gif}
+ *   docs/assets/cognimesh-sdp-export-demo.{webm,mp4,gif}
+ *   docs/assets/cognimesh-dbt-export-demo.{webm,mp4,gif}
+ *   docs/assets/cognimesh-marketplace-proof-demo.{webm,mp4,gif}
  */
 
 const { chromium } = require("playwright");
@@ -464,22 +468,90 @@ async function browsePatternLibrary(page) {
 }
 
 async function loadMultiSourcePattern(page) {
-  await clickTab(page, "Architectures");
-  await page.locator(".pattern-arch-filters button", { hasText: "Step Functions" }).click({ force: true });
-  await sleep(400);
+  await loadPatternByName(page, {
+    nameContains: "Multi-Source",
+    archFilter: "Step Functions",
+  });
+}
 
-  const pattern = page.locator(".pattern-card").filter({ hasText: "Multi-Source" });
-  if ((await pattern.count()) > 0) {
-    await pattern.first().locator(".pattern-card-header").click({ force: true });
-    await sleep(500);
-    await pattern.first().locator('button:has-text("Use this pattern")').click({ force: true });
-  } else {
-    const loadBtn = page.locator('button:has-text("Load: Multi-Source workflow")');
-    if ((await loadBtn.count()) > 0) await loadBtn.click({ force: true });
+async function loadPatternByName(page, { nameContains, archFilter, categoryFilter, search }) {
+  await clickTab(page, "Architectures");
+  // Reset filters so the pattern is findable
+  const allArch = page.locator(".pattern-arch-filters button").filter({ hasText: /^All$/ });
+  if ((await allArch.count()) > 0) {
+    await allArch.first().click({ force: true });
+    await sleep(250);
+  }
+  const allCat = page.locator(".pattern-filters button").filter({ hasText: /^All$/ });
+  if ((await allCat.count()) > 0) {
+    await allCat.first().click({ force: true });
+    await sleep(250);
+  }
+  if (search) {
+    const searchBox = page.locator(".pattern-search");
+    if ((await searchBox.count()) > 0) {
+      await searchBox.fill(search);
+      await sleep(400);
+    }
+  }
+  if (archFilter) {
+    const archBtn = page.locator(".pattern-arch-filters button").filter({ hasText: archFilter });
+    if ((await archBtn.count()) > 0) {
+      await archBtn.first().click({ force: true });
+      await sleep(400);
+    }
+  }
+  if (categoryFilter) {
+    const catBtn = page.locator(".pattern-filters button").filter({ hasText: categoryFilter });
+    if ((await catBtn.count()) > 0) {
+      await catBtn.first().click({ force: true });
+      await sleep(400);
+    }
   }
 
+  const pattern = page.locator(".pattern-card").filter({ hasText: nameContains });
+  if ((await pattern.count()) === 0) {
+    throw new Error(`Pattern not found: ${nameContains}`);
+  }
+  await pattern.first().scrollIntoViewIfNeeded().catch(() => {});
+  await pattern.first().locator(".pattern-card-header").click({ force: true });
+  await sleep(500);
+  const useBtn = pattern.first().locator('button:has-text("Use this pattern"), button:has-text("Use pattern")');
+  await useBtn.first().click({ force: true });
   await page.locator(".react-flow__node").first().waitFor({ state: "visible", timeout: 12000 });
   await sleep(800);
+}
+
+async function clickExportAndWait(page, testId, label) {
+  await ensureAwsReviewReady(page);
+  const hud = await expandAwsHud(page);
+  const details = hud.locator("details.aws-topology-details");
+  if ((await details.count()) > 0) {
+    const open = await details.first().evaluate((el) => el.open).catch(() => true);
+    if (!open) {
+      await details.first().locator("summary").click({ force: true });
+      await sleep(400);
+    }
+  }
+  const btn = page.locator(`[data-testid="${testId}"]`);
+  await btn.waitFor({ state: "visible", timeout: 15000 });
+  await btn.scrollIntoViewIfNeeded().catch(() => {});
+  await sleep(400);
+  const [download] = await Promise.all([
+    page.waitForEvent("download", { timeout: 30000 }).catch(() => null),
+    btn.click({ force: true }),
+  ]);
+  if (download) {
+    const dest = path.join(OUT_DIR, `.demo-download-${testId}.bin`);
+    await download.saveAs(dest).catch(() => {});
+    try {
+      fs.unlinkSync(dest);
+    } catch {
+      /* ignore */
+    }
+  }
+  await sleep(1200);
+  console.log(`Clicked export: ${label}`);
 }
 
 async function applyAllAwsFixes(page) {
@@ -969,6 +1041,129 @@ async function runAgentDemoFlow(page) {
   await sleep(500);
 }
 
+async function runSdpExportDemoFlow(page) {
+  await page.goto(PORTAL_URL, { waitUntil: "networkidle" });
+  await sleep(800);
+  await dismissWelcome(page);
+  await page.waitForSelector(".designer-sidebar", { state: "visible", timeout: 30000 });
+  await ensurePipelineMode(page);
+
+  await showChapter(
+    page,
+    "SDP export",
+    "Spark Declarative Pipelines",
+    "Author bronze/silver/gold as CREATE OR REFRESH views, then export a spark-pipelines project."
+  );
+
+  await showChapter(page, "1 · Pattern", "Load SDP Medallion", "Lakehouse pattern with spark_declarative transform and PVDM gate.");
+  await loadPatternByName(page, {
+    nameContains: "Spark Declarative Pipelines",
+    search: "SDP",
+    categoryFilter: "Lakehouse",
+  });
+  await clickIntegrityGate(page);
+
+  await showChapter(page, "2 · Review", "AWS Design Review", "Security score and service topology before export.");
+  await ensureAwsReviewReady(page);
+  await showAwsReviewTabs(page, ["Architecture", "All"], 800);
+
+  await showChapter(
+    page,
+    "3 · Export",
+    "Download spark-pipeline.yml zip",
+    "Run spark-pipelines locally. CogniMesh still requires VRP PASS before Iceberg publish."
+  );
+  await clickExportAndWait(page, "export-spark-declarative", "SDP");
+
+  await showEndCard(page, "SDP export complete", "Tutorial: docs/tutorials/sdp-and-dbt.md");
+  await sleep(400);
+}
+
+async function runDbtExportDemoFlow(page) {
+  await page.goto(PORTAL_URL, { waitUntil: "networkidle" });
+  await sleep(800);
+  await dismissWelcome(page);
+  await page.waitForSelector(".designer-sidebar", { state: "visible", timeout: 30000 });
+  await ensurePipelineMode(page);
+
+  await showChapter(
+    page,
+    "dbt export",
+    "dbt models + CogniMesh proof gate",
+    "dbt owns SQL and schema tests; marketplace publish still needs VRP PASS."
+  );
+
+  await showChapter(page, "1 · Pattern", "Load dbt Silver → Gold", "Transform type dbt with model SQL and materialization.");
+  await loadPatternByName(page, {
+    nameContains: "dbt Silver",
+    search: "dbt",
+    categoryFilter: "ETL / ELT",
+  });
+  const dbtNode = page.locator(".react-flow__node").filter({ hasText: /dbt/i });
+  if ((await dbtNode.count()) > 0) {
+    await dbtNode.first().click({ force: true });
+    await sleep(1000);
+  }
+
+  await showChapter(page, "2 · Review", "AWS Design Review", "Confirm topology, then export the dbt project zip.");
+  await ensureAwsReviewReady(page);
+  await showAwsReviewTabs(page, ["Architecture"], 700);
+
+  await showChapter(page, "3 · Export", "Download dbt project", "dbt run && dbt test, then publish through CogniMesh Deploy.");
+  await clickExportAndWait(page, "export-dbt-project", "dbt");
+
+  await showEndCard(page, "dbt export complete", "A green dbt test is observational — not a keyed multiset proof.");
+  await sleep(400);
+}
+
+async function runMarketplaceProofDemoFlow(page) {
+  await page.goto(PORTAL_URL, { waitUntil: "networkidle" });
+  await sleep(800);
+  await dismissWelcome(page);
+  await page.waitForSelector(".designer-sidebar", { state: "visible", timeout: 30000 });
+  await ensurePipelineMode(page);
+
+  await showChapter(
+    page,
+    "Marketplace proof",
+    "Trust grade · verify · diff · SLA",
+    "Consumers check VRP offline. Samples stay fail-closed without PASS."
+  );
+
+  await showChapter(page, "1 · Publish", "Register a data product", "Deploy path seeds the catalog so Marketplace has a product.");
+  await seedCatalogViaApi();
+
+  await showChapter(page, "2 · Discover", "Open Marketplace trust card", "Grade, profile, snapshot pin, and freshness SLA.");
+  await showMarketplaceWithProduct(page);
+  await sleep(1200);
+
+  const passProof = JSON.parse(
+    fs.readFileSync(path.join(ROOT, "fixtures", "vrp-conformance", "identity-pass.json"), "utf8")
+  );
+  const tampered = JSON.parse(
+    fs.readFileSync(path.join(ROOT, "fixtures", "vrp-conformance", "identity-tampered.json"), "utf8")
+  );
+
+  await showChapter(page, "3 · Verify", "Paste VRP JSON", "No AWS credentials — offline structural verify.");
+  const panel = page.locator(".marketplace-panel");
+  const areas = panel.locator("textarea.proof-paste");
+  await areas.first().waitFor({ state: "visible", timeout: 15000 });
+  await areas.nth(0).fill(JSON.stringify(passProof, null, 2));
+  await sleep(600);
+  await panel.locator('button:has-text("Verify proof")').click({ force: true });
+  await panel.locator(".vrp-pass-text, .vrp-fail-text").first().waitFor({ state: "visible", timeout: 15000 });
+  await sleep(1400);
+
+  await showChapter(page, "4 · Diff", "Compare two proofs", "Flag mutations on integrity fields between publications.");
+  await areas.nth(1).fill(JSON.stringify(tampered, null, 2));
+  await sleep(500);
+  await panel.locator('button:has-text("Diff proofs")').click({ force: true });
+  await sleep(1600);
+
+  await showEndCard(page, "Proof-gated marketplace", "Tutorial: docs/tutorials/proof-gated-marketplace.md");
+  await sleep(400);
+}
+
 async function recordDemo(browser, demoBase, flowFn) {
   const videoScratch = path.join(OUT_DIR, `.demo-video-tmp-${demoBase}`);
   fs.mkdirSync(videoScratch, { recursive: true });
@@ -1044,16 +1239,20 @@ async function main() {
 
     browser = await chromium.launch();
 
-    const only = process.env.DEMO_ONLY;
+    const only = (process.env.DEMO_ONLY || "").trim();
+    const onlyParts = only ? only.split(/[,\s]+/).filter(Boolean) : [];
     const demos = [
       ["cognimesh-howto-demo", runHowtoDemoFlow],
       ["cognimesh-tutorial-demo", runTutorialDemoFlow],
       ["cognimesh-features-demo", runFeaturesDemoFlow],
       ["cognimesh-pipeline-demo", runPipelineDemoFlow],
       ["cognimesh-agent-demo", runAgentDemoFlow],
+      ["cognimesh-sdp-export-demo", runSdpExportDemoFlow],
+      ["cognimesh-dbt-export-demo", runDbtExportDemoFlow],
+      ["cognimesh-marketplace-proof-demo", runMarketplaceProofDemoFlow],
     ];
     for (const [base, flow] of demos) {
-      if (only && !base.includes(only)) continue;
+      if (onlyParts.length && !onlyParts.some((p) => base.includes(p))) continue;
       await recordDemo(browser, base, flow);
     }
 

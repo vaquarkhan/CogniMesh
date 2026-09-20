@@ -2,6 +2,20 @@
 
 Consumers should not trust a green job log. This walkthrough shows how to publish a product, read the trust card, verify a proof offline, and diff two publications.
 
+## Watch (captioned UI demo)
+
+<p align="center">
+  <a href="../assets/cognimesh-marketplace-proof-demo.mp4">
+    <img src="../assets/cognimesh-marketplace-proof-demo-poster.png" alt="Marketplace: trust card, paste VRP JSON, verify and diff proofs" width="720" />
+  </a>
+  <br />
+  <a href="../assets/cognimesh-marketplace-proof-demo.mp4"><strong>▶ Play marketplace proof demo</strong></a>
+  <br />
+  <em>Caption first, then trust card → verify → diff</em>
+</p>
+
+Regenerate: `DEMO_ONLY=marketplace-proof npm run docs:demo`
+
 ## What you will do
 
 1. Deploy a Vaquar / CDC pattern so a product lands in Marketplace.
