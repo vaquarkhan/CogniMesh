@@ -65,6 +65,19 @@ async function safeJson(res, context) {
   return parseJsonResponse(res, context);
 }
 
+/** Prefer API `errors` + `fixHint` + `code` for actionable toasts. */
+export function formatApiFailure(data, fallback) {
+  const errors = (data?.errors || []).filter(Boolean);
+  const err = data?.error || data?.reason;
+  const parts = [];
+  if (data?.code) parts.push(`[${data.code}]`);
+  if (errors.length) parts.push(errors.join("; "));
+  else if (err) parts.push(err);
+  else parts.push(fallback);
+  if (data?.fixHint) parts.push(data.fixHint);
+  return parts.join(" ").replace(/\s+/g, " ").trim();
+}
+
 export async function previewPipeline({ nodes, edges, pipelineMeta, token }) {
   const res = await apiFetch("/api/v1/pipelines/preview", {
     method: "POST",
@@ -249,7 +262,14 @@ export async function exportSparkDeclarative({ token, nodes, edges, pipelineMeta
   });
   const data = await safeJson(res, "SDP export");
   if (!res.ok || !data || data.status !== "success") {
-    throw new Error(data?.errors?.[0] || "Spark Declarative Pipelines export failed");
+    throw new Error(
+      formatApiFailure(
+        data,
+        res.status === 0 || !data
+          ? "SDP export failed - is the API running? npm run start:dev (port 4000)."
+          : "Spark Declarative Pipelines export failed"
+      )
+    );
   }
   return data;
 }
@@ -262,7 +282,14 @@ export async function exportDbtProject({ token, nodes, edges, pipelineMeta }) {
   });
   const data = await safeJson(res, "dbt export");
   if (!res.ok || !data || data.status !== "success") {
-    throw new Error(data?.errors?.[0] || "dbt export failed");
+    throw new Error(
+      formatApiFailure(
+        data,
+        res.status === 0 || !data
+          ? "dbt export failed - is the API running? npm run start:dev (port 4000)."
+          : "dbt export failed"
+      )
+    );
   }
   return data;
 }

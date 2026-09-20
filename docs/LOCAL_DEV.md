@@ -1,6 +1,6 @@
 # Local development without Docker Compose
 
-Docs map: [README.md](README.md) · Getting started: [GETTING_STARTED.md](GETTING_STARTED.md) · Developer hub: [developer/README.md](developer/README.md)
+Docs map: [README.md](README.md) · Getting started: [GETTING_STARTED.md](GETTING_STARTED.md) · Developer hub: [developer/README.md](developer/README.md) · OpenTelemetry: [OPENTELEMETRY.md](OPENTELEMETRY.md)
 
 ## One-command setup (portal + API)
 

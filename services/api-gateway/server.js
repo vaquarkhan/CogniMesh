@@ -142,7 +142,9 @@ app.get("/metrics", metricsHandler);
 app.get("/api/metrics", metricsHandler);
 
 async function healthHandler(_req, res) {
+  const { isOtelEnabled } = require("../../lib/tracing");
   const deep = await deepHealth();
+  const otlp = process.env.OTEL_EXPORTER_OTLP_ENDPOINT || "";
   res.status(deep.ok ? 200 : 503).json({
     status: deep.ok ? "ok" : "degraded",
     service: "cognimesh-api-gateway",
@@ -152,6 +154,22 @@ async function healthHandler(_req, res) {
       storage: catalogStorageMode(),
       reachable: deep.checks.catalog.mode === "remote",
       fallback: fallbackEnabled() ? catalogStorageMode() : "none",
+    },
+    otel: {
+      enabled: isOtelEnabled(),
+      serviceName: process.env.OTEL_SERVICE_NAME || "cognimesh-api-gateway",
+      exporter: otlp
+        ? "otlp-http"
+        : process.env.OTEL_TRACES_EXPORTER === "console"
+          ? "console"
+          : process.env.OTEL_SDK_ENABLED === "true"
+            ? "sdk-no-exporter"
+            : "off",
+      endpoint: otlp || null,
+      hint:
+        isOtelEnabled()
+          ? null
+          : "Set OTEL_SDK_ENABLED=true and OTEL_EXPORTER_OTLP_ENDPOINT (or OTEL_TRACES_EXPORTER=console). See docs/OPENTELEMETRY.md",
     },
     checks: deep.checks,
   });
@@ -264,35 +282,60 @@ app.post("/api/v1/access-requests/:id/reject", requireAuth, (req, res) => {
 });
 
 app.post("/api/v1/proofs/verify", requireAuth, (req, res) => {
+  const span = startSpan("api.proofs.verify", { user_id: req.auth?.sub });
   const { verifyVrpProof } = require("../../lib/vrp/verify");
   try {
     const { proof, publicKeyPem, requireSignature } = req.body || {};
-    if (!proof) return res.status(400).json({ valid: false, error: "proof is required" });
+    if (!proof) {
+      span.end("error", { code: "PROOF_REQUIRED" });
+      return res.status(400).json({
+        valid: false,
+        error: "proof is required",
+        code: "PROOF_REQUIRED",
+        fixHint: "Paste a VRP JSON object from Run History, or use fixtures/vrp-conformance/identity-pass.json.",
+      });
+    }
     const result = verifyVrpProof(proof, {
       publicKeyPem,
       requireSignature: requireSignature !== false && Boolean(proof.signing?.signature || publicKeyPem),
       requireSnapshotPin: false,
       checkTransparencyLog: false,
     });
+    span.end(result.valid ? "ok" : "error", { valid: String(result.valid), reason: result.reason || "" });
     res.json({
       valid: result.valid,
       reason: result.reason || null,
       checks: result.checks,
       proofId: proof.proof_id || null,
       verdict: proof.verdict || null,
+      code: result.valid ? "PROOF_OK" : "PROOF_INVALID",
     });
   } catch (err) {
-    res.status(400).json({ valid: false, error: err.message });
+    span.end("error", { error: err.message });
+    res.status(400).json({
+      valid: false,
+      error: err.message,
+      code: err.code || "PROOF_VERIFY_FAILED",
+      fixHint: "Ensure proof_version is 2 or 3 and multiset hashes are present. See docs/examples/proof-verify.md.",
+    });
   }
 });
 
 app.post("/api/v1/proofs/diff", requireAuth, (req, res) => {
+  const span = startSpan("api.proofs.diff", { user_id: req.auth?.sub });
   const { diffProofs } = require("../../lib/vrp/proof-diff");
   try {
     const { left, right } = req.body || {};
-    res.json(diffProofs(left, right));
+    const result = diffProofs(left, right);
+    span.end("ok", { identical: String(result.identical) });
+    res.json(result);
   } catch (err) {
-    res.status(400).json({ error: err.message, code: err.code || "PROOF_DIFF_INVALID" });
+    span.end("error", { error: err.message });
+    res.status(400).json({
+      error: err.message,
+      code: err.code || "PROOF_DIFF_INVALID",
+      fixHint: "Provide both left and right proof objects. Example: docs/examples/proof-verify.md",
+    });
   }
 });
 
@@ -524,36 +567,69 @@ app.post("/api/v1/pipelines/export/drawio", requireAuth, (req, res) => {
 });
 
 app.post("/api/v1/pipelines/export/spark-declarative", requireAuth, (req, res) => {
-  const { graphToContractSmart } = require("../../lib/contract-builder");
-  const { exportProjectBundle } = require("../../lib/export");
-  const { nodes, edges, pipelineMeta, contract: bodyContract } = req.body || {};
-  let contract = bodyContract;
-  if (!contract && nodes?.length) {
-    const built = graphToContractSmart(nodes, edges || [], pipelineMeta || {});
-    if (!built.success) return res.status(422).json({ status: "error", errors: built.errors });
-    contract = built.contract;
-  }
-  if (!contract) return res.status(400).json({ status: "error", errors: ["nodes or contract required"] });
-  const result = exportProjectBundle("sdp", contract);
-  if (result.status !== "success") return res.status(422).json(result);
-  res.json(result);
+  handlePipelineExport(req, res, "sdp");
 });
 
 app.post("/api/v1/pipelines/export/dbt", requireAuth, (req, res) => {
-  const { graphToContractSmart } = require("../../lib/contract-builder");
-  const { exportProjectBundle } = require("../../lib/export");
-  const { nodes, edges, pipelineMeta, contract: bodyContract } = req.body || {};
-  let contract = bodyContract;
-  if (!contract && nodes?.length) {
-    const built = graphToContractSmart(nodes, edges || [], pipelineMeta || {});
-    if (!built.success) return res.status(422).json({ status: "error", errors: built.errors });
-    contract = built.contract;
-  }
-  if (!contract) return res.status(400).json({ status: "error", errors: ["nodes or contract required"] });
-  const result = exportProjectBundle("dbt", contract);
-  if (result.status !== "success") return res.status(422).json(result);
-  res.json(result);
+  handlePipelineExport(req, res, "dbt");
 });
+
+function handlePipelineExport(req, res, kind) {
+  const span = startSpan(`api.export.${kind}`, { user_id: req.auth?.sub });
+  try {
+    const { graphToContractSmart } = require("../../lib/contract-builder");
+    const { exportProjectBundle } = require("../../lib/export");
+    const { nodes, edges, pipelineMeta, contract: bodyContract } = req.body || {};
+    let contract = bodyContract;
+    if (!contract && Array.isArray(nodes) && nodes.length) {
+      const built = graphToContractSmart(nodes, edges || [], pipelineMeta || {});
+      if (!built.success) {
+        span.end("error", { code: "EXPORT_GRAPH_INVALID" });
+        return res.status(422).json({
+          status: "error",
+          code: "EXPORT_GRAPH_INVALID",
+          errors: built.errors || ["Canvas graph could not be compiled to a DataContract"],
+          fixHint:
+            "Fix red badges on the canvas (source/transform/sink). Ensure transform SQL is set for SDP/dbt, then retry export.",
+          graphErrors: built.errors,
+        });
+      }
+      contract = built.contract;
+    }
+    if (!contract) {
+      span.end("error", { code: "EXPORT_INPUT_REQUIRED" });
+      return res.status(400).json({
+        status: "error",
+        code: "EXPORT_INPUT_REQUIRED",
+        errors: ["nodes or contract required"],
+        fixHint:
+          kind === "dbt"
+            ? "Load Architectures → dbt Silver → Gold, then AWS Design Review → Export dbt project."
+            : "Load Architectures → Spark Declarative Pipelines (SDP) Medallion, then Export Spark Declarative Pipelines.",
+      });
+    }
+    const result = exportProjectBundle(kind, contract);
+    if (result.status !== "success") {
+      span.end("error", { code: result.code || "EXPORT_FAILED" });
+      return res.status(422).json({
+        status: "error",
+        code: result.code || "EXPORT_FAILED",
+        errors: result.errors || ["Export failed"],
+        fixHint: result.fixHint || "See docs/examples/sdp-dbt-export.md",
+      });
+    }
+    span.end("ok", { project: result.projectName, files: String(result.fileCount) });
+    res.json(result);
+  } catch (err) {
+    span.end("error", { error: err.message });
+    res.status(500).json({
+      status: "error",
+      code: "EXPORT_INTERNAL",
+      errors: [err.message || "Unexpected export failure"],
+      fixHint: "Check GET /health (otel + catalog). API logs include span api.export.* when tracing is on.",
+    });
+  }
+}
 
 app.get("/api/v1/audit", requireAuth, (_req, res) => {
   const { listRecent } = require("../../lib/audit-log");

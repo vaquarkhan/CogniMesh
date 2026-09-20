@@ -14,6 +14,7 @@ Start here when you need the right doc fast. Prefer these paths over hunting the
 | **Customize the portal** | [Developer hub](developer/README.md) |
 | **Understand PVDM / VRP** | [Vaquar Pattern](vaquar-pattern.md) · [Data contract](data-contract-spec.md) |
 | **Ship on AWS** | [aws-pvdm-runbook](examples/aws-pvdm-runbook.md) · [Terraform](../infra/terraform/README.md) |
+| **Enable OpenTelemetry** | [OPENTELEMETRY.md](OPENTELEMETRY.md) |
 | **Fix something broken** | [TROUBLESHOOTING](TROUBLESHOOTING.md) · [FAQ ops](FAQ.md#operations--troubleshooting) |
 
 ## Library at a glance
@@ -57,6 +58,7 @@ Start here when you need the right doc fast. Prefer these paths over hunting the
 - [examples/proof-verify.md](examples/proof-verify.md) - verify + diff proofs
 - [examples/sdp-dbt-export.md](examples/sdp-dbt-export.md) - export SDP / dbt zips via API
 - [examples/aws-pvdm-runbook.md](examples/aws-pvdm-runbook.md) - live AWS PVDM
+- [OPENTELEMETRY.md](OPENTELEMETRY.md) - opt-in OTLP / console tracing
 - [PLATFORM_OPS.md](PLATFORM_OPS.md) · [LINEAGE_CATALOG.md](LINEAGE_CATALOG.md) · [WELL_ARCHITECTED.md](WELL_ARCHITECTED.md)
 
 ### Architecture

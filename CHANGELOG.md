@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Marketplace consumer tools**: offline proof verify, proof diff, fail-closed samples, proof SLA freshness
 - **Captioned UI demos**: SDP export, dbt export, marketplace proof verify (`npm run docs:demo`)
 - **Docs polish**: [docs/README.md](docs/README.md) map, examples hub, developer guides for export/proof APIs
+- **OpenTelemetry**: health reports `otel` status; export/proof routes emit spans; [docs/OPENTELEMETRY.md](docs/OPENTELEMETRY.md)
+- **Actionable export/proof errors**: API returns `code` + `fixHint`; portal toasts surface them
 - Tutorial: [docs/tutorials/sdp-and-dbt.md](docs/tutorials/sdp-and-dbt.md)
 
 ### Added - `pvdm-architecture-review-2026-07-21` branch

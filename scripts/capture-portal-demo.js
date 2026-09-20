@@ -1144,7 +1144,7 @@ async function runMarketplaceProofDemoFlow(page) {
     fs.readFileSync(path.join(ROOT, "fixtures", "vrp-conformance", "identity-tampered.json"), "utf8")
   );
 
-  await showChapter(page, "3 · Verify", "Paste VRP JSON", "No AWS credentials — offline structural verify.");
+  await showChapter(page, "3 · Verify", "Paste VRP JSON", "No AWS credentials - offline structural verify.");
   const panel = page.locator(".marketplace-panel");
   const areas = panel.locator("textarea.proof-paste");
   await areas.first().waitFor({ state: "visible", timeout: 15000 });
@@ -1265,6 +1265,16 @@ async function main() {
 }
 
 main().catch((err) => {
-  console.error(err);
+  console.error("\nDemo capture failed.");
+  console.error(err && err.message ? err.message : err);
+  if (err && err.stack) {
+    console.error(err.stack.split("\n").slice(1, 6).join("\n"));
+  }
+  console.error("\nHints:");
+  console.error("- Install Chromium: npx playwright install chromium");
+  console.error("- Install ffmpeg on PATH for MP4/GIF/poster conversion");
+  console.error("- Free ports DEMO_API_PORT (default 4020) and DEMO_PORTAL_PORT (default 4174)");
+  console.error("- Subset demos: DEMO_ONLY=sdp-export,dbt-export,marketplace-proof");
+  console.error("- Failure screenshot (if any): docs/assets/*-capture-failure.png");
   process.exit(1);
 });
