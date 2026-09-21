@@ -30,14 +30,31 @@ Deploy a Vaquar / medallion pattern first so products exist in the catalog.
 | `GET` | `/api/v1/marketplace/products` | Search / filter / sort |
 | `GET` | `/api/v1/marketplace/products/:id` | Product card + consumer actions |
 | `POST` | `/api/v1/marketplace/products/:id/subscription-token` | Mint signed subscription token (approved + VRP PASS) |
-| `POST` | `/api/v1/marketplace/products/:id/schema-diff` | Diff schemas / contracts (breaking = removed columns) |
-| `GET` | `/api/v1/marketplace/featured` | Top trust-ranked products |
+| `POST` | `/api/v1/marketplace/products/:id/schema-diff` | Diff schemas (removed cols, type narrowing, nullability) |
+| `GET` | `/api/v1/marketplace/featured` | Top trust-ranked **fresh** products (SLA_STALE demoted) |
 | `GET` | `/api/v1/marketplace/domains` | Domain facets |
 | `GET` | `/api/v1/marketplace/sla` | List SLA subscriptions |
 | `POST` | `/api/v1/marketplace/sla` | Subscribe to product freshness SLA (`webhookUrl` optional) |
 | `GET` | `/api/v1/marketplace/sla/check` | Check SLA vs last proof; `?notify=true` fires webhooks |
+| `GET` | `/.well-known/cognimesh-steward-keys.json` | Steward **signing** public keys for offline verify |
 
-### Related product / proof APIs (already shipped)
+### Trust score rubric (auditable)
+
+Published on `GET /api/v1/marketplace` as `trustRubric` and in code as `TRUST_RUBRIC` (`lib/vrp/product-trust.js`).
+
+| Signal | Points |
+|--------|--------|
+| VRP PASS (proof-gated) | +40 |
+| Profile A or certified T | +20 |
+| Profile O | +15 |
+| Iceberg snapshot pin | +15 |
+| Source snapshot | +15 |
+| Schema fingerprint | +10 |
+| SLA fresh + PASS | +5 |
+
+**Grades:** A ≥ 80 · B ≥ 55 · C ≥ 30 · D &lt; 30. **Featured** requires score ≥ 55 **and** not `SLA_STALE`.
+
+**B → A example:** `VRP_PASS (40) + PROFILE_A (20) = 60 (B)`. Add `SNAPSHOT_PIN (15) + SCHEMA_BOUND (10) + SLA_FRESH (5) → 90 (A)`.
 
 | Method | Path | Purpose |
 |--------|------|---------|
@@ -68,7 +85,9 @@ curl -s -X POST http://localhost:4000/api/v1/marketplace/products/<productId>/su
   -H "Content-Type: application/json" -d '{}'
 ```
 
-Returns a short-lived HMAC token bound to `product_id` + Iceberg snapshot pin + `vrp_verdict: PASS` (not a Cognito JWT). Header hint: `X-CogniMesh-Subscription-Token`.
+Returns a short-lived HMAC token bound to `product_id` + Iceberg snapshot pin + `vrp_verdict: PASS` (not a Cognito JWT). Header: `X-CogniMesh-Subscription-Token`.
+
+**Enforcement:** `POST /api/v1/gateway/serve` (and MCP `/mcp/gateway/serve`) **requires** a valid subscription token when `productId` is set, or when `VRP_REQUIRE_SUBSCRIPTION_TOKEN=true`. Mint alone is not enough — consume paths check the token.
 
 ### Example: schema diff
 
@@ -78,7 +97,7 @@ curl -s -X POST http://localhost:4000/api/v1/marketplace/products/<productId>/sc
   -d '{"left":[{"name":"order_id"},{"name":"amount"},{"name":"legacy"}],"right":[{"name":"order_id"},{"name":"amount"}]}'
 ```
 
-Omit `right` to compare `left` against the product's current manifest schema. `breaking: true` when columns were removed.
+Omit `right` to compare `left` against the product's current manifest schema. **Breaking** when: columns removed, type narrowing / incompatible type change, or nullability tightened (nullable → required). Additive type widens and possible renames are reported separately.
 
 ### Example: SLA subscribe + notify
 
@@ -113,6 +132,8 @@ curl -s -X POST http://localhost:4000/api/v1/access-requests/<requestId>/approve
 1. **VRP PASS** is required before samples are shown and before subscription tokens mint.
 2. Steward **Approve** updates CogniMesh access and attempts LF grant (live only when enabled).
 3. SDP / dbt export success does **not** publish to the marketplace by itself.
+4. Offline consumers should verify with [`cognimesh-verify`](VERIFY.md) + steward keys — not by trusting the portal alone.
+5. Featured listings demote `SLA_STALE` (freshness is a control, not only a badge).
 
 ---
 
@@ -123,10 +144,13 @@ curl -s -X POST http://localhost:4000/api/v1/access-requests/<requestId>/approve
 | Feature | Status |
 |---------|--------|
 | Trust-ranked search + portal UI | **Shipped** |
-| Signed subscription tokens | **Shipped** — `POST …/subscription-token` |
+| Signed subscription tokens | **Shipped** — mint + **enforced** on gateway/serve when `productId` set |
 | Lake Formation grant on approve | **Shipped** — opt-in live / default simulate |
-| Contract / schema diff in marketplace | **Shipped** — API + portal |
+| Contract / schema diff in marketplace | **Shipped** — removed cols, type narrowing, nullability |
 | Webhook / notify on SLA stale | **Shipped** — `webhookUrl` + `?notify=true` |
+| Featured freshness demotion | **Shipped** — `SLA_STALE` excluded from featured |
+| Standalone offline verifier | **Shipped** — `cognimesh-verify` + [VERIFY.md](VERIFY.md) |
+| Steward public key distribution | **Shipped** — `/.well-known/cognimesh-steward-keys.json` |
 
 ### Next differentiators
 

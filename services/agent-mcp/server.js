@@ -189,6 +189,8 @@ const server = http.createServer(async (req, res) => {
         sessionId: body.sessionId,
         localPath: body.localPath,
         limit: body.limit,
+        productId: body.productId,
+        subscriptionToken: body.subscriptionToken,
       });
       return json(200, {
         rows: result.rows,

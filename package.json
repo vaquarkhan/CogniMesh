@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "description": "CogniMesh - Multimodal Cognitive Data Mesh & Marketplace",
+  "bin": {
+    "cognimesh-verify": "./bin/cognimesh-verify.js"
+  },
   "scripts": {
     "postinstall": "node scripts/postinstall.js",
     "validate:contract": "node scripts/validate-contract.js",

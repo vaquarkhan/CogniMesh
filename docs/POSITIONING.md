@@ -2,6 +2,10 @@
 
 Product scope for evaluators, product owners, and architects: what CogniMesh delivers today, how it fits the Vaquar ecosystem, and where we are headed.
 
+**One-sentence reason to use CogniMesh:** When you must prove — to an auditor, regulator, or downstream consumer — that published gold was not silently altered from its source, and no catalog on the market does that.
+
+**Positioning:** the **proof-gate for your lakehouse** (companion to DataZone / Glue / Databricks / dbt) — not another head-on catalog competitor. Cryptographically verify source⇄gold before publish; consumers verify offline with `cognimesh-verify` without CogniMesh infra.
+
 ---
 
 ## What CogniMesh is
@@ -23,10 +27,10 @@ CogniMesh is a **visual control plane** for trustworthy data products on AWS:
 | Capability | Summary |
 |------------|---------|
 | **Proof-gated publication** | On the Vaquar path, catalog commit proceeds when verification **PASS**es. Runs are recorded in Run History with clear outcomes. |
-| **VRP v3** | Identity and aggregate transform verification, contract binding, logical content digest, offline verify CLI |
+| **VRP v3** | Identity and aggregate transform verification, contract binding, logical content digest, offline verify CLI (`cognimesh-verify`) + steward key `.well-known` |
 | **29 pipeline canvases** | 28 wired examples + blank canvas (incl. SDP Medallion + dbt Silver→Gold); 8 agent tutorials in Agent Builder |
 | **SDP / dbt export** | Zip export for `spark-pipelines` and dbt projects; CogniMesh still proof-gates Iceberg publish |
-| **Marketplace verify** | Offline proof verify + diff, fail-closed samples, proof SLA freshness |
+| **Marketplace verify** | Trust-ranked discovery, subscription tokens enforced at serve, schema-diff, fail-closed samples, SLA freshness demotion |
 | **Integrity gate** | Design-time policy checks before deploy |
 | **KMS signing** | Production proofs via AWS KMS when configured |
 | **Gateway + attestations** | Proof-aware data serve and signed decision attestations on agent paths (**CogniMesh extension**, not the PVDM paper protocol) |

@@ -140,6 +140,16 @@ async function deepHealth() {
 app.get("/health", healthHandler);
 app.get("/api/health", healthHandler);
 
+app.get("/.well-known/cognimesh-steward-keys.json", (_req, res) => {
+  const { stewardKeyManifest } = require("../../lib/vrp/steward-keys-public");
+  res.json(stewardKeyManifest());
+});
+
+app.get("/api/v1/steward/keys", (_req, res) => {
+  const { stewardKeyManifest } = require("../../lib/vrp/steward-keys-public");
+  res.json(stewardKeyManifest());
+});
+
 app.get("/metrics", metricsHandler);
 app.get("/api/metrics", metricsHandler);
 
@@ -382,8 +392,19 @@ app.post("/api/v1/proofs/diff", requireAuth, (req, res) => {
 app.post("/api/v1/gateway/serve", requireAuth, async (req, res) => {
   const { serveProofGatedDataset, ProofGatewayError } = require("../../lib/vrp/proof-gateway");
   try {
-    const { sessionId, proof, localPath, limit } = req.body || {};
-    const result = await serveProofGatedDataset({ sessionId, proof, localPath, limit });
+    const { sessionId, proof, localPath, limit, productId, subscriptionToken } = req.body || {};
+    const result = await serveProofGatedDataset({
+      sessionId,
+      proof,
+      localPath,
+      limit,
+      productId,
+      subscriptionToken:
+        subscriptionToken ||
+        req.get("x-cognimesh-subscription-token") ||
+        req.headers["x-cognimesh-subscription-token"],
+      headers: req.headers,
+    });
     res.json({
       rows: result.rows,
       gatewayToken: result.gatewayToken,
@@ -461,8 +482,12 @@ app.get("/api/v1/products/:id/consumer-detail", requireAuth, async (req, res) =>
       serveEndpoint: "/api/v1/gateway/serve",
       mcpServeEndpoint: "/mcp/gateway/serve",
       requiresGatewayToken: true,
+      requiresSubscriptionTokenWhenProductId: true,
+      subscriptionTokenHeader: "X-CogniMesh-Subscription-Token",
       consumerSnapshotPolicy: "gated_catalog_only",
       verifyEndpoint: "/api/v1/proofs/verify",
+      offlineVerifyCli: "cognimesh-verify",
+      stewardKeys: "/.well-known/cognimesh-steward-keys.json",
       diffEndpoint: "/api/v1/proofs/diff",
     },
     access,
