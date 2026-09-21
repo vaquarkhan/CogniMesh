@@ -18,6 +18,7 @@ data/
 .pvdm-staging/
 .pvdm-proofs/
 .gateway-proof-cache/
+.demo-proof.json
 
 # Internal & maintainer-only docs (not for end users)
 REVIEW.md

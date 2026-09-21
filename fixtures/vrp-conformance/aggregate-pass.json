@@ -2,13 +2,13 @@
   "proof_version": "3",
   "pipeline_run_id": "conformance-aggregate",
   "chunk_sequence": "0",
-  "nonce": "e23467b9-ac94-48f9-880b-441b661c0a75",
+  "nonce": "2f19a74d-f9d9-4113-a889-217dc50aa16f",
   "target": "default.output",
   "partition": "",
   "key_epoch": "e1",
   "conformance_profile": "T-uncertified",
   "profile_t_certified": false,
-  "verdict": "PASS",
+  "verdict": "FAIL",
   "table": {
     "catalog_database": "default",
     "catalog_table": "output"
@@ -25,9 +25,13 @@
     "sql": "-- Pin to proven snapshot 2001\nSELECT * FROM \"default\".\"output\" /* snapshot_id=2001 */",
     "snapshot_id": "2001",
     "engine": "athena",
+    "catalog_host": "glue",
     "note": "Use Iceberg snapshot metadata or time travel with snapshot_id from proof"
   },
-  "schema_fingerprint": "d1ee2d145f83a899e8cdf998140a49f372774831d099dc817cb55f774b2f392b",
+  "schema_fingerprint": "e08336cd273bc053a4c74376fd3ed79090f2f5bcfa2c096a7fc1aa1ba85b7028",
+  "source_schema_fingerprint": "e08336cd273bc053a4c74376fd3ed79090f2f5bcfa2c096a7fc1aa1ba85b7028",
+  "sink_schema_fingerprint": "ab2b6bde214e8292d38b0d07d2f2a14352963a523987ad16f37044c6f195bc39",
+  "source_snapshot_id": "inline:2778d640258259a50d48706212e2882d1e7837faa227adf9b29bffd1048571fe",
   "multiset": {
     "identity_fields": [
       "amount",
@@ -40,9 +44,9 @@
       "id"
     ],
     "source_hash": "48458642e1b11071555d0df190f4ead3e01b19a07c8cfd226072b3207b78e99e",
-    "sink_hash": "cefcb399ac07a7d87d755189846a4eb363c3339bfa7c9e93c4b7ce50ba17976f",
+    "sink_hash": "2f5d4ba11df8316fbc9d20761ae5eee92b5da2a5e7ac91ef9112b1eabdda54f8",
     "identity_source_hash": "48458642e1b11071555d0df190f4ead3e01b19a07c8cfd226072b3207b78e99e",
-    "identity_sink_hash": "cefcb399ac07a7d87d755189846a4eb363c3339bfa7c9e93c4b7ce50ba17976f",
+    "identity_sink_hash": "2f5d4ba11df8316fbc9d20761ae5eee92b5da2a5e7ac91ef9112b1eabdda54f8",
     "construction": "mset-add-hmac-sha256",
     "key_epoch": "e1",
     "sink_materialization": "read_back",
@@ -88,23 +92,25 @@
     "statement": "output is the deterministic result of transform T over signed inputs I",
     "transform_content_hash": "fc115cefb40bfd807712109eae852a560ef37ab8f79d510b58f069823a1f29bf",
     "input_proof_ids": [],
-    "output_logical_hash": "cefcb399ac07a7d87d755189846a4eb363c3339bfa7c9e93c4b7ce50ba17976f",
+    "output_logical_hash": "2f5d4ba11df8316fbc9d20761ae5eee92b5da2a5e7ac91ef9112b1eabdda54f8",
     "pipeline_run_id": "conformance-aggregate"
   },
   "sink_artifacts": {
     "manifest_digest": null,
     "logical_content": {
-      "logical_content_hash": "cefcb399ac07a7d87d755189846a4eb363c3339bfa7c9e93c4b7ce50ba17976f",
+      "logical_content_hash": "2f5d4ba11df8316fbc9d20761ae5eee92b5da2a5e7ac91ef9112b1eabdda54f8",
       "row_count": "2",
       "compaction_safe": true
     },
     "file_digests": []
   },
-  "failure_localization": null,
-  "not_before": "2026-08-26T18:25:37.570Z",
-  "not_after": "2026-08-27T18:25:37.570Z",
+  "failure_localization": {
+    "message": "schema fingerprint mismatch — comparisons across differing schema MUST NOT be certified (paper N15)"
+  },
+  "not_before": "2026-09-21T01:30:22.228Z",
+  "not_after": "2026-09-22T01:30:22.228Z",
   "ttl_sec": 86400,
-  "signed_at": "2026-08-26T18:25:37.570Z",
-  "proof_id": "a404066a5fc646eb2ff1bb267d8b18b0d96d090846ba4e1c4da2ad6e7c9f1a45",
+  "signed_at": "2026-09-21T01:30:22.228Z",
+  "proof_id": "0c358a1489a63d452ba58f29c6a78fb66c77d296c8e706ca21380366244bc941",
   "signing": null
 }

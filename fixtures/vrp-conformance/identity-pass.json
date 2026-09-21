@@ -2,7 +2,7 @@
   "proof_version": "3",
   "pipeline_run_id": "conformance-identity",
   "chunk_sequence": "0",
-  "nonce": "0da48f4e-2a2f-4128-9817-74e74961fa99",
+  "nonce": "fa3df77f-8fa0-4438-87b5-9cdb05cd8e36",
   "target": "default.output",
   "partition": "",
   "key_epoch": "e1",
@@ -25,9 +25,13 @@
     "sql": "-- Pin to proven snapshot 1001\nSELECT * FROM \"default\".\"output\" /* snapshot_id=1001 */",
     "snapshot_id": "1001",
     "engine": "athena",
+    "catalog_host": "glue",
     "note": "Use Iceberg snapshot metadata or time travel with snapshot_id from proof"
   },
-  "schema_fingerprint": "6f37d16371651dfe5584196e0365622eb7f30c93ecf2fc7af11fcb68136b850a",
+  "schema_fingerprint": "77021ac7d9be6c6e1e636b98593b3972b735eef6068effa5ef901eade43c45b5",
+  "source_schema_fingerprint": "77021ac7d9be6c6e1e636b98593b3972b735eef6068effa5ef901eade43c45b5",
+  "sink_schema_fingerprint": "77021ac7d9be6c6e1e636b98593b3972b735eef6068effa5ef901eade43c45b5",
+  "source_snapshot_id": "inline:51bca4c13b9fa0f0c383054165e117545536e7d42e6aca20e18a714c2b53b8e9",
   "multiset": {
     "identity_fields": [
       "id"
@@ -99,10 +103,10 @@
     ]
   },
   "failure_localization": null,
-  "not_before": "2026-08-26T18:25:37.558Z",
-  "not_after": "2026-08-27T18:25:37.558Z",
-  "ttl_sec": 86400,
-  "signed_at": "2026-08-26T18:25:37.558Z",
-  "proof_id": "2263511f5a67fe380d734b2bbb1885897143bad3031ecd3a92ded2db757208ac",
+  "not_before": "2026-09-21T01:30:22.219Z",
+  "not_after": "2036-09-18T01:30:22.219Z",
+  "ttl_sec": 315360000,
+  "signed_at": "2026-09-21T01:30:22.219Z",
+  "proof_id": "cc75f241942ab12301ec85a5611f985700dbd072af5f4a1c1794a7b0e61cbe8e",
   "signing": null
 }

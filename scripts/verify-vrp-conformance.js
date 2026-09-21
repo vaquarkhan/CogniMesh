@@ -1,6 +1,11 @@
 #!/usr/bin/env node
 "use strict";
 
+/**
+ * Verify published VRP conformance fixtures.
+ * Fixtures have fixed not_before/not_after windows — evaluate at mid-window
+ * so the suite does not rot when wall-clock time passes (regression guard).
+ */
 const fs = require("fs");
 const path = require("path");
 const { verifyVrpProof } = require("../lib/vrp/verify");
@@ -13,10 +18,21 @@ const vectors = [
   { file: "aggregate-tampered.json", expectValid: false },
 ];
 
+function evaluationNow(proof) {
+  if (!proof?.not_before || !proof?.not_after) return undefined;
+  const start = new Date(proof.not_before).getTime();
+  const end = new Date(proof.not_after).getTime();
+  if (Number.isNaN(start) || Number.isNaN(end) || end <= start) return proof.not_before;
+  return new Date(start + Math.floor((end - start) / 2)).toISOString();
+}
+
 let failed = 0;
 for (const vector of vectors) {
   const proof = JSON.parse(fs.readFileSync(path.join(fixtureDir, vector.file), "utf8"));
-  const result = verifyVrpProof(proof, { requireSignature: false });
+  const result = verifyVrpProof(proof, {
+    requireSignature: false,
+    now: evaluationNow(proof),
+  });
   const ok = result.valid === vector.expectValid;
   if (!ok) {
     failed++;

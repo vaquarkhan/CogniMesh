@@ -1,851 +1,196 @@
-<p align="center">
-  <img src="docs/assets/cognimesh-hero.png" alt="CogniMesh - Multimodal Cognitive Data Mesh &amp; Marketplace" width="720" />
-</p>
+# CogniMesh
 
-<p align="center">
-  <img src="https://img.shields.io/badge/CogniMesh-1.0.0-0d9488?style=for-the-badge" alt="CogniMesh" />
-  <img src="https://img.shields.io/badge/Vaquar-PVDM-2563eb?style=for-the-badge" alt="Vaquar PVDM" />
-  <img src="https://img.shields.io/badge/AWS-Serverless-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white" alt="AWS" />
-  <a href="https://github.com/vaquarkhan/CogniMesh/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/vaquarkhan/CogniMesh/actions/workflows/ci.yml/badge.svg" /></a>
-</p>
+[![CI](https://github.com/vaquarkhan/CogniMesh/actions/workflows/ci.yml/badge.svg)](https://github.com/vaquarkhan/CogniMesh/actions/workflows/ci.yml)
+![version](https://img.shields.io/badge/version-1.0.0-0d9488)
+[![License](https://img.shields.io/badge/license-Proprietary-lightgrey)](LICENSE)
 
-<p align="center">
-  <a href="https://pypi.org/project/cognimesh/"><img alt="PyPI version" src="https://img.shields.io/pypi/v/cognimesh?style=flat-square&logo=pypi&logoColor=white" /></a>
-  <a href="https://pypi.org/project/cognimesh/"><img alt="PyPI downloads" src="https://img.shields.io/pypi/dm/cognimesh?style=flat-square&logo=pypi&logoColor=white" /></a>
-  <a href="https://github.com/vaquarkhan/CogniMesh/pkgs/container/cognimesh-api"><img alt="Docker on GHCR" src="https://img.shields.io/badge/ghcr.io-cognimesh-2496ED?style=flat-square&logo=docker&logoColor=white" /></a>
-  <a href="https://github.com/vaquarkhan/CogniMesh/actions/workflows/publish.yml"><img alt="Publish CI" src="https://github.com/vaquarkhan/CogniMesh/actions/workflows/publish.yml/badge.svg" /></a>
-  <a href="docs/DISTRIBUTION.md#npm-nodejs"><img src="https://img.shields.io/badge/npm-1.0.0-CB3837?style=flat-square&logo=npm&logoColor=white" alt="npm" /></a>
-  <a href="docs/DISTRIBUTION.md#maven-java-catalog"><img src="https://img.shields.io/badge/Maven-catalog-ED8B00?style=flat-square&logo=apachemaven&logoColor=white" alt="Maven" /></a>
-  <a href="docs/DISTRIBUTION.md#go-cognitive-runtime"><img src="https://img.shields.io/badge/Go-runtime-00ADD8?style=flat-square&logo=go&logoColor=white" alt="Go" /></a>
-</p>
+**CogniMesh attaches a cryptographically checkable proof that published gold data matches its source on declared fields, and blocks the catalog commit when it does not.**
 
-<p align="center">
-  <strong>Python SDK: install anytime from <a href="https://pypi.org/project/cognimesh/">PyPI</a></strong>
-</p>
+It is a proof gate for lakehouse pipelines (portal + API + AWS wiring optional). It is not a DataZone/dbt replacement — see [What this is not](#what-cognimesh-is-not).
 
-<p align="center">
-  <code>pip install cognimesh</code>
-  &nbsp;·&nbsp;
-  <a href="https://pypi.org/project/cognimesh/#files">Download wheels</a>
-  &nbsp;·&nbsp;
-  <a href="https://pypi.org/project/cognimesh/">pypi.org/project/cognimesh</a>
-</p>
-
-<h1 align="center">CogniMesh</h1>
-
-<p align="center">
-  <strong>Multimodal Cognitive Data Mesh &amp; Marketplace</strong>
-</p>
-
-<p align="center">
-  Zero-code pipelines · Proof-gated publication · Agentic AI · Fine-grained governance
-</p>
+[Watch 2-min demo](docs/assets/cognimesh-howto-demo.mp4) · [Docs map](docs/README.md) · [Positioning](docs/POSITIONING.md) · [VERIFY.md](docs/VERIFY.md)
 
 ---
 
-## Start here (plain English)
-
-**Platform release 1.0.0** - CogniMesh is a **control plane for trustworthy data products on AWS**. You design pipelines in a visual portal (no coding required to start), the platform checks your design, runs the pipeline, and **blocks catalog publish when verification fails**.
-
-> **Product scope:** See **[POSITIONING.md](docs/POSITIONING.md)** for capabilities, ecosystem fit, and roadmap. Proofs run in CogniMesh's VRP engine today ([veridata integration](docs/veridata-integration.md) on the roadmap).
-
-<p align="center">
-  <a href="docs/assets/cognimesh-howto-demo.mp4"><strong>Watch the how-it-works video</strong></a>
-  &nbsp;·&nbsp; caption first, then each feature end to end (~2 min)
-</p>
-
-| If you are… | Read this first |
-|-------------|-----------------|
-| **Watch how it works** | **[Play video](docs/assets/cognimesh-howto-demo.mp4)** - caption, then live demo of each feature |
-| **Discover marketplace products** | **[Marketplace API](docs/MARKETPLACE.md)** · [proof tutorial](docs/tutorials/proof-gated-marketplace.md) |
-| **Export SDP or dbt** | **[Spark Declarative Pipelines + dbt](docs/tutorials/sdp-and-dbt.md)** |
-| **C-suite / executive (CEO, CFO, CDO, CISO)** | **[Business guide - C-suite summary](docs/README-business-stewards.md#for-c-suite--executive-leadership)** (2 min) |
-| **Business / product owner** | **[Business & steward guide](docs/README-business-stewards.md)** (plain language only) |
-| **Data steward / governance** | **[Business & steward guide](docs/README-business-stewards.md)** - approvals, proof, marketplace, audit |
-| **Evaluator / product owner** | **[POSITIONING.md](docs/POSITIONING.md)** - scope, ecosystem, roadmap |
-| **Everyone (repeat questions)** | **[FAQ](docs/FAQ.md)** - proof, PASS/FAIL, features, agents, ops |
-| **All documentation** | **[Documentation map](docs/README.md)** - tutorials, examples, developer guides |
-| **Engineer / architect** | [At a glance](#at-a-glance), [Quick start](#quick-start), [POSITIONING](docs/POSITIONING.md), [Vaquar Pattern](docs/vaquar-pattern.md) |
-
-**The problem:** Teams ship dashboards and datasets that *look* fine but nobody can prove the numbers match the source. When something breaks, you discover it in production-not at publish time.
-
-**What CogniMesh does:** You drag blocks on a canvas (sources → transforms → outputs). CogniMesh turns that into a governed **data contract**, runs it on AWS when configured, and can attach a **signed verification proof (VRP)** that source and published data match on declared fields-before gold data is committed.
-
-**In one sentence:** *Design visually → verify before publish (when Vaquar path enabled) → operate with lineage and access control → let consumers discover governed data products.*
-
-<p align="center">
-  <a href="docs/README-business-stewards.md"><strong>Business &amp; data steward guide</strong></a>
-  &nbsp;·&nbsp;
-  <a href="docs/README-business-stewards.md#for-c-suite--executive-leadership"><strong>C-suite summary (2 min)</strong></a>
-  &nbsp;·&nbsp; plain language · no code required
-</p>
-
-<details>
-<summary><strong>Key terms (non-technical)</strong></summary>
-
-| Term | Plain meaning |
-|------|----------------|
-| **Data product** | A governed dataset (or API) your team owns and others can subscribe to |
-| **Marketplace** | Catalog where consumers find and request access to data products |
-| **Proof / Vaquar Pattern** | When enabled: evidence that published data was not silently changed on declared fields (see [POSITIONING](docs/POSITIONING.md)) |
-| **Agent** | An AI assistant (e.g. Bedrock) that reads your data and takes actions-with guardrails |
-| **Data contract** | Machine-readable rules for what the pipeline must do (generated from your canvas) |
-
-</details>
-
-> **Technical documentation** - install commands, APIs, Terraform, and runtime details begin after the platform demos below.
-
----
-
-### How it works (captioned tutorial)
-
-<p align="center">
-  <a href="docs/assets/cognimesh-howto-demo.mp4">
-    <img src="docs/assets/cognimesh-howto-demo-poster.png" alt="CogniMesh how it works: caption then live demo of AI Builder, canvas, PVDM gate, AWS review, deploy, Agent Builder" width="960" />
-  </a>
-  <br />
-  <a href="docs/assets/cognimesh-howto-demo.mp4"><strong>▶ Play how-it-works video</strong></a>
-  &nbsp;·&nbsp;
-  <em>Each feature starts with a caption, then the end-to-end UI demo</em>
-  <br />
-  <a href="docs/tutorials/getting-started-ui.md">Written walkthrough</a>
-</p>
-
-### Getting started (UI tutorial)
-
-<p align="center">
-  <a href="docs/assets/cognimesh-tutorial-demo.mp4">
-    <img src="docs/assets/cognimesh-tutorial-demo.gif" alt="CogniMesh UI tutorial: Panels menu, Operations, setup-ready Properties, AWS Fix this, Preview YAML" width="960" />
-  </a>
-  <br />
-  <em>Panels → Operations → load pattern → setup-ready cue → Fix this → Preview</em>
-  <br />
-  <a href="docs/tutorials/getting-started-ui.md">Written walkthrough</a>
-</p>
-
-### Platform features (how it works)
-
-<p align="center">
-  <a href="docs/assets/cognimesh-features-demo.mp4">
-    <img src="docs/assets/cognimesh-features-demo.gif" alt="CogniMesh platform tour: AI Builder, Architectures, AWS Blocks, AWS Design Review, Operations, Run History, Lineage, Marketplace, Agent Builder templates" width="960" />
-  </a>
-  <br />
-  <em>Sidebar + header panels · AWS review · ops · lineage · marketplace · agent tools</em>
-</p>
-
-### Pipeline creation (end-to-end)
-
-<p align="center">
-  <a href="docs/assets/cognimesh-pipeline-demo.mp4">
-    <img src="docs/assets/cognimesh-pipeline-demo.gif" alt="CogniMesh pipeline demo: pattern library, Multi-Source workflow, AWS Design Review fix critical/high findings, preview YAML, deploy pipeline" width="960" />
-  </a>
-  <br />
-  <em>Pattern library → load pattern → AWS review → fix all → preview → deploy → marketplace</em>
-</p>
-
-### Agent creation (end-to-end)
-
-<p align="center">
-  <a href="docs/assets/cognimesh-agent-demo.mp4">
-    <img src="docs/assets/cognimesh-agent-demo.gif" alt="CogniMesh agent demo: agent templates and blocks, Customer Support agent, guardrail review, preview manifest, export, deploy to AWS" width="960" />
-  </a>
-  <br />
-  <em>Templates &amp; blocks → load agent → guardrail review → preview → export → deploy</em>
-</p>
-
-### SDP · dbt · marketplace proof (captioned)
-
-<p align="center">
-  <a href="docs/assets/cognimesh-sdp-export-demo.mp4">
-    <img src="docs/assets/cognimesh-sdp-export-demo-poster.png" alt="SDP export demo" width="300" />
-  </a>
-  &nbsp;
-  <a href="docs/assets/cognimesh-dbt-export-demo.mp4">
-    <img src="docs/assets/cognimesh-dbt-export-demo-poster.png" alt="dbt export demo" width="300" />
-  </a>
-  &nbsp;
-  <a href="docs/assets/cognimesh-marketplace-proof-demo.mp4">
-    <img src="docs/assets/cognimesh-marketplace-proof-demo-poster.png" alt="Marketplace proof verify demo" width="300" />
-  </a>
-  <br />
-  <a href="docs/assets/cognimesh-sdp-export-demo.mp4"><strong>SDP export</strong></a>
-  &nbsp;·&nbsp;
-  <a href="docs/assets/cognimesh-dbt-export-demo.mp4"><strong>dbt export</strong></a>
-  &nbsp;·&nbsp;
-  <a href="docs/assets/cognimesh-marketplace-proof-demo.mp4"><strong>Marketplace verify</strong></a>
-  <br />
-  <em>Caption first, then live UI · tutorials: <a href="docs/tutorials/sdp-and-dbt.md">SDP + dbt</a> · <a href="docs/tutorials/proof-gated-marketplace.md">proof-gated marketplace</a></em>
-  <br />
-  <code>npm run docs:demo</code> · <code>DEMO_ONLY=howto</code> · <code>DEMO_ONLY=sdp-export,dbt-export,marketplace-proof</code> · Playwright + ffmpeg
-</p>
-
-<p align="center">
-  <a href="docs/POSITIONING.md"><b>Positioning &amp; roadmap</b></a> ·
-  <a href="docs/README-business-stewards.md"><b>Business &amp; steward guide</b></a> ·
-  <a href="docs/FAQ.md"><b>FAQ</b></a> ·
-  <a href="docs/vaquar-pattern.md"><b>The Vaquar Pattern</b></a> ·
-  <a href="docs/vaquar-pattern.md#data-examples"><b>Data examples</b></a> ·
-  <a href="docs/vaquar-pattern.md#vrp-features"><b>VRP features</b></a> ·
-  <a href="docs/PIPELINE_E2E_DIAGRAM.md"><b>Pipeline E2E Diagram</b></a> ·
-  <a href="docs/drag-drop-pipeline-flow.md">Drag-and-drop E2E</a> ·
-  <a href="docs/data-contract-spec.md">Data Contract</a> ·
-  <a href="infra/terraform/README.md">Terraform</a> ·
-  <a href="docs/architecture.md">Architecture</a>
-</p>
-
----
-
-## At a glance
-
-> **Business summary:** Visual designer → governance checks → AWS execution → proof before publish → marketplace. No YAML required to start.
-
-CogniMesh lets **business users** design data pipelines in a visual portal. The platform generates **`DataContract.yaml`**, runs governance checks, compiles **AWS Step Functions**, registers products in a **marketplace**, and deploys to AWS when enabled.
-
-Built on **[The Vaquar Pattern](docs/vaquar-pattern.md)** by [Vaquarkhan](https://github.com/vaquarkhan): structured pipelines use **PVDM** (Physical → Verify → Durable → Metadata); cognitive pipelines use an **EKS transactional runtime** with Bedrock agents. Verification today runs in **CogniMesh JS**, not the [veridata](https://github.com/vaquarkhan/veridata) crate ([POSITIONING](docs/POSITIONING.md)).
-
-<table>
-<tr>
-<td width="50%">
-
-**Structured pipelines**
-- RDS CDC → Bronze → Silver → Iceberg Gold
-- Vaquar PVDM + VRP proof
-- Lambda + Step Functions
-- Optional **SDP** / **dbt** export for portable transforms
-
-</td>
-<td width="50%">
-
-**Cognitive pipelines**
-- Media URL → Bedrock agent
-- Epoch / frontier / compensation
-- EKS + Agent MCP
-
-</td>
-</tr>
-</table>
-
----
-
-## Why CogniMesh: what ships in this repo
-
-**Design data products visually. Verify before publish when the Vaquar path is enabled. Operate with lineage, marketplace, and steward workflows on AWS.**
-
-CogniMesh is a **data mesh control plane**: zero-code portal, optional proof-gated writes ([Vaquar Pattern](docs/vaquar-pattern.md)), marketplace, and an **Operations** layer. **v1.0.0** is the platform/SDK release on [Docker (GHCR)](https://github.com/vaquarkhan/CogniMesh/pkgs/container/cognimesh-api), [PyPI](https://pypi.org/project/cognimesh/), and Terraform-not the same version line as [veridata `0.1.x`](https://github.com/vaquarkhan/veridata).
-
-### Design & build (zero code to start)
-
-| You get | What it means |
-|---------|----------------|
-| **Visual pipeline designer** | Drag Source → Transform → Sink on React Flow. No YAML hand-editing required. |
-| **29 ready-made pipeline canvases** | 28 wired examples + blank canvas ([breakdown](#pipeline-pattern-library)) |
-| **AWS-native blocks** | Glue, Kinesis, MSK, DMS, Firehose, Step Functions Parallel/Choice/Map |
-| **SDP + dbt export** | Export `spark-pipelines` or dbt project zips from Design Review; CogniMesh still VRP-gates Iceberg publish |
-| **AI Pipeline Designer** | Describe a pipeline in English → auto-load pattern + blocks + explanation |
-| **Agent Builder** | Bedrock AgentCore canvas: templates, guardrails, KB, tools, manifest export |
-| **AI Agent Generator** | Natural language → agent graph in Agent Builder |
-| **AWS Design Review** | Live security/architecture score before deploy |
-| **DataContract compiler** | Graph → `cognimesh.io/v1` YAML + Step Functions ASL + Vaquar mesh artifacts |
-| **Business rules editor** | DQ rules on transform blocks → Spark SQL expressions |
-| **Undo / redo · toasts · mobile-aware** | Production-grade portal UX |
-
-→ [Pattern catalog](docs/PORTAL_UI.md) · [28 pipeline + 8 agent tutorials](docs/tutorials/README.md) · [SDP + dbt](docs/tutorials/sdp-and-dbt.md) · [Developer customization](docs/developer/README.md)
-
-### Pipeline pattern library
-
-**Patterns are ready-made canvases**, not separate products. You pick one in **Architectures → Use pattern**, adjust in the UI, and optionally export contracts / Terraform later.
-
-| Question | Answer |
-|----------|--------|
-| **What is a pattern?** | A pre-built visual pipeline (React Flow) with AWS blocks labeled (Glue, Kinesis, RDS, Iceberg, Step Functions, Bedrock, etc.). |
-| **Do I need to code?** | **No** to start. Code is optional (Python SDK, custom Spark, Terraform from exports). |
-| **What is in the library?** | **29 pipeline entries:** **28 wired examples** + **blank canvas**. **8 agent tutorials** in Agent Builder are separate (not counted as pipeline patterns). |
-| **What do they cover?** | Data mesh, lake / lakehouse, Kappa & Lambda, streaming, medallion, CDC, finance, healthcare, retail, fraud/DQ, GenAI RAG, IoT, SCD2, feature store, multi-source SFN, **Spark Declarative Pipelines**, **dbt**, and more. |
-| **After you pick one?** | Customize → **AWS Design Review** → compile **DataContract** + Step Functions → optional PVDM/VRP before gold commit (Vaquar path). Optional: export SDP or dbt project zips for portable SQL engines. |
-
-**By category (all in the Architectures tab):**
-
-| Category | What you get (plain English) |
-|----------|------------------------------|
-| **Data Mesh** | Single-domain data product with catalog + Lake Formation share; multi-domain **Customer 360** with parallel domains merging to gold. |
-| **Data Lake** | Classic **raw → curated → consumption** zone layout on S3. |
-| **Lakehouse** | **Iceberg medallion** with ACID gold tables; **Spark Declarative Pipelines (SDP)** medallion export. |
-| **Kappa** | **Stream-only** path: Kinesis → Flink → Iceberg (no batch layer). |
-| **Lambda λ** | **Batch + speed** layers in parallel, merged for serving (e.g. Athena). |
-| **Streaming** | **Kinesis → Firehose → analytics**; **MSK → Glue streaming → lakehouse**. |
-| **ETL / ELT** | **Glue multi-stage factory**; **load-first ELT into Redshift** marts; **dbt silver→gold** (+ PVDM). |
-| **Medallion** | Canonical **bronze → silver → gold** lakehouse stack. |
-| **Structured starters** | **RDS CDC → Iceberg** (Vaquar); **S3 files → Iceberg**; **Kafka → Iceberg**; **MySQL → Redshift**; **multi-source parallel → choice** routing. |
-| **Finance** | **Double-entry payment ledger** with strict audit / SOX-style quality. |
-| **Healthcare** | **FHIR clinical resources → HIPAA-aware gold** tables. |
-| **Retail** | **Clickstream → real-time funnel / dashboard** feeds. |
-| **Cognitive** | **Media URL → Bedrock enrichment → gold**; **documents → RAG knowledge base**. |
-| **Compliance & analytics** | **Fraud scoring** (rules + ML in parallel); **DQ quarantine lane**; **IoT sensor fleet**; **SCD Type 2** customer dimension; **ML feature store** pipeline. |
-| **Blank canvas** | Empty designer when you already know your layout. |
-
-For screenshots and filters, see [Zero-code portal](#zero-code-portal) below. For step-by-step walkthroughs, see **[docs/tutorials/README.md](docs/tutorials/README.md)** (28 pipeline lessons + 8 agent lessons).
-
-### Trust & proof (Vaquar path)
-
-| You get | What it means |
-|---------|----------------|
-| **Integrity gate** | Design-time policy checks before deploy |
-| **PVDM runtime** | Physical → Verify → Durable → Metadata. Catalog commit gated on VRP when enabled. |
-| **VRP verification** | CogniMesh JS engine (`lib/vrp/`, v3). **Not** veridata Rust yet ([POSITIONING](docs/POSITIONING.md)). |
-| **Verdicts** | PASS / FAIL / UNVERIFIED per run (fail-closed; KMS signing when configured) |
-| **IceGuard checkpoints** | Durable rollback on failed commits |
-| **Run History + observability** | VRP badges, drop trends, pass rate, S3 proof/console deep links |
-| **Deploy Vaquar tab** | Full proof panel at deploy time |
-| **Offline VRP verify** | `lib/vrp/verify.js` + `scripts/verify-vrp-proof.js` |
-| **Agent decision attestation** | `lib/vrp/decision-attestation.js` · Agent MCP `/mcp/invoke` |
-
-→ [The Vaquar Pattern](docs/vaquar-pattern.md) · [POSITIONING](docs/POSITIONING.md) · [Top 3 product loop](docs/TOP3_FEATURES.md)
-
-### Deploy & run on AWS
-
-| You get | What it means |
-|---------|----------------|
-| **Deploy from portal** | Integrity gate → catalog register → SFN compile → optional live execution (requires AWS setup, credentials, and modules) |
-| **Live Step Functions status** | Running / Succeeded / Failed with AWS Console links |
-| **Deploy impact analysis** | Blast radius before you confirm |
-| **Deploy approval workflow** | Steward gate when `DEPLOY_APPROVAL_REQUIRED=true` |
-| **Pipeline versioning & rollback** | Snapshots per deploy: diff versions and roll back the canvas |
-| **Import existing assets** | Pull Glue jobs or Step Functions into the canvas |
-| **Agent deploy to Bedrock** | CreateAgent + KB/guardrail association |
-| **Multi-cloud compile targets** | AWS-first with extension points |
-
-### Operations panel (platform ops)
-
-Open **Operations** in the portal header as your control tower after deploy:
-
-| Tab | Capability |
-|-----|------------|
-| **Live ops** | Dashboard of pipelines, status, running jobs |
-| **Versions** | History, side-by-side contract diff, rollback |
-| **Health** | Per-product health scores + SLA subscriptions |
-| **Cost** | Domain cost attribution dashboard |
-| **Columns** | Column-level lineage from canvas schema |
-| **Federated** | Cross-org mesh product catalog |
-| **Billing** | Cross-org usage and rate-card billing |
-| **Audit** | Compliance report in JSON, Markdown, or printable HTML |
-| **Multi-cloud** | Deploy target registry |
-| **Plugins** | Custom source/transform/sink blocks (sandboxed registry) |
-| **Copilot** | Rule-based + optional **Bedrock LLM** ops assistant |
-| **Open spec** | Machine-readable contract spec + public HTML site |
-| **Import** | SFN ARN or Glue job → canvas |
-| **Alerts** | Notification channel config |
-
-**Live data preview:** sample rows from S3, **Athena**, or **JDBC/RDS Data API** on source blocks.
-
-→ [Platform Operations API](docs/PLATFORM_OPS.md)
-
-### Govern & consume (marketplace)
-
-| You get | What it means |
-|---------|----------------|
-| **Data product marketplace** | Producers publish; consumers discover schema + samples |
-| **Request access workflow** | Consumer requests → steward **Approvals** panel |
-| **Lake Formation grants** | SELECT on approve (real AWS or local simulation) |
-| **Lineage catalog** | Medallion graph, schema evolution, freshness badges |
-| **PII & row/column policies** | `piiClassification`, `rowFilters`, `columnMasks` on contracts |
-| **Athena consumer links** | Pre-filled query from product detail |
-
-### Production & platform engineering
-
-| You get | What it means |
-|---------|----------------|
-| **Production Terraform** | VPC, S3 medallion, Cognito (invite-only), Lambda, SFN, EKS, CloudFront |
-| **Platform-ops module** | DynamoDB platform state, Athena workgroup, Bedrock/RDS Data API IAM |
-| **DynamoDB persistence** | Versions, approvals, plugins, billing (`PLATFORM_STORE=dynamodb`) |
-| **Docker images (GHCR)** | `cognimesh-api`, `cognimesh-portal`, `cognimesh-catalog` @ **1.0.0** |
-| **Python SDK (PyPI)** | `pip install cognimesh==1.0.0` for contract validate, health, lineage CLI |
-| **CI + tests** | Unit, portal E2E (Playwright), integration, Terraform validate |
-| **OpenAPI** | `docs/openapi.yaml` + `/schemas/data-contract-v1.schema.json` |
-| **Structured logs · metrics · audit API** | `/health`, `/metrics`, `/api/v1/audit` |
-
-### Cognitive & agentic pipelines
-
-| You get | What it means |
-|---------|----------------|
-| **Bedrock agent transforms** | Agentic blocks with compensation handlers |
-| **Go cognitive runtime** | Epoch, frontier, compensation on EKS |
-| **Bedrock Agent MCP** | Tooling surface for agent workflows |
-| **Media / document cognitive patterns** | URL → agent → enriched Iceberg gold |
-
----
-
-## Table of contents
-
-| Section |
-|---------|
-| [Why CogniMesh: feature list](#why-cognimesh-everything-in-one-place) |
-| [System architecture](#system-architecture) |
-| [Pipeline E2E diagram](docs/PIPELINE_E2E_DIAGRAM.md) |
-| [End-to-end journey](#end-to-end-journey) |
-| [Zero-code portal](#zero-code-portal) · **[Tutorials](docs/tutorials/README.md)** · [Pattern catalog](docs/PORTAL_UI.md) · [Agent Builder](docs/AGENT_BUILDER.md) |
-| [Security](#security-cognito) |
-| [Vaquar Pattern](docs/vaquar-pattern.md) · [Top 3 features](docs/TOP3_FEATURES.md) |
-| [Dual pipeline model](#dual-pipeline-model) |
-| [Marketplace](#marketplace--governance) |
-| [Terraform](#aws-infrastructure-terraform) |
-| [Distribution](#distribution) |
-| [Quick start](#quick-start) |
-| [Documentation](#documentation) |
-
----
-
-## System architecture
-
-Four cooperating planes:
-
-```mermaid
-flowchart TB
-    classDef control fill:#0d9488,stroke:#0f766e,color:#fff
-    classDef engine fill:#2563eb,stroke:#1d4ed8,color:#fff
-    classDef cognitive fill:#7c3aed,stroke:#6d28d9,color:#fff
-    classDef market fill:#d97706,stroke:#b45309,color:#fff
-
-    subgraph CP["① Orchestration Control Plane"]
-        Portal["Zero-Code Portal"]
-        Cognito["Cognito · invite-only"]
-        GW["API Gateway :4000"]
-        Portal --> Cognito & GW
-    end
-
-    subgraph PE["② Pipeline Engine"]
-        Compiler["Contract Compiler"]
-        Gate["Integrity Gate"]
-        SFN["Step Functions"]
-        GW --> Compiler --> Gate --> SFN
-    end
-
-    subgraph CL["③ Cognitive Layer"]
-        RT["EKS Runtime"]
-        Agent["Bedrock · MCP"]
-        SFN -->|"agentic"| RT --> Agent
-    end
-
-    subgraph MG["④ Marketplace"]
-        Cat["Catalog"]
-        LF["Lake Formation"]
-        Cat --> LF
-    end
-
-    SFN --> Cat
-    class Portal,Cognito,GW control
-    class Compiler,Gate,SFN engine
-    class RT,Agent cognitive
-    class Cat,LF market
-```
-
-| Capability | Technology |
-|------------|------------|
-| Zero-code design | React + React Flow |
-| Contracts | `cognimesh.io/v1` DataContract |
-| Structured writes | [Vaquar PVDM](docs/vaquar-pattern.md) |
-| Cognitive writes | Go runtime · epoch / frontier |
-| Security | Cognito (no self-registration) |
-| Infrastructure | Terraform · VPC · S3 · EKS · CloudFront |
-
----
-
-## End-to-end journey
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor User as User
-    participant Portal as Portal
-    participant API as API
-    participant Gate as Integrity Gate
-    participant SFN as SFN Compiler
-    participant Cat as Catalog
-    participant Mkt as Marketplace
-
-    User->>Portal: Drag blocks · Deploy
-    Portal->>API: POST /deploy + JWT
-    API->>API: graphToContract · validate
-    API->>Gate: runIntegrityGate()
-    Gate-->>API: PASS
-    API->>SFN: compileContractSmart()
-  Note over SFN: Vaquar PVDM or cognitive ASL
-    API->>Cat: Register product
-    API-->>Portal: YAML · SFN · Vaquar artifacts
-    Portal->>Mkt: Refresh products
-```
-
----
-
-## Zero-code portal
-
-Visual pipeline designer with a **pattern library** ([29 ready-made canvases](#pipeline-pattern-library)): pick a blueprint, customize in the UI without writing code, then deploy when AWS is configured. Includes AWS service blocks (Glue, Kinesis, MSK, DMS, Firehose), **AI Builder** (describe a pipeline or agent in English), **Agent Builder** (Bedrock AgentCore canvas), live AWS security/architecture review, **SDP / dbt export**, VRP observability, and a consumer marketplace.
-
-→ Full pattern catalog: **[docs/PORTAL_UI.md](docs/PORTAL_UI.md)**  
-→ **Step-by-step tutorials (28 pipelines + 8 agents):** **[docs/tutorials/README.md](docs/tutorials/README.md)**  
-→ **Developer customization (screenshots + code):** **[docs/developer/README.md](docs/developer/README.md)**
-
-### Portal screenshots
-
-<p align="center">
-  <img src="docs/images/cog1-datamesh-canvas.png" alt="CogniMesh portal - Data Mesh Customer 360 canvas, Architectures pattern library, pipeline settings" width="720" />
-  <br /><em>Architectures tab · Multi-domain Data Mesh (Customer 360) · Three AWS accounts · Commerce RDS / Inventory Kafka / CRM S3 → Mesh integrity gate → Iceberg gold</em>
-</p>
-
-<p align="center">
-  <img src="docs/images/cog2-lambda-canvas.png" alt="CogniMesh portal - Lambda architecture batch and speed layers on canvas" width="720" />
-  <br /><em>Lambda (λ) architecture - Parallel batch (S3 → Glue ETL → Iceberg) + speed (Kinesis → Flink → Iceberg) → Merge → Athena serving view</em>
-</p>
-
-<p align="center">
-  <img src="docs/images/portal-agent-builder-full.png" alt="CogniMesh Agent Builder - Bedrock AgentCore drag-drop canvas" width="720" />
-  <br /><em>Agent Builder mode · Templates (customer support, RAG, fraud, steward) · Guardrails · AgentCore manifest export</em>
-</p>
-
-<table>
-<tr>
-<td width="50%">
-
-**Pattern library & architecture filters**
-
-<p><img src="docs/assets/portal-pattern-library.png" alt="Architecture pattern library with Data Mesh, Lakehouse, Kappa filters" width="100%" /></p>
-
-Data Mesh · Data Lake · Lakehouse · Kappa · Lambda λ · Streaming · ETL/ELT
-
-</td>
-<td width="50%">
-
-**AWS Blocks palette**
-
-<p><img src="docs/assets/portal-aws-blocks.png" alt="AWS Blocks - Glue, Kinesis, MSK, ETL enrichment transforms" width="100%" /></p>
-
-Glue ETL/ELT · enrichment · dedupe · CDC merge · stream windows
-
-</td>
-</tr>
-<tr>
-<td width="50%">
-
-**Design canvas overview**
-
-<p><img src="docs/assets/portal-overview.png" alt="CogniMesh portal - canvas with Kappa architecture and AWS Design Review" width="100%" /></p>
-
-AWS Design Review HUD · VRP-ready pipeline
-
-</td>
-<td width="50%">
-
-**AI Builder - pipeline & agent**
-
-<p><img src="docs/images/portal-ai-pipeline-designer.png" alt="AI Pipeline Designer - describe pipeline in English" width="48%" /> <img src="docs/images/portal-ai-agent-generator.png" alt="AI Agent Generator" width="48%" /></p>
-
-Data pipeline (preview plan + natural-language explanation) · AI agent → Agent Builder
-
-</td>
-</tr>
-</table>
-
-Regenerate all UI images: `npm run docs:screenshots` (builds portal, starts API + preview, writes `docs/assets/` and `docs/images/`).
-
-Regenerate the README demo GIFs/MP4s: `npm run docs:demo` (Playwright; install [ffmpeg](https://ffmpeg.org/) for MP4/GIF). Subsets: `DEMO_ONLY=howto` · `DEMO_ONLY=sdp-export,dbt-export,marketplace-proof`.
-
-**Agent Builder:** use feature checkboxes (guardrails, memory, KB, tools) when creating agents - see **[docs/AGENT_BUILDER.md](docs/AGENT_BUILDER.md)**.
-
-<details>
-<summary><strong>All patterns in the UI (click to expand)</strong></summary>
-
-| Category | Patterns |
-|----------|----------|
-| **Data Mesh** | Domain Data Product · Multi-Domain Parallel (Customer 360) |
-| **Data Lake** | Raw / Curated / Consumption zones |
-| **Lakehouse** | Iceberg Medallion · Glue ETL Factory |
-| **Kappa** | Stream-only (Kinesis → Flink → Iceberg) |
-| **Lambda λ** | Batch layer + Speed layer → Athena serving |
-| **Streaming** | Kinesis + Firehose · MSK + Glue streaming |
-| **ETL / ELT** | Glue multi-stage factory · Redshift ELT marts |
-| **Medallion** | Full Bronze → Silver → Gold |
-| **Finance** | Payment ledger (SOX / double-entry) |
-| **Healthcare** | FHIR → HIPAA gold |
-| **Retail** | Clickstream funnel |
-| **Cognitive** | Media Bedrock · GenAI RAG documents |
-| **Compliance** | Fraud parallel · DQ quarantine |
-| **Structured** | Vaquar CDC · Multi-source Parallel → Choice |
-| **Analytics** | IoT fleet · SCD2 · Feature store |
-
-Regenerate automated screenshots: `npm run build --prefix portal && npx playwright install chromium && npm run docs:screenshots` (output: `docs/assets/`). Manual UI captures live in **`docs/images/`**.
-
-</details>
-
-### Blocks → DataContract
-
-| Block | Contract | Examples |
-|-------|----------|----------|
-| Source | `spec.source` | `rds`, `s3`, `kinesis`, `kafka`, `media_url`, `api` |
-| Transform | `spec.transform` | `spark_sql`, `glue_etl`, `agentic` + modes: ETL, ELT, enrichment, dedupe, aggregate, CDC merge |
-| Sink | `spec.target` | `iceberg`, `s3`, `redshift`, `delta`, Athena views |
-| Flow | Step Functions ASL | `parallel`, `choice`, `merge`, `map`, `start` |
-| Governance | Integrity gate | Vaquar PVDM · VRP proof before commit |
-
-→ [Full drag-and-drop guide](docs/drag-drop-pipeline-flow.md)
-
----
-
-## Security (Cognito)
-
-| Control | Setting |
-|---------|---------|
-| Self-registration | **Disabled** |
-| Default admin | Created by Terraform |
-| API | JWT on `/api/v1/pipelines/*` |
-| Local dev | `AUTH_DISABLED=true` |
+## How it works
 
 ```mermaid
 flowchart LR
-    User --> Cognito --> Portal -->|Bearer JWT| API
+  S[Source rows] --> T[Transform]
+  T --> G[VRP gate]
+  G -->|PASS| C[Catalog / Iceberg commit]
+  G -->|FAIL| X[Block publish]
+  C --> M[Marketplace + consumers]
+  M --> V["cognimesh-verify\n(offline)"]
 ```
 
----
+1. Pipeline writes candidate gold (or you run the local demo below).
+2. CogniMesh builds a **Verifiable Reconciliation Proof (VRP)**: multiset hashes over declared identity/content fields, optional KMS/Ed25519 signature, snapshot pin.
+3. On **FAIL / UNVERIFIED**, metadata commit is blocked (fail-closed on the Vaquar / PVDM path).
+4. Consumers verify the proof **without** CogniMesh infra: `npx cognimesh-verify proof.json`.
 
-## Vaquar Pattern
-
-CogniMesh implements **[The Vaquar Pattern](docs/vaquar-pattern.md)** (inventor: **Vaquar Khan**). When the Vaquar path is enabled, catalog commit follows **`commit_metadata ⟹ VRP = PASS`**. Verification runs in CogniMesh JS today ([POSITIONING](docs/POSITIONING.md)).
-
-**Proof-Gated Serverless Lakehouse Publication (PVDM)** - Physical → Verify → Durable → Metadata.
-
-### Read the paper & reference gate
-
-| | |
-|---|---|
-| **arXiv preprint** | [arXiv:2608.14643](https://arxiv.org/abs/2608.14643)  - *Proof-Gated Publication: Verify-Before-Commit Content Integrity for Serverless Data-Mesh Lakehouses* |
-| **Reference gate + adversarial suite** | [github.com/vaquarkhan/Proof-gated-publication-PVDM](https://github.com/vaquarkhan/Proof-gated-publication-PVDM) (stdlib Python gate, 30/30 suite, Spark/Iceberg benchmarks) |
-| **This repo** | CogniMesh control plane + JS VRP gate (portal, contracts, marketplace). Python IceGuard mapping is a separate package. |
-
-| | |
-|---|---|
-| **Method name** | Vaquar Pattern |
-| **Operational acronym** | PVDM (Physical · Verify · Durable · Metadata) |
-| **Inventor** | Vaquar Khan |
-| **Copyright** | © 2024-2026 Vaquar Khan  - proprietary method (name + invariants) |
-| **Status** | Proprietary method · open reference implementation (Apache-2.0) |
-| **Cite** | [arXiv:2608.14643](https://arxiv.org/abs/2608.14643) · [docs/vaquar-pattern.md](docs/vaquar-pattern.md) · [NOTICE](NOTICE) |
-
-```mermaid
-flowchart LR
-    P["Physical"] --> V["Verify"] --> D["Durable"] --> M["Metadata"]
-    V -.->|FAIL| X["Blocked"]
-    style P fill:#1e40af,color:#fff
-    style V fill:#0d9488,color:#fff
-    style D fill:#7c3aed,color:#fff
-    style M fill:#d97706,color:#fff
-```
-
-| Block | Status |
-|-------|--------|
-| Integrity gate · SparkRules · IceGuard · VRP · Durable SFN · Metadata commit | Done |
-
-**Read the full pattern spec:** [docs/vaquar-pattern.md](docs/vaquar-pattern.md)
+The publish path is named the [Vaquar Pattern](docs/vaquar-pattern.md) (PVDM: Physical → Verify → Durable → Metadata). Paper: [arXiv:2608.14643](https://arxiv.org/abs/2608.14643).
 
 ---
 
-## Dual pipeline model
+## 60-second quickstart (produce + verify a proof)
 
-```mermaid
-flowchart TB
-    DC["DataContract.yaml"]
-    DC --> Structured["Structured · Vaquar PVDM"]
-    DC --> Cognitive["Cognitive · EKS + Bedrock"]
-
-    style Structured fill:#1e3a5f,color:#fff
-    style Cognitive fill:#4c1d95,color:#fff
-```
-
-| Type | Example | Runtime |
-|------|---------|---------|
-| Structured CDC → Iceberg | [`structured-cdc-pipeline.yaml`](contracts/examples/structured-cdc-pipeline.yaml) | PVDM Lambda + SFN |
-| Cognitive media → Parquet | [`cognitive-media-pipeline.yaml`](contracts/examples/cognitive-media-pipeline.yaml) | [`cognitive-runtime/`](services/cognitive-runtime/) |
-
----
-
-## Marketplace & governance
-
-Deploy → integrity gate **PASS** → catalog registration → Lake Formation policies → marketplace UI.
-
-Governance fields: `piiClassification`, `rowFilters`, `columnMasks`.
-
----
-
-## AWS infrastructure (Terraform)
-
-```mermaid
-flowchart TB
-    Net["VPC · subnets"] --> Compute["Cognito · Lambda · SFN · EKS"]
-    Store["S3 medallion · checkpoints · proofs"] --> Compute
-    Compute --> Data["DynamoDB · Glue · Lake Formation"]
-```
-
-| Module | Purpose |
-|--------|---------|
-| `cognito` | Admin-only auth |
-| `storage` | Bronze / silver / gold / checkpoint / proof |
-| `lambda` | Integrity gate + domain writer |
-| `orchestration` | Step Functions |
-| `eks` | Cognitive runtime |
-| `portal-cdn` | CloudFront + S3 portal |
-| `platform-ops` | DynamoDB state · Athena · Bedrock/RDS IAM |
-
-→ [Terraform guide](infra/terraform/README.md)
-
----
-
-## Distribution
-
-Install and run CogniMesh via Docker, npm, PyPI, Maven, or Go. Full details: **[docs/DISTRIBUTION.md](docs/DISTRIBUTION.md)**.
-
-| Channel | Install | Use case |
-|---------|---------|----------|
-| **Docker** | [`docker compose up --build`](docs/DISTRIBUTION.md#docker-recommended-for-local-full-stack) · [pull from GHCR](https://github.com/vaquarkhan/CogniMesh/pkgs/container/cognimesh-api) | Full stack - no local Java/Maven |
-| **npm** | `npm install && npm start` | Monorepo dev - API, portal, contract compiler |
-| **PyPI** | [`pip install cognimesh`](https://pypi.org/project/cognimesh/) | Python SDK + CLI for contracts & API |
-| **Maven** | `cd services/catalog && mvn spring-boot:run` | Marketplace catalog service |
-| **Go** | `cd services/cognitive-runtime && go run ./cmd/controller` | Cognitive epoch runtime |
-
-### Docker
+Requires Node 20+.
 
 ```bash
-docker compose up --build
-# Portal :3000 · API :4000 · Catalog :8080
-```
-
-| Image | Tag |
-|-------|-----|
-| [`ghcr.io/vaquarkhan/cognimesh-api`](https://github.com/vaquarkhan/CogniMesh/pkgs/container/cognimesh-api) | `1.0.0` |
-| [`ghcr.io/vaquarkhan/cognimesh-portal`](https://github.com/vaquarkhan/CogniMesh/pkgs/container/cognimesh-portal) | `1.0.0` |
-| [`ghcr.io/vaquarkhan/cognimesh-catalog`](https://github.com/vaquarkhan/CogniMesh/pkgs/container/cognimesh-catalog) | `1.0.0` |
-
-### PyPI
-
-```bash
-pip install cognimesh==1.0.0
-cognimesh validate contracts/examples/structured-cdc-pipeline.yaml
-cognimesh health --api http://localhost:4000
-```
-
-```python
-from cognimesh import CogniMeshClient, load_contract
-client = CogniMeshClient("http://localhost:4000")
-print(client.health())
-```
-
-Related Vaquar package: [`serverless-data-mesh`](https://pypi.org/project/serverless-data-mesh/) (`pip install serverless-data-mesh`).
-
----
-
-## Quick start
-
-```bash
-git clone git@github.com:vaquarkhan/CogniMesh.git
+git clone https://github.com/vaquarkhan/CogniMesh.git
 cd CogniMesh
-npm install
-cp .env.example .env
-npm start
+npm ci
+npm run demo:proof
+npx cognimesh-verify .demo-proof.json
+```
+
+Expected shape:
+
+```json
+{
+  "ok": true,
+  "verdict": "PASS",
+  "proof_id": "…",
+  "source_hash": "d576c2c931ee0d73…",
+  "sink_hash": "d576c2c931ee0d73…",
+  "verify": "PASS — source and sink hashes match on declared fields"
+}
+```
+
+```text
+npx cognimesh-verify .demo-proof.json
+→ { "valid": true, "verdict": "VERIFIED", "proof_id": "…", … }
+```
+
+**Before / after (what the proof claims):**
+
+| | Source | Sink (gold) | Result |
+|---|--------|-------------|--------|
+| Declared fields `id`, `amount` | rows hashed | read-back hashed | equal → **PASS**, catalog may commit |
+| Tamper sink `amount` | unchanged | hash changes | **FAIL**, commit blocked |
+
+Tiny excerpt of a PASS proof (full file is `.demo-proof.json`):
+
+```json
+{
+  "proof_version": "3",
+  "verdict": "PASS",
+  "multiset": {
+    "identity_fields": ["id"],
+    "content_fields": ["id", "amount"],
+    "source_hash": "d576c2c931ee0d73…",
+    "sink_hash": "d576c2c931ee0d73…",
+    "sink_materialization": "read_back"
+  }
+}
+```
+
+Signed proofs (when KMS/dev signing is on):
+
+```bash
+npx cognimesh-verify .demo-proof.json --require-signature --public-key steward.pem
+# or fetch steward signing keys:
+# npx cognimesh-verify proof.json --key-url http://localhost:4000/.well-known/cognimesh-steward-keys.json
+```
+
+---
+
+## Why it is different
+
+| Tool | Role | Gap vs CogniMesh |
+|------|------|------------------|
+| **AWS DataZone / SageMaker Unified Studio** | Catalog, projects, LF access | No cryptographic “source == gold before publish” gate |
+| **DataHub / OpenMetadata** | Lineage & discovery | Describe lineage; do not verify content equality |
+| **dbt tests / Great Expectations / Soda** | In-pipeline assertions | Same trust domain as the writer; no independent signed read-back |
+| **Unity Catalog / Horizon** | Warehouse governance | Strong ops; not a cross-engine signed reconcile proof |
+
+**One line:** use CogniMesh when an auditor or downstream consumer must be able to prove published gold was not silently altered on declared fields — then verify that claim offline.
+
+---
+
+## What CogniMesh is not
+
+- **Not** a replacement for DataZone, Glue Catalog, Unity Catalog, or OpenMetadata — it is the **proof layer** that can sit beside them.
+- **Not** a replacement for dbt or Spark — use [SDP / dbt export](docs/tutorials/sdp-and-dbt.md) for portable transforms; **Iceberg publish still requires VRP PASS** on the Vaquar path.
+- **Not** the Python [IceGuard / veridata](https://github.com/vaquarkhan/veridata) package — this repo is the control plane + **JS VRP gate** ([POSITIONING](docs/POSITIONING.md)).
+- **Not** “deploy to AWS by cloning” — live Step Functions / LF / KMS need Terraform + credentials; local demo above needs none of that.
+
+---
+
+## Status and scope (honest)
+
+| Area | Today | Notes |
+|------|--------|--------|
+| **VRP generate + verify** | Ships | `lib/vrp/`, `npm run demo:proof`, `cognimesh-verify` |
+| **Fail-closed publish (PVDM path)** | Ships | Catalog commit gated on PASS when enabled |
+| **Offline verifier + steward keys** | Ships | [VERIFY.md](docs/VERIFY.md) · `/.well-known/cognimesh-steward-keys.json` |
+| **Portal + marketplace** | Ships | Trust-ranked search, subscription tokens on serve, schema-diff |
+| **Lake Formation grant on approve** | Opt-in | Live when `LAKE_FORMATION_GRANT_ENABLED=true`; otherwise **simulated** |
+| **AWS deploy / Agent Bedrock** | Opt-in | Simulated locally unless deploy flags + IAM are set |
+| **SDP / dbt export** | Ships | Observational zips — **not** a publish substitute |
+| **Production readiness** | Partial | Strong VRP tests; agent deploy / multi-cloud / billing are shallow — do not treat as the product |
+
+Roadmap and claims-vs-reality: [docs/POSITIONING.md](docs/POSITIONING.md) · [CHANGELOG](CHANGELOG.md).
+
+---
+
+## Run the portal (optional)
+
+```bash
+cp .env.example .env   # AUTH_DISABLED=true by default
+npm run start:dev      # or: npm run dev:minimal
 ```
 
 | Service | URL |
 |---------|-----|
 | Portal | http://localhost:3000 |
 | API | http://localhost:4000 |
-| Catalog | http://localhost:8080 |
 
-**Workflow:** Sign in → drag Source → Transform → Sink → **Deploy Pipeline** → view YAML, Step Functions, Vaquar mesh artifacts, marketplace.
+UI walkthrough: [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md). Full stack Compose: `npm run docker:up` → [LOCAL_DEV](docs/LOCAL_DEV.md).
 
-### Tests
+---
 
-```bash
-npm run test:unit         # 90+ unit tests (platform, API, compiler, gate, VRP security)
-npm run test:vrp-security # VRP fail-closed, JCS, KMS signing, offline verify, decision attestation
-npm run test:portal-e2e   # Playwright: Operations panel + approvals
-npm test                  # offline integration (no servers)
-npm run dev:api           # API only: embedded catalog, no Java
-npm run dev:minimal       # API + portal (no catalog)
-npm run test:api          # SKIPs marketplace when catalog offline
-```
+## Deep walkthroughs (prefer these over feature counts)
 
-### Docker Compose (full stack, no local Java/Maven)
+1. **Proof gate** — [Vaquar Pattern](docs/vaquar-pattern.md) · [proof-gated marketplace](docs/tutorials/proof-gated-marketplace.md) · [VERIFY.md](docs/VERIFY.md)
+2. **Export beside dbt/Spark** — [SDP + dbt](docs/tutorials/sdp-and-dbt.md)
+3. **Consume with trust** — [Marketplace API](docs/MARKETPLACE.md) (rubric, tokens, schema-diff)
 
-```bash
-npm run docker:up
-```
-
-→ [docs/LOCAL_DEV.md](docs/LOCAL_DEV.md)
-
-### AWS production
-
-```bash
-npm run package:lambda
-npm run package:domain-writer
-cd infra/terraform/environments/prod
-cp terraform.tfvars.example terraform.tfvars
-terraform init && terraform apply
-```
+Demos, personas, and pattern catalogs live under docs — not here: [docs/DEMOS.md](docs/DEMOS.md) · [docs/tutorials/README.md](docs/tutorials/README.md).
 
 ---
 
 ## Repository layout
 
 ```
-CogniMesh/
-├── portal/                 # React + React Flow SPA
-├── services/
-│   ├── api-gateway/        # JWT · preview · deploy
-│   ├── catalog/            # Marketplace (Spring Boot)
-│   ├── pipeline-engine/    # SFN compiler
-│   ├── pvdm-runtime/       # Vaquar PVDM (IceGuard · VRP)
-│   ├── cognitive-runtime/  # Go · epoch / frontier
-│   ├── agent-mcp/          # Bedrock MCP
-│   └── lambda/             # Integrity gate · domain writer
-├── lib/
-│   ├── vaquar/             # contract → mesh · PVDM SFN
-│   ├── contract-builder/   # Graph → deploy orchestration
-│   ├── integrity-gate/     # Design-time rules
-│   ├── vrp/                # VRP proofs · JCS · KMS signing
-│   └── platform/           # Operations APIs · store · copilot · plugins
-├── docs/
-│   └── vaquar-pattern.md   # The Vaquar Pattern (author: Vaquarkhan)
-├── infra/terraform/          # Production IaC
-├── contracts/examples/     # Sample pipelines
-└── rules/                    # Integrity gate policies
+portal/                 React canvas (pipelines + agents)
+services/api-gateway/   HTTP API · marketplace · gateway/serve
+services/pvdm-runtime/  PVDM workload · commit gate
+lib/vrp/                VRP generate / verify / gateway / tokens
+bin/cognimesh-verify.js Offline verifier CLI
+infra/terraform/        AWS modules (optional)
+docs/                   Positioning, FAQ, tutorials, VERIFY
 ```
 
 ---
 
-## Documentation
+## Docs
 
-| Document | Description |
-|----------|-------------|
-| **[CONTRIBUTING.md](CONTRIBUTING.md)** | How to contribute · local setup · tests |
-| **[docs/POSITIONING.md](docs/POSITIONING.md)** | **Claims vs reality** · veridata relationship · what NOT to claim |
-| **[docs/vaquar-pattern.md](docs/vaquar-pattern.md)** | **The Vaquar Pattern** · PVDM · VRP · paper ([arXiv:2608.14643](https://arxiv.org/abs/2608.14643)) · data examples |
-| **[NOTICE](NOTICE)** | PVDM method attribution · cite the paper and reference gate |
-| **[docs/developer/README.md](docs/developer/README.md)** | **Developer customization hub** - 21 UI screenshots · pipelines · agents · code |
-| **[docs/tutorials/README.md](docs/tutorials/README.md)** | Tutorial hub - one guide per architecture & agent |
-| [docs/AGENT_BUILDER.md](docs/AGENT_BUILDER.md) | Agent Builder · feature checkboxes · manifest export |
-| [docs/PORTAL_UI.md](docs/PORTAL_UI.md) | Portal patterns · screenshots · AI & Agent Builder |
-| [docs/PORTAL_DEV.md](docs/PORTAL_DEV.md) | Portal developer guide |
-| [docs/drag-drop-pipeline-flow.md](docs/drag-drop-pipeline-flow.md) | Portal → deploy E2E |
+| Doc | Purpose |
+|-----|---------|
+| [docs/README.md](docs/README.md) | Documentation map |
+| [docs/POSITIONING.md](docs/POSITIONING.md) | Scope, ecosystem, what not to claim |
+| [docs/FAQ.md](docs/FAQ.md) | PASS/FAIL, install, ops |
+| [docs/VERIFY.md](docs/VERIFY.md) | Standalone verify + key distribution |
+| [docs/MARKETPLACE.md](docs/MARKETPLACE.md) | Discovery API + trust rubric |
 | [docs/architecture.md](docs/architecture.md) | Architecture deep-dive |
-| [docs/data-contract-spec.md](docs/data-contract-spec.md) | DataContract YAML spec |
-| [docs/LINEAGE_CATALOG.md](docs/LINEAGE_CATALOG.md) | Lineage catalog · schema evolution |
-| [docs/PLATFORM_OPS.md](docs/PLATFORM_OPS.md) | Operations API reference |
-| [docs/PIPELINE_E2E_DIAGRAM.md](docs/PIPELINE_E2E_DIAGRAM.md) | **AWS E2E diagram** (draw.io) · all pipelines |
-| [docs/DISTRIBUTION.md](docs/DISTRIBUTION.md) | Docker · npm · PyPI · Maven · Go |
+| [infra/terraform/README.md](infra/terraform/README.md) | AWS deploy |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Local setup & tests |
+| [SECURITY.md](SECURITY.md) | Security reporting |
 
 ---
 
 ## License
 
-Proprietary - see [LICENSE](LICENSE). PVDM method © 2024-2026 Vaquar Khan  - see [NOTICE](NOTICE). Cite [arXiv:2608.14643](https://arxiv.org/abs/2608.14643).
-
-Security: [SECURITY.md](SECURITY.md) · Changelog: [CHANGELOG.md](CHANGELOG.md)
-
-<p align="center">
-  <sub>Domain teams own the pipeline design. The mesh proves correctness before publication.</sub>
-</p>
+Proprietary — see [LICENSE](LICENSE). Method attribution: [NOTICE](NOTICE). Cite [arXiv:2608.14643](https://arxiv.org/abs/2608.14643).
