@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Marketplace high-value**: signed subscription tokens, Lake Formation grant on approve (opt-in live / simulate), schema/contract diff, SLA breach webhooks (`?notify=true`)
 - **Proof trust network**: `cognimesh-verify` CLI (`bin/`), steward key `.well-known` registry, published trust-score rubric, subscription token enforcement on gateway/serve, stricter schema-diff, featured SLA demotion; [docs/VERIFY.md](docs/VERIFY.md)
 - **README rewrite**: technical-first front door (~proof claim + Mermaid + `npm run demo:proof`); demos/personas moved to [docs/DEMOS.md](docs/DEMOS.md)
+- **Regression coverage**: trust-network suite (conformance mid-window, featured freshness, subscription env gate, demo:proof, rubric B→A); fix `verify:conformance` wall-clock expiry rot; long-TTL regenerated fixtures
 - Tutorial: [docs/tutorials/sdp-and-dbt.md](docs/tutorials/sdp-and-dbt.md)
 
 ### Added - `pvdm-architecture-review-2026-07-21` branch

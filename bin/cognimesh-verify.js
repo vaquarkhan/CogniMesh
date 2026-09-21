@@ -22,6 +22,7 @@ Options:
   --public-key <path.pem>   Steward/producer public key PEM
   --key-url <url>           Fetch key from steward registry / .well-known JSON
   --key-id <id>             Prefer this keyId when using --key-url
+  --at <iso>                Evaluate validity window at this timestamp (fixture demos)
   --require-signature       Fail if proof has no signature
   --json                    Print full JSON result
   -h, --help                Show help
@@ -76,6 +77,10 @@ async function main() {
       process.exit(1);
     }
     options.publicKeyPem = fetched.publicKeyPem;
+  }
+
+  if (flags.at) {
+    options.now = flags.at;
   }
 
   const result = verifyVrpProof(proof, options);

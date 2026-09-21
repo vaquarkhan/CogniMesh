@@ -18,6 +18,8 @@ async function main() {
     sinkFileDigest: { sha256: "fixture", row_count: "1" },
     icebergSnapshotId: "1001",
     sign: false,
+    // Long TTL so raw CLI demos stay usable; conformance runner still pins now mid-window.
+    ttlSec: 86400 * 365 * 10,
   });
   const identityTampered = structuredClone(identityPass.proof);
   identityTampered.multiset.sink_hash = "0000000000000000000000000000000000000000000000000000000000000000";
