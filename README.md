@@ -6,13 +6,33 @@
 
 **CogniMesh attaches a cryptographically checkable proof that published gold data matches its source on declared fields, and blocks the catalog commit when it does not.**
 
-It is a proof gate for lakehouse pipelines (portal + API + AWS wiring optional). It is not a DataZone/dbt replacement — see [What this is not](#what-cognimesh-is-not).
+It is a proof gate for lakehouse pipelines (portal + API + AWS wiring optional). It is not a catalog or dbt replacement — see [What this is not](#what-cognimesh-is-not).
 
-[Watch 2-min demo](docs/assets/cognimesh-howto-demo.mp4) · [Docs map](docs/README.md) · [Positioning](docs/POSITIONING.md) · [VERIFY.md](docs/VERIFY.md)
+<p align="center">
+  <img src="docs/assets/cognimesh-e2e-architecture.png" alt="CogniMesh end-to-end architecture: control plane, pipeline engine, VRP verify, marketplace" width="920" />
+</p>
+
+<p align="center">
+  <a href="docs/assets/cognimesh-howto-demo.mp4"><img src="docs/assets/cognimesh-howto-demo-poster.png" alt="Watch the 2-minute how-it-works demo" width="560" /></a>
+  <br />
+  <a href="docs/assets/cognimesh-howto-demo.mp4"><strong>Watch 2-min demo</strong></a>
+  ·
+  <a href="docs/README.md">Docs map</a>
+  ·
+  <a href="docs/POSITIONING.md">Positioning</a>
+  ·
+  <a href="docs/VERIFY.md">VERIFY.md</a>
+  ·
+  <a href="docs/DEMOS.md">All demos</a>
+</p>
 
 ---
 
 ## How it works
+
+<p align="center">
+  <img src="docs/assets/cognimesh-aws-pvdm-flow.png" alt="AWS PVDM path: portal through integrity gate, VRP seal, Iceberg catalog, Lake Formation, marketplace" width="920" />
+</p>
 
 ```mermaid
 flowchart LR
@@ -100,7 +120,6 @@ npx cognimesh-verify .demo-proof.json --require-signature --public-key steward.p
 
 | Tool | Role | Gap vs CogniMesh |
 |------|------|------------------|
-| **AWS DataZone / SageMaker Unified Studio** | Catalog, projects, LF access | No cryptographic “source == gold before publish” gate |
 | **DataHub / OpenMetadata** | Lineage & discovery | Describe lineage; do not verify content equality |
 | **dbt tests / Great Expectations / Soda** | In-pipeline assertions | Same trust domain as the writer; no independent signed read-back |
 | **Unity Catalog / Horizon** | Warehouse governance | Strong ops; not a cross-engine signed reconcile proof |
@@ -111,7 +130,7 @@ npx cognimesh-verify .demo-proof.json --require-signature --public-key steward.p
 
 ## What CogniMesh is not
 
-- **Not** a replacement for DataZone, Glue Catalog, Unity Catalog, or OpenMetadata — it is the **proof layer** that can sit beside them.
+- **Not** a replacement for Glue Catalog, Unity Catalog, or OpenMetadata — it is the **proof layer** that can sit beside them.
 - **Not** a replacement for dbt or Spark — use [SDP / dbt export](docs/tutorials/sdp-and-dbt.md) for portable transforms; **Iceberg publish still requires VRP PASS** on the Vaquar path.
 - **Not** the Python [IceGuard / veridata](https://github.com/vaquarkhan/veridata) package — this repo is the control plane + **JS VRP gate** ([POSITIONING](docs/POSITIONING.md)).
 - **Not** “deploy to AWS by cloning” — live Step Functions / LF / KMS need Terraform + credentials; local demo above needs none of that.
@@ -137,6 +156,10 @@ Roadmap and claims-vs-reality: [docs/POSITIONING.md](docs/POSITIONING.md) · [CH
 
 ## Run the portal (optional)
 
+<p align="center">
+  <img src="docs/assets/portal-overview.png" alt="CogniMesh portal: architecture patterns, canvas with VRP gate, AWS Design Review" width="920" />
+</p>
+
 ```bash
 cp .env.example .env   # AUTH_DISABLED=true by default
 npm run start:dev      # or: npm run dev:minimal
@@ -153,7 +176,7 @@ UI walkthrough: [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md). Full stack C
 
 ## Deep walkthroughs (prefer these over feature counts)
 
-1. **Proof gate** — [Vaquar Pattern](docs/vaquar-pattern.md) · [proof-gated marketplace](docs/tutorials/proof-gated-marketplace.md) · [VERIFY.md](docs/VERIFY.md)
+1. **Proof gate** — [Vaquar Pattern](docs/vaquar-pattern.md) · [E2E architecture](docs/E2E_ARCHITECTURE.md) · [VERIFY.md](docs/VERIFY.md)
 2. **Export beside dbt/Spark** — [SDP + dbt](docs/tutorials/sdp-and-dbt.md)
 3. **Consume with trust** — [Marketplace API](docs/MARKETPLACE.md) (rubric, tokens, schema-diff)
 
