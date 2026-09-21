@@ -6,7 +6,9 @@ Start here when you need the right doc fast. Prefer these paths over hunting the
 
 | I want to… | Go here |
 |------------|---------|
+| **Understand the product in 90 seconds** | **[Root README](../README.md)** (proof claim → diagram → `npm run demo:proof`) |
 | **Evaluate the product** | [POSITIONING](POSITIONING.md) · [FAQ](FAQ.md) · [Top 3 features](TOP3_FEATURES.md) |
+| **Watch UI demos / pick an audience guide** | [DEMOS.md](DEMOS.md) |
 | **Run locally in 5 minutes** | [GETTING_STARTED](GETTING_STARTED.md) · [LOCAL_DEV](LOCAL_DEV.md) |
 | **Walk the UI with captions** | [Tutorials hub](tutorials/README.md) · [How-to video](assets/cognimesh-howto-demo.mp4) |
 | **Export SDP or dbt** | [SDP + dbt tutorial](tutorials/sdp-and-dbt.md) · [videos](tutorials/sdp-and-dbt.md#watch-captioned-ui-demos) |
