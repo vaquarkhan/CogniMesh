@@ -4,7 +4,7 @@ Product scope for evaluators, product owners, and architects: what CogniMesh del
 
 **One-sentence reason to use CogniMesh:** When you must prove — to an auditor, regulator, or downstream consumer — that published gold was not silently altered from its source, and no catalog on the market does that.
 
-**Positioning:** the **proof-gate for your lakehouse** (companion to DataZone / Glue / Databricks / dbt) — not another head-on catalog competitor. Cryptographically verify source⇄gold before publish; consumers verify offline with `cognimesh-verify` without CogniMesh infra.
+**Positioning:** the **proof-gate for your lakehouse** (companion to Glue / Databricks / dbt) — not another head-on catalog competitor. Cryptographically verify source⇄gold before publish; consumers verify offline with `cognimesh-verify` without CogniMesh infra.
 
 ---
 

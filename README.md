@@ -6,7 +6,7 @@
 
 **CogniMesh attaches a cryptographically checkable proof that published gold data matches its source on declared fields, and blocks the catalog commit when it does not.**
 
-It is a proof gate for lakehouse pipelines (portal + API + AWS wiring optional). It is not a DataZone/dbt replacement — see [What this is not](#what-cognimesh-is-not).
+It is a proof gate for lakehouse pipelines (portal + API + AWS wiring optional). It is not a catalog or dbt replacement — see [What this is not](#what-cognimesh-is-not).
 
 [Watch 2-min demo](docs/assets/cognimesh-howto-demo.mp4) · [Docs map](docs/README.md) · [Positioning](docs/POSITIONING.md) · [VERIFY.md](docs/VERIFY.md)
 
@@ -100,7 +100,6 @@ npx cognimesh-verify .demo-proof.json --require-signature --public-key steward.p
 
 | Tool | Role | Gap vs CogniMesh |
 |------|------|------------------|
-| **AWS DataZone / SageMaker Unified Studio** | Catalog, projects, LF access | No cryptographic “source == gold before publish” gate |
 | **DataHub / OpenMetadata** | Lineage & discovery | Describe lineage; do not verify content equality |
 | **dbt tests / Great Expectations / Soda** | In-pipeline assertions | Same trust domain as the writer; no independent signed read-back |
 | **Unity Catalog / Horizon** | Warehouse governance | Strong ops; not a cross-engine signed reconcile proof |
@@ -111,7 +110,7 @@ npx cognimesh-verify .demo-proof.json --require-signature --public-key steward.p
 
 ## What CogniMesh is not
 
-- **Not** a replacement for DataZone, Glue Catalog, Unity Catalog, or OpenMetadata — it is the **proof layer** that can sit beside them.
+- **Not** a replacement for Glue Catalog, Unity Catalog, or OpenMetadata — it is the **proof layer** that can sit beside them.
 - **Not** a replacement for dbt or Spark — use [SDP / dbt export](docs/tutorials/sdp-and-dbt.md) for portable transforms; **Iceberg publish still requires VRP PASS** on the Vaquar path.
 - **Not** the Python [IceGuard / veridata](https://github.com/vaquarkhan/veridata) package — this repo is the control plane + **JS VRP gate** ([POSITIONING](docs/POSITIONING.md)).
 - **Not** “deploy to AWS by cloning” — live Step Functions / LF / KMS need Terraform + credentials; local demo above needs none of that.
