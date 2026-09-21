@@ -9,7 +9,7 @@ How developers add patterns, agents, blocks, and API behavior in the CogniMesh r
 ## Repository map
 
 ```
-atomix/
+cognimesh/
 ├── portal/src/
 │   ├── lib/patterns/          # Pipeline pattern graphs
 │   ├── lib/agent-templates.js # AgentCore templates
@@ -18,7 +18,9 @@ atomix/
 │   └── components/            # React UI
 ├── lib/
 │   ├── contract-builder/      # Graph → DataContract.yaml
+│   ├── export/                # SDP + dbt project zip exporters
 │   ├── integrity-gate/        # PVDM / rules engine
+│   ├── vrp/                   # JS VRP gate, proof verify/diff/SLA
 │   └── ai-pipeline-designer.js
 ├── services/
 │   ├── api-gateway/           # REST API for portal
@@ -26,6 +28,7 @@ atomix/
 │   ├── catalog/               # Marketplace (Java)
 │   └── agent-mcp/             # MCP for agents
 ├── infra/terraform/           # AWS modules
+├── fixtures/vrp-conformance/  # Known-good / tampered proofs
 └── docs/tutorials/            # Auto-generated tutorials
 ```
 
@@ -149,12 +152,17 @@ Each block needs `category`, `type`, `label`, and `defaults` (including `blockTy
 | `POST /api/v1/pipelines/deploy` | Preview + compile + catalog |
 | `POST /api/v1/pipelines/design-review` | AWS Well-Architected scan |
 | `POST /api/v1/pipelines/ai-design` | Server-side NL matching (optional) |
+| `POST /api/v1/pipelines/export/spark-declarative` | Zip: `spark-pipeline.yml` + layer SQL |
+| `POST /api/v1/pipelines/export/dbt` | Zip: dbt project (models + tests) |
+| `POST /api/v1/proofs/verify` | Offline-style VRP verify |
+| `POST /api/v1/proofs/diff` | Diff two proof envelopes |
 
 **Customize contract output:** `lib/contract-builder/graph-to-contract.js`  
+**Customize SDP / dbt export:** `lib/export/`  
 **Customize validation:** `lib/integrity-gate/` + `schemas/data-contract-v1.schema.json`  
 **Customize ASL:** `services/pipeline-engine/compile.js`
 
-Add routes in `services/api-gateway/server.js`.
+Add routes in `services/api-gateway/server.js`. Examples: [../examples/README.md](../examples/README.md).
 
 ---
 
@@ -188,9 +196,10 @@ See [infra/terraform/README.md](../../infra/terraform/README.md).
 | Command | Output |
 |---------|--------|
 | `npm run docs:tutorials` | `docs/tutorials/pipelines/*.md` + `agents/*.md` + index |
+| `npm run docs:demo` | Captioned UI videos under `docs/assets/` |
 | `npm run docs:screenshots` | `docs/images/`, `docs/images/dev/`, `docs/assets/` |
 
-After UI or catalog changes, run both so developer guides stay in sync.
+After UI or catalog changes, run tutorials + demos so developer guides stay in sync. Docs map: [../README.md](../README.md).
 
 ---
 
@@ -205,8 +214,10 @@ npm run test:integrity-gate  # Rules engine
 
 ---
 
-## See also
+## Related documentation
 
+- [Documentation map](../README.md)
 - [data-contract-spec.md](../data-contract-spec.md)
 - [PORTAL_DEV.md](../PORTAL_DEV.md)
 - [TROUBLESHOOTING.md](../TROUBLESHOOTING.md)
+- [examples/README.md](../examples/README.md)

@@ -5,7 +5,7 @@ Invariant: commit_metadata ⟹ VRP = PASS
 Method name          Vaquar Pattern
 Operational acronym  PVDM (Physical · Verify · Durable · Metadata)
 Inventor             Vaquar Khan
-Copyright            © 2024–2026 Vaquar Khan — proprietary method (name + invariants)
+Copyright            © 2024-2026 Vaquar Khan  - proprietary method (name + invariants)
 Status               Proprietary method · open reference implementation (Apache-2.0)
 Cite                 arXiv:2608.14643 · docs/vaquar-pattern.md · NOTICE
 Manuscript           CC BY 4.0
@@ -13,7 +13,7 @@ Manuscript           CC BY 4.0
 Read the paper & reference gate
 
   arXiv preprint
-    arXiv:2608.14643 — Proof-Gated Publication: Verify-Before-Commit Content
+    arXiv:2608.14643  - Proof-Gated Publication: Verify-Before-Commit Content
     Integrity for Serverless Data-Mesh Lakehouses
     https://arxiv.org/abs/2608.14643
 

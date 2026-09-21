@@ -96,11 +96,13 @@ export default function StewardApprovalsPanel({ token, refreshKey, onCatalogRefr
                 className="deploy-btn compact"
                 onClick={async () => {
                   const { ok, data } = await approveAccessRequest({ token, requestId: r.id });
-                  setMsg(
-                    ok
-                      ? `Approved ${r.productName} - CogniMesh access only (${data.record?.lakeFormationGrant?.note || "LF grant not implemented"})`
-                      : data.error
-                  );
+                  const lf = data.record?.lakeFormationGrant;
+                  const lfNote = lf?.simulated
+                    ? `LF simulated SELECT on ${lf.database || "?"}.${lf.table || "?"}`
+                    : lf?.granted
+                      ? `LF granted ${lf.permission} on ${lf.database}.${lf.table}`
+                      : lf?.note || "LF grant pending";
+                  setMsg(ok ? `Approved ${r.productName} — ${lfNote}` : data.error);
                 }}
               >
                 Approve

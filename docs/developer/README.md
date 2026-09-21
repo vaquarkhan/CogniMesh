@@ -4,7 +4,9 @@
   <img src="../images/dev/01-pipeline-overview.png" alt="CogniMesh pipeline designer overview" width="720" />
 </p>
 
-Visual guides for **customizing pipelines and agents** in the portal and **extending the codebase** (patterns, templates, API, Terraform).
+Visual guides for **customizing pipelines and agents** in the portal and **extending the codebase** (patterns, templates, API, Terraform, SDP/dbt export).
+
+[Documentation map](../README.md) · [Examples](../examples/README.md) · [Tutorials](../tutorials/README.md)
 
 ---
 
@@ -13,6 +15,8 @@ Visual guides for **customizing pipelines and agents** in the portal and **exten
 | Role | Start here |
 |------|------------|
 | **Portal user / data engineer** | [Customize pipelines](CUSTOMIZE_PIPELINES.md) · [Customize agents](CUSTOMIZE_AGENTS.md) |
+| **Analytics / Spark engineer** | [SDP + dbt](../tutorials/sdp-and-dbt.md) · [export example](../examples/sdp-dbt-export.md) |
+| **Trust / steward engineer** | [Proof marketplace](../tutorials/proof-gated-marketplace.md) · [verify example](../examples/proof-verify.md) |
 | **Frontend contributor** | [Extend catalog](EXTEND_CATALOG.md) · [Portal dev](../PORTAL_DEV.md) |
 | **Backend contributor** | [Extend catalog](EXTEND_CATALOG.md#api--contract-layer) · [Data contract](../data-contract-spec.md) |
 | **Tutorial walkthroughs** | [Tutorials hub](../tutorials/README.md) - one guide per pattern & agent |
@@ -60,9 +64,9 @@ All images live in [`docs/images/dev/`](../images/dev/). Regenerate: `npm run bu
 
 | Guide | What you learn |
 |-------|----------------|
-| **[CUSTOMIZE_PIPELINES.md](CUSTOMIZE_PIPELINES.md)** | Load patterns, edit blocks, preview YAML, deploy, marketplace |
+| **[CUSTOMIZE_PIPELINES.md](CUSTOMIZE_PIPELINES.md)** | Load patterns, edit blocks, AWS review, **SDP/dbt export**, preview YAML, deploy, marketplace verify |
 | **[CUSTOMIZE_AGENTS.md](CUSTOMIZE_AGENTS.md)** | Feature checkboxes, templates, guardrails, manifest export |
-| **[EXTEND_CATALOG.md](EXTEND_CATALOG.md)** | Add patterns/templates in code, API hooks, regenerate tutorials |
+| **[EXTEND_CATALOG.md](EXTEND_CATALOG.md)** | Add patterns/templates in code, export + proof APIs, regenerate tutorials |
 
 ---
 
@@ -83,8 +87,10 @@ npm run start:dev
 
 ## Related documentation
 
+- [Documentation map](../README.md) - full index
 - [PORTAL_DEV.md](../PORTAL_DEV.md) - dev environment & file map
 - [AGENT_BUILDER.md](../AGENT_BUILDER.md) - AgentCore tutorial
 - [tutorials/README.md](../tutorials/README.md) - per-pattern & per-agent tutorials
+- [examples/README.md](../examples/README.md) - curl / CLI recipes
 - [drag-drop-pipeline-flow.md](../drag-drop-pipeline-flow.md) - E2E deploy flow
 - [data-contract-spec.md](../data-contract-spec.md) - YAML schema

@@ -28,7 +28,7 @@ The script prints a console URL to start a lens review (Well-Architected Framewo
 | Metrics & alarms | EMF custom metrics (`CogniMesh` namespace), CloudWatch dashboard + SNS alarms (`modules/observability`) |
 | Execution history | Persisted via platform store (DynamoDB in prod) |
 
-**Gaps to discuss in review:** distributed tracing (OTel opt-in, not default-exported to X-Ray); Step Functions execution dashboards not in IaC.
+**Gaps to discuss in review:** OpenTelemetry is opt-in (`OTEL_SDK_ENABLED` - see [OPENTELEMETRY.md](OPENTELEMETRY.md)); Step Functions execution dashboards not in IaC.
 
 ### Security
 
@@ -89,6 +89,6 @@ The script prints a console URL to start a lens review (Well-Architected Framewo
 
 ## Related
 
-- [Terraform README](../infra/terraform/README.md) — deploy order, feature flags
-- [Platform Operations API](PLATFORM_OPS.md) — product observability APIs
+- [Terraform README](../infra/terraform/README.md)  - deploy order, feature flags
+- [Platform Operations API](PLATFORM_OPS.md)  - product observability APIs
 - Security hardening commit: remote state, API tier, WAF, KMS, detective controls

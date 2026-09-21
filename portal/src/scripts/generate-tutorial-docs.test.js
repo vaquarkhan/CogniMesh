@@ -53,20 +53,29 @@ function mdChips(items) {
   return `${items.map((s) => `\`${s}\``).join(" · ")}\n`;
 }
 
-function watchHowItWorks(kind) {
+function watchHowItWorks(kind, patternId) {
   const isPipeline = kind === "pipeline";
-  const file = isPipeline ? "cognimesh-pipeline-demo" : "cognimesh-agent-demo";
-  const alt = isPipeline
+  let file = isPipeline ? "cognimesh-pipeline-demo" : "cognimesh-agent-demo";
+  let alt = isPipeline
     ? "CogniMesh pipeline walkthrough: load a pattern, AWS Design Review, preview YAML, deploy, marketplace"
     : "CogniMesh agent walkthrough: templates and blocks, guardrails, preview manifest, export, deploy";
-  const caption = isPipeline
-    ? "Load a pattern → AWS review → preview YAML → deploy → marketplace"
-    : "Templates &amp; blocks → load agent → guardrails → preview → export → deploy";
+  let caption = isPipeline
+    ? "Load a pattern, AWS review, preview YAML, deploy, marketplace (click to play video)"
+    : "Templates and blocks, load agent, guardrails, preview, export, deploy (click to play video)";
+  if (patternId === "spark-declarative-medallion") {
+    file = "cognimesh-sdp-export-demo";
+    alt = "SDP export: load medallion pattern, AWS review, export spark-pipelines zip";
+    caption = "Captioned SDP export walkthrough (click to play video)";
+  } else if (patternId === "dbt-silver-gold") {
+    file = "cognimesh-dbt-export-demo";
+    alt = "dbt export: load dbt pattern, AWS review, export dbt project zip";
+    caption = "Captioned dbt export walkthrough (click to play video)";
+  }
   return `<p align="center">
   <a href="../../assets/${file}.mp4">
     <img src="../../assets/${file}-poster.png" alt="${alt}" width="720" />
   </a>
-  <br /><em>${caption} — click to play video</em>
+  <br /><em>${caption}</em>
 </p>
 `;
 }
@@ -151,7 +160,7 @@ ${p.whenToUse || "Use when this architecture matches your latency, governance, a
 
 ## How it works
 
-${watchHowItWorks("pipeline")}
+${watchHowItWorks("pipeline", p.id)}
 \`\`\`
 ${p.exampleFlow || p.architectureDiagram || "Source → Transform → Sink (see canvas)"}
 \`\`\`
@@ -358,7 +367,10 @@ function writeIndex(pipelines, agents) {
 | Goal | Start here |
 |------|------------|
 | **UI walkthrough (video)** | [Getting started UI](getting-started-ui.md) |
+| **Proof-gated marketplace** | [Verify proofs, trust grade, SLA](proof-gated-marketplace.md) · [video](../assets/cognimesh-marketplace-proof-demo.mp4) |
+| **SDP + dbt export** | [Spark Declarative Pipelines and dbt](sdp-and-dbt.md) · [SDP video](../assets/cognimesh-sdp-export-demo.mp4) · [dbt video](../assets/cognimesh-dbt-export-demo.mp4) |
 | **How it works (video)** | [Captioned tour](../assets/cognimesh-howto-demo.mp4) · [Pipeline](../assets/cognimesh-pipeline-demo.mp4) · [Agent](../assets/cognimesh-agent-demo.mp4) |
+| **SDP / dbt / marketplace videos** | [SDP export](../assets/cognimesh-sdp-export-demo.mp4) · [dbt export](../assets/cognimesh-dbt-export-demo.mp4) · [Marketplace proof](../assets/cognimesh-marketplace-proof-demo.mp4) |
 | **Data pipeline** | [Pipeline tutorials](#data-pipeline-tutorials) |
 | **AI agent** | [Agent tutorials](#agent-tutorials) |
 | Local dev | \`npm run start:dev\` → http://localhost:3000 |

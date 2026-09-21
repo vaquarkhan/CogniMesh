@@ -205,6 +205,8 @@ export default function AwsDesignReviewHUD({
   applyingFindingId,
   onExportDrawio,
   onExportTerraform,
+  onExportSdp,
+  onExportDbt,
   focusFindingId,
   autoLoadFixForId,
   onFocusFindingHandled,
@@ -486,9 +488,25 @@ export default function AwsDesignReviewHUD({
               >
                 Export infrastructure (Terraform)
               </button>
+              <button
+                type="button"
+                className="btn-secondary compact"
+                data-testid="export-spark-declarative"
+                onClick={() => onExportSdp?.()}
+              >
+                Export Spark Declarative Pipelines
+              </button>
+              <button
+                type="button"
+                className="btn-secondary compact"
+                data-testid="export-dbt-project"
+                onClick={() => onExportDbt?.()}
+              >
+                Export dbt project
+              </button>
             </div>
             <p className="properties-hint">
-              Open .drawio in diagrams.net → Export as PNG/SVG. Terraform covers RDS sources set to Create new.
+              Open .drawio in diagrams.net. Terraform covers Create-new RDS/S3. SDP uses \`spark-pipelines run\` (Spark 4.1+). dbt owns SQL tests; CogniMesh still proof-gates Iceberg publish.
             </p>
           </details>
 

@@ -34,9 +34,11 @@
 
 Automated Playwright captures: `npm run docs:screenshots` → `docs/assets/` and `docs/images/`.
 
-**Tutorials:** [docs/tutorials/README.md](tutorials/README.md) - one real-world guide per architecture pattern (26) and AgentCore template (8).
+**Tutorials:** [docs/tutorials/README.md](tutorials/README.md) - one real-world guide per wired architecture pattern (**28**) and AgentCore template (**8**), plus SDP / dbt / marketplace captioned videos.
 
 **Developer customization:** [docs/developer/README.md](developer/README.md) - 21 annotated screenshots · customize pipelines & agents · extend catalog in code.
+
+**Docs map:** [docs/README.md](README.md)
 
 See also [README - Zero-code portal](../README.md#zero-code-portal).
 
@@ -58,7 +60,7 @@ From **AI Builder → AI agent**, describe an agent and CogniMesh switches to Ag
 | Tab | Purpose |
 |-----|---------|
 | **AI Builder** | **Data pipeline** - natural language → architecture pattern (local rules, no JSON/API). **AI agent** - natural language → AgentCore template → opens Agent Builder |
-| **Architectures** | 28+ patterns with mesh / lake / kappa / lambda filters · sticky filters · scroll resets to top on tab change |
+| **Architectures** | 28 wired patterns (+ blank) with mesh / lake / kappa / lambda / SDP / dbt filters · sticky filters · scroll resets to top on tab change |
 | **AWS Blocks** | Drag Glue, Kinesis, MSK, DMS, ETL/ELT transforms |
 | **Guide** | Step-by-step workflow |
 

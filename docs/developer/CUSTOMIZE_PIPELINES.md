@@ -2,7 +2,7 @@
 
 Step-by-step guide to customizing pipelines in the CogniMesh portal - with screenshots for every major screen.
 
-[← Developer hub](README.md) · [Extend patterns in code](EXTEND_CATALOG.md#add-a-pipeline-pattern)
+[← Developer hub](README.md) · [Extend patterns in code](EXTEND_CATALOG.md#add-a-pipeline-pattern) · [Docs map](../README.md)
 
 ---
 
@@ -16,7 +16,7 @@ Step-by-step guide to customizing pipelines in the CogniMesh portal - with scree
 
 | Method | When to use |
 |--------|-------------|
-| **Architectures** tab | You know the pattern (Data Mesh, Kappa, Lambda λ, …) |
+| **Architectures** tab | You know the pattern (Data Mesh, Kappa, Lambda λ, SDP, dbt, …) |
 | **AI Builder → Data pipeline** | Describe in English; get a plan first |
 | **AWS Blocks** tab | Blank canvas - drag blocks manually |
 
@@ -67,7 +67,9 @@ Click any block on the canvas. The **right panel** shows fields for that block t
 | Block type | Customize |
 |------------|-----------|
 | **RDS source** | `database`, `table`, `primaryKey`, CDC on/off |
-| **Glue / Spark transform** | `sparkSql`, `schedule`, processing mode (ETL/ELT) |
+| **Glue / Spark SQL transform** | `sparkSql`, `schedule`, processing mode (ETL/ELT) |
+| **SDP (`spark_declarative`)** | Gold SQL + optional bronze/silver SDP SQL; export zip from Design Review |
+| **dbt transform** | Model `SELECT`, profile, materialization; export dbt project from Design Review |
 | **Iceberg sink** | S3 `location`, Glue `catalogDatabase`, `catalogTable` |
 | **Integrity gate** | Vaquar PVDM / mesh gate settings |
 | **Pipeline settings** | `name`, `domain`, `version`, schema evolution policy |
@@ -99,7 +101,7 @@ Sidebar → **Guide** shows current step: pick → connect → customize → pre
 
 ---
 
-## 6. AWS Design Review
+## 6. AWS Design Review (+ SDP / dbt export)
 
 <p align="center">
   <img src="../images/dev/10-aws-design-review.png" alt="AWS Design Review HUD" width="720" />
@@ -107,7 +109,20 @@ Sidebar → **Guide** shows current step: pick → connect → customize → pre
 
 Requires API on port **4000**. Header → **AWS Review** - security & architecture scores, findings per block.
 
-Customize behavior: `lib/aws-design-review/` · API `POST /api/v1/pipelines/design-review`
+Under **Service topology map & export**:
+
+| Button | Output |
+|--------|--------|
+| Export draw.io | Architecture diagram |
+| Export infrastructure | Terraform zip |
+| **Export Spark Declarative Pipelines** | `spark-pipeline.yml` + bronze/silver/gold SQL |
+| **Export dbt project** | models, sources, schema tests |
+
+SDP / dbt success is **observational**. Iceberg publish still needs VRP PASS.  
+Tutorials: [SDP and dbt](../tutorials/sdp-and-dbt.md) · Examples: [sdp-dbt-export](../examples/sdp-dbt-export.md)
+
+Customize behavior: `lib/aws-design-review/` · API `POST /api/v1/pipelines/design-review`  
+Export engines: `lib/export/`
 
 ---
 
@@ -125,7 +140,7 @@ The graph compiles to `DataContract.yaml` via `lib/contract-builder/graph-to-con
 
 ---
 
-## 8. Deploy & marketplace
+## 8. Deploy & marketplace (trust + verify)
 
 **Deploy:** Header → **Deploy Pipeline** → confirm → API compiles Step Functions + integrity gate.
 
@@ -133,7 +148,16 @@ The graph compiles to `DataContract.yaml` via `lib/contract-builder/graph-to-con
   <img src="../images/dev/12-marketplace-panel.png" alt="Marketplace consumer panel" width="480" />
 </p>
 
-**Marketplace:** Header → **Marketplace** - browse products, schema, sample rows, request access.
+**Marketplace:** Panels menu → **Marketplace**
+
+| Consumer tool | Purpose |
+|---------------|---------|
+| Trust grade / badges | Profile A/T/O, snapshot pin, SLA freshness |
+| Sample rows | Fail-closed until VRP PASS |
+| **Verify proof** | Paste VRP JSON - no AWS credentials |
+| **Diff proofs** | Compare two publications |
+
+Tutorial: [Proof-gated marketplace](../tutorials/proof-gated-marketplace.md) · Example: [proof-verify](../examples/proof-verify.md)
 
 ---
 
@@ -142,12 +166,14 @@ The graph compiles to `DataContract.yaml` via `lib/contract-builder/graph-to-con
 | Task | Where |
 |------|--------|
 | Change default pattern graph | `portal/src/lib/patterns/architecture-patterns.js` |
-| Add domain pattern | `portal/src/lib/patterns/extra-patterns.js` |
+| Add domain / SDP / dbt pattern | `portal/src/lib/patterns/extra-patterns.js` |
 | Change graph → contract rules | `lib/contract-builder/graph-to-contract.js` |
-| Change integrity / PVDM rules | `lib/integrity-gate/rules-engine.js` |
+| Change SDP / dbt zip layout | `lib/export/spark-declarative.js` · `lib/export/dbt-project.js` |
+| Change integrity / PVDM rules | `lib/integrity-gate/rules-engine.js` · `lib/vrp/` |
 | Change Step Functions output | `services/pipeline-engine/compile.js` |
 | Add API endpoint | `services/api-gateway/server.js` |
 | Regenerate tutorials | `npm run docs:tutorials` |
+| Regenerate captioned demos | `npm run docs:demo` |
 | Regenerate screenshots | `npm run docs:screenshots` |
 
 → Full code guide: **[EXTEND_CATALOG.md](EXTEND_CATALOG.md)**
@@ -157,5 +183,6 @@ The graph compiles to `DataContract.yaml` via `lib/contract-builder/graph-to-con
 ## See also
 
 - [Tutorial hub](../tutorials/README.md)
+- [Documentation map](../README.md)
 - [Vaquar Pattern](../vaquar-pattern.md)
 - [Data contract spec](../data-contract-spec.md)

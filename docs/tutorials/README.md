@@ -25,7 +25,10 @@
 | Goal | Start here |
 |------|------------|
 | **UI walkthrough (video)** | [Getting started UI](getting-started-ui.md) |
+| **Proof-gated marketplace** | [Verify proofs, trust grade, SLA](proof-gated-marketplace.md) · [video](../assets/cognimesh-marketplace-proof-demo.mp4) |
+| **SDP + dbt export** | [Spark Declarative Pipelines and dbt](sdp-and-dbt.md) · [SDP video](../assets/cognimesh-sdp-export-demo.mp4) · [dbt video](../assets/cognimesh-dbt-export-demo.mp4) |
 | **How it works (video)** | [Captioned tour](../assets/cognimesh-howto-demo.mp4) · [Pipeline](../assets/cognimesh-pipeline-demo.mp4) · [Agent](../assets/cognimesh-agent-demo.mp4) |
+| **SDP / dbt / marketplace videos** | [SDP export](../assets/cognimesh-sdp-export-demo.mp4) · [dbt export](../assets/cognimesh-dbt-export-demo.mp4) · [Marketplace proof](../assets/cognimesh-marketplace-proof-demo.mp4) |
 | **Data pipeline** | [Pipeline tutorials](#data-pipeline-tutorials) |
 | **AI agent** | [Agent tutorials](#agent-tutorials) |
 | Local dev | `npm run start:dev` → http://localhost:3000 |
@@ -82,6 +85,7 @@ flowchart LR
 
 | Tutorial | Level | Summary |
 |----------|-------|--------|
+| [dbt Silver → Gold (+ PVDM)](pipelines/dbt-silver-gold.md) | Intermediate | Use dbt for SQL modeling and schema tests, then publish through CogniMesh so Iceberg … |
 | [ELT - Load First → Redshift Transform](pipelines/arch-elt-redshift.md) | Intermediate | Classic cloud ELT: land raw files on S3, COPY into Redshift staging, transform with S… |
 | [Glue ETL Factory - Multi-Stage Pipeline](pipelines/arch-glue-etl-factory.md) | Advanced | Enterprise ETL chain entirely on AWS Glue: extract (DMS) → ELT bronze → ETL cleanse →… |
 
@@ -109,6 +113,7 @@ flowchart LR
 | Tutorial | Level | Summary |
 |----------|-------|--------|
 | [Lakehouse - Iceberg Medallion + ACID](pipelines/arch-lakehouse-iceberg.md) | Intermediate | Modern lakehouse: Iceberg tables at each medallion layer with ACID commits, time trav… |
+| [Spark Declarative Pipelines (SDP) Medallion](pipelines/spark-declarative-medallion.md) | Intermediate | Author bronze/silver/gold as Spark Declarative Pipelines (CREATE OR REFRESH MATERIALI… |
 
 ### Lambda Architecture
 

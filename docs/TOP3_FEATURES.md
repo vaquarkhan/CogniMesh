@@ -57,6 +57,10 @@ Without flags, deploy **compiles + registers catalog + local/demo VRP** - portal
 | Open in Athena | Demo | Pre-filled `SELECT * … LIMIT 10` link |
 | Access status for consumer | Demo | Pending / approved / rejected in product detail |
 | Proof-gated product banner + trust grade | Demo | Marketplace detail: VRP PASS, Profile A/T/O, source snapshot, consumer snapshot pin |
+| Offline proof verify + diff | Demo | Marketplace paste JSON, `POST /api/v1/proofs/verify`, `POST /api/v1/proofs/diff` |
+| Fail-closed samples + proof SLA | Demo | Samples withheld without VRP PASS; freshness is hours since last PASS |
+| Spark Declarative Pipelines export | Demo | AWS Design Review → Export SDP zip (`spark-pipelines run`) |
+| dbt project export | Demo | AWS Design Review → Export dbt zip (`dbt run` / `dbt test`) |
 
 **Try it:** Deploy pipeline → **Panels → Marketplace** → Request Access → **Approvals** → Approve (catalog status only until LF is wired).
 

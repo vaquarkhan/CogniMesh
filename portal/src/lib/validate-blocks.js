@@ -70,10 +70,13 @@ function validateSimplePipeline(nodes, edges) {
     errors.push("Sink: target location required");
   }
 
-  if (transform?.data?.blockType === "transform" && transform.data.transformType === "spark_sql") {
+  if (
+    transform?.data?.blockType === "transform" &&
+    ["spark_sql", "spark_declarative", "dbt"].includes(transform.data.transformType)
+  ) {
     if (!transform.data.sparkSql?.trim()) {
-      byNode[transform.id] = "Spark SQL required";
-      errors.push("Transform: Spark SQL required");
+      byNode[transform.id] = "Spark SQL / SQL required";
+      errors.push("Transform: Spark SQL / SQL required");
     }
   }
 

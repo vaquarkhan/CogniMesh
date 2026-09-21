@@ -6,7 +6,15 @@
 /** @see sourceConfig.type in data-contract-v1.schema.json */
 export const SOURCE_TYPES = ["rds", "mysql", "s3", "kafka", "kinesis", "media_url", "api"];
 
-export const TRANSFORM_TYPES = ["spark_sql", "glue_etl", "glue_streaming", "agentic", "passthrough"];
+export const TRANSFORM_TYPES = [
+  "spark_sql",
+  "spark_declarative",
+  "dbt",
+  "glue_etl",
+  "glue_streaming",
+  "agentic",
+  "passthrough",
+];
 
 export const TARGET_TYPES = ["s3", "iceberg", "redshift", "delta"];
 

@@ -65,6 +65,19 @@ async function safeJson(res, context) {
   return parseJsonResponse(res, context);
 }
 
+/** Prefer API `errors` + `fixHint` + `code` for actionable toasts. */
+export function formatApiFailure(data, fallback) {
+  const errors = (data?.errors || []).filter(Boolean);
+  const err = data?.error || data?.reason;
+  const parts = [];
+  if (data?.code) parts.push(`[${data.code}]`);
+  if (errors.length) parts.push(errors.join("; "));
+  else if (err) parts.push(err);
+  else parts.push(fallback);
+  if (data?.fixHint) parts.push(data.fixHint);
+  return parts.join(" ").replace(/\s+/g, " ").trim();
+}
+
 export async function previewPipeline({ nodes, edges, pipelineMeta, token }) {
   const res = await apiFetch("/api/v1/pipelines/preview", {
     method: "POST",
@@ -104,6 +117,80 @@ export async function listProducts({ token, domain } = {}) {
   if (!res.ok) throw new Error("Failed to load marketplace");
   const data = await safeJson(res, "Products");
   if (!data) throw new Error("Marketplace API unavailable");
+  return data;
+}
+
+/** Trust-ranked marketplace search (`/api/v1/marketplace/products`). */
+export async function searchMarketplaceProducts({
+  token,
+  q,
+  domain,
+  grade,
+  proofGated,
+  fresh,
+  sort = "trust",
+  limit = 50,
+} = {}) {
+  const params = new URLSearchParams();
+  if (q) params.set("q", q);
+  if (domain) params.set("domain", domain);
+  if (grade) params.set("grade", grade);
+  if (proofGated) params.set("proofGated", "true");
+  if (fresh) params.set("fresh", "true");
+  if (sort) params.set("sort", sort);
+  if (limit) params.set("limit", String(limit));
+  const qs = params.toString() ? `?${params}` : "";
+  const res = await apiFetch(`/api/v1/marketplace/products${qs}`, { token });
+  const data = await safeJson(res, "Marketplace search");
+  if (!res.ok || !data || data.status === "error") {
+    throw new Error(formatApiFailure(data, "Marketplace search failed"));
+  }
+  return data;
+}
+
+export async function getMarketplaceCatalog({ token } = {}) {
+  const res = await apiFetch("/api/v1/marketplace", { token });
+  const data = await safeJson(res, "Marketplace catalog");
+  if (!res.ok || !data) throw new Error("Marketplace catalog unavailable");
+  return data;
+}
+
+export async function issueMarketplaceSubscriptionToken({ token, productId, proofId } = {}) {
+  const res = await apiFetch(`/api/v1/marketplace/products/${encodeURIComponent(productId)}/subscription-token`, {
+    method: "POST",
+    token,
+    body: JSON.stringify(proofId ? { proofId } : {}),
+  });
+  const data = await safeJson(res, "Subscription token");
+  if (!res.ok || !data || data.status === "error") {
+    throw new Error(formatApiFailure(data, "Could not issue subscription token"));
+  }
+  return data;
+}
+
+export async function diffMarketplaceSchemas({ token, productId, left, right } = {}) {
+  const res = await apiFetch(`/api/v1/marketplace/products/${encodeURIComponent(productId)}/schema-diff`, {
+    method: "POST",
+    token,
+    body: JSON.stringify({ left, right }),
+  });
+  const data = await safeJson(res, "Schema diff");
+  if (!res.ok || !data || data.status === "error") {
+    throw new Error(formatApiFailure(data, "Schema diff failed"));
+  }
+  return data;
+}
+
+export async function subscribeMarketplaceSla({ token, productId, slaMinutes, webhookUrl, channel } = {}) {
+  const res = await apiFetch("/api/v1/marketplace/sla", {
+    method: "POST",
+    token,
+    body: JSON.stringify({ productId, slaMinutes, webhookUrl, channel }),
+  });
+  const data = await safeJson(res, "SLA subscribe");
+  if (!res.ok || !data || data.status === "error") {
+    throw new Error(formatApiFailure(data, "SLA subscribe failed"));
+  }
   return data;
 }
 
@@ -241,6 +328,68 @@ export async function getProductConsumerDetail({ token, productId }) {
   return data;
 }
 
+export async function exportSparkDeclarative({ token, nodes, edges, pipelineMeta }) {
+  const res = await apiFetch("/api/v1/pipelines/export/spark-declarative", {
+    method: "POST",
+    token,
+    body: JSON.stringify({ nodes, edges, pipelineMeta }),
+  });
+  const data = await safeJson(res, "SDP export");
+  if (!res.ok || !data || data.status !== "success") {
+    throw new Error(
+      formatApiFailure(
+        data,
+        res.status === 0 || !data
+          ? "SDP export failed - is the API running? npm run start:dev (port 4000)."
+          : "Spark Declarative Pipelines export failed"
+      )
+    );
+  }
+  return data;
+}
+
+export async function exportDbtProject({ token, nodes, edges, pipelineMeta }) {
+  const res = await apiFetch("/api/v1/pipelines/export/dbt", {
+    method: "POST",
+    token,
+    body: JSON.stringify({ nodes, edges, pipelineMeta }),
+  });
+  const data = await safeJson(res, "dbt export");
+  if (!res.ok || !data || data.status !== "success") {
+    throw new Error(
+      formatApiFailure(
+        data,
+        res.status === 0 || !data
+          ? "dbt export failed - is the API running? npm run start:dev (port 4000)."
+          : "dbt export failed"
+      )
+    );
+  }
+  return data;
+}
+
+export async function verifyVrpProofApi({ token, proof, publicKeyPem, requireSignature }) {
+  const res = await apiFetch("/api/v1/proofs/verify", {
+    method: "POST",
+    token,
+    body: JSON.stringify({ proof, publicKeyPem, requireSignature }),
+  });
+  const data = await safeJson(res, "Proof verify");
+  if (!data) throw new Error("Proof verify unavailable");
+  return data;
+}
+
+export async function diffVrpProofsApi({ token, left, right }) {
+  const res = await apiFetch("/api/v1/proofs/diff", {
+    method: "POST",
+    token,
+    body: JSON.stringify({ left, right }),
+  });
+  const data = await safeJson(res, "Proof diff");
+  if (!data) throw new Error(data?.error || "Proof diff unavailable");
+  return data;
+}
+
 export async function listPendingAccessRequests({ token }) {
   const res = await apiFetch("/api/v1/access-requests/pending", { token });
   if (!res.ok) throw new Error("Failed to load access requests");
@@ -249,10 +398,11 @@ export async function listPendingAccessRequests({ token }) {
   return data;
 }
 
-export async function approveAccessRequest({ token, requestId }) {
+export async function approveAccessRequest({ token, requestId, principalArn } = {}) {
   const res = await apiFetch(`/api/v1/access-requests/${encodeURIComponent(requestId)}/approve`, {
     method: "POST",
     token,
+    body: JSON.stringify(principalArn ? { principalArn } : {}),
   });
   const data = await safeJson(res, "Approve");
   return { ok: res.ok, data: data || {} };
